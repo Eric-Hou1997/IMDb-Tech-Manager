@@ -23,11 +23,9 @@
 
 **IMDb Tech Manager** 是一个面向影视作品技术信息管理的项目。
 
-<br>
+</p>
 
 <img src="./docs/images/poster.jpg" alt="IMDb Tech Manager Poster" width="820">
-
-</div>
 
 </p>
 
