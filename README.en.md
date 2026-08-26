@@ -23,7 +23,7 @@ Technical specifications and metadata management for film & media libraries.
 
 **IMDb Tech Manager** is a project focused on managing technical information for film and television productions.
 
-<br>
+</p>
 
 <img src="./docs/images/poster.jpg" alt="IMDb Tech Manager Poster" width="820">
 
