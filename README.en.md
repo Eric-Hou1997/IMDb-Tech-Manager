@@ -19,7 +19,7 @@ Technical specifications and metadata management for film & media libraries.
 
 **IMDb Tech Manager** is a project focused on managing technical information related to films and television productions.
 
-<br>
+</p>
 
 <img src="./docs/images/poster.jpg" alt="IMDb Tech Manager Poster" width="820">
 
@@ -165,6 +165,8 @@ Future versions may support additional:
 
 </div>
 
+</p>
+
 The NFO data-management side handles IMDb Technical Specifications acquisition, technical-specification processing, tag generation, and batch tasks.
 
 ### NFO Management
@@ -175,6 +177,8 @@ The NFO data-management side handles IMDb Technical Specifications acquisition, 
 
 </div>
 
+</p>
+
 Tag management provides workflows for reviewing, previewing, and modifying technical metadata while preserving manual corrections.
 
 ### Media Library Technical Information
@@ -184,6 +188,8 @@ Tag management provides workflows for reviewing, previewing, and modifying techn
 <img src="./docs/images/media-library-card.png" alt="IMDb Tech Manager Media Library Technical Specifications" width="900">
 
 </div>
+
+</p>
 
 Processed technical specifications can be used to provide richer technical information inside media libraries.
 
