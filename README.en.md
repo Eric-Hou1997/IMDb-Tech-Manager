@@ -4,10 +4,14 @@
 
 [简体中文](./README.md) | **English**
 
-[![Release](https://img.shields.io/badge/release-coming%20soon-lightgrey)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
-[![Downloads](https://img.shields.io/badge/downloads-coming%20soon-lightgrey)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+<p align="center">
+
+[![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+[![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat\&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/pulls)
+
+</p>
 
 Technical specifications and metadata management for film & media libraries.
 
@@ -17,17 +21,19 @@ Technical specifications and metadata management for film & media libraries.
 
 ## 🎬 About
 
-**IMDb Tech Manager** is a project focused on managing technical information related to films and television productions.
+**IMDb Tech Manager** is a project focused on managing technical information for film and television productions.
 
-</p>
+<br>
 
 <img src="./docs/images/poster.jpg" alt="IMDb Tech Manager Poster" width="820">
 
 </div>
 
-It focuses on acquiring, structuring, normalizing, and applying **IMDb Technical Specifications**, transforming relatively scattered production information into metadata that can be managed, searched, and presented inside personal media libraries.
+</p>
 
-The project currently focuses on:
+The project focuses on acquiring, structuring, normalizing, and applying **IMDb Technical Specifications**, transforming relatively scattered production information into metadata that can be managed, searched, and presented inside personal media libraries.
+
+Current areas of focus include:
 
 * IMDb Technical Specifications
 * NFO metadata management
@@ -36,15 +42,55 @@ The project currently focuses on:
 * Film and digital capture formats
 * Production and presentation formats
 * Technical metadata normalization
-* Media library presentation
+* Media library technical information presentation
 * AI-assisted semantic processing
 * Coding Agent-assisted development
 
 Most media libraries already provide excellent information about titles, cast members, release years, resolution, codecs, and audio formats.
 
-However, information such as **which cameras and lenses were used, how a production was captured, which film or digital formats were involved, and how the final work was mastered or presented** is rarely preserved in a structured and useful way.
+However, information such as **which cameras and lenses were used, which film or digital capture formats were involved, what production processes were used, and how the final work was mastered and presented** is rarely preserved and presented in a complete, structured way.
 
 IMDb Tech Manager aims to bring this information into the personal media-library workflow.
+
+---
+
+## 🖼️ Screenshots
+
+### Data Management
+
+<div align="center">
+
+<img src="./docs/images/data-management.png" alt="IMDb Tech Manager Data Management" width="900">
+
+</div>
+
+</p>
+
+The NFO data management side is used for IMDb Technical Specifications acquisition, technical specification organization, tag generation, and batch task management.
+
+### NFO Management
+
+<div align="center">
+
+<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="900">
+
+</div>
+
+</p>
+
+Tag management is used to inspect, preview, and modify technical metadata in the media library, while allowing users to manually correct automatically generated content.
+
+### Media Library Technical Specifications
+
+<div align="center">
+
+<img src="./docs/images/media-library-card.png" alt="IMDb Tech Manager Media Library Technical Specifications" width="900">
+
+</div>
+
+</p>
+
+Processed technical specifications can be further used for technical information presentation inside media libraries.
 
 ---
 
@@ -64,9 +110,7 @@ Technical tag generation
 Technical information presentation in media libraries
 ```
 
-The goal is not simply to preserve raw text from IMDb.
-
-The project aims to transform technical specifications into structured information that can be:
+The goal is not simply to preserve raw text from IMDb pages. Instead, the project aims to transform these technical specifications into structured information that can be:
 
 * Managed
 * Normalized
@@ -144,54 +188,14 @@ Current implementations focus on:
 * A data-management application currently running on **macOS**
 * A media-library presentation and integration solution currently developed around **Emby**
 
-These are simply the implementations that currently exist.
+These are simply the implementations that currently exist and do not mean the project can only run on these platforms in the future.
 
-Future versions may support additional:
+Future versions may support:
 
-* Operating systems
-* Media servers
-* Deployment environments
-* Client applications
-
----
-
-## 🖼️ Screenshots
-
-### Data Management
-
-<div align="center">
-
-<img src="./docs/images/data-management.png" alt="IMDb Tech Manager Data Management" width="900">
-
-</div>
-
-</p>
-
-The NFO data-management side handles IMDb Technical Specifications acquisition, technical-specification processing, tag generation, and batch tasks.
-
-### NFO Management
-
-<div align="center">
-
-<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="900">
-
-</div>
-
-</p>
-
-Tag management provides workflows for reviewing, previewing, and modifying technical metadata while preserving manual corrections.
-
-### Media Library Technical Information
-
-<div align="center">
-
-<img src="./docs/images/media-library-card.png" alt="IMDb Tech Manager Media Library Technical Specifications" width="900">
-
-</div>
-
-</p>
-
-Processed technical specifications can be used to provide richer technical information inside media libraries.
+* Additional operating systems
+* Additional media servers
+* Additional deployment environments
+* Additional client applications
 
 ---
 
@@ -201,7 +205,7 @@ Processed technical specifications can be used to provide richer technical infor
 
 When a problem can be reliably solved using explicit rules, deterministic local logic is preferred.
 
-Typical examples include:
+Examples include:
 
 * Known format mappings
 * Tag normalization
@@ -261,11 +265,11 @@ This applies especially to:
 
 Automatically generated data should not silently overwrite user-maintained metadata without a clear reason.
 
-User-created corrections and tags should remain under user control.
+User-created additions, modifications, and corrections should remain under user control.
 
-### 6. Keep behavior observable
+### 6. Keep behavior observable and verifiable
 
-The project aims to make important background operations visible and verifiable.
+The project aims to make important background operations as transparent as practical.
 
 Useful information may include:
 
@@ -286,13 +290,13 @@ Useful information may include:
 
 IMDb Tech Manager is also exploring a development workflow designed for modern Coding Agents.
 
-When the source code is publicly released, the repository plans to provide:
+When the source code is publicly released, the Repository plans to provide:
 
 **`AGENTS.md`**
 
-This file will act as a project-level guide for Coding Agents.
+This file will act as an important entry point for Coding Agents to understand the project.
 
-It is expected to describe:
+It is expected to include:
 
 * Project goals
 * Software architecture
@@ -300,14 +304,14 @@ It is expected to describe:
 * Module responsibilities
 * Module boundaries
 * Development principles
-* Design constraints
+* Design constraints that should not be broken
 * Coding conventions
 * Testing requirements
 * Build procedures
 * Release workflow
 * Known issues
-* Common pitfalls
-* Required checks before completing a change
+* Common development pitfalls
+* Required checks before completing a code change
 
 The intended workflow is:
 
@@ -331,7 +335,7 @@ Verifies the result
 Submits a Pull Request
 ```
 
-The project intends to open more than just source code.
+The project intends to make more than just its source code available.
 
 Where practical, it also aims to share:
 
@@ -347,7 +351,7 @@ Testing Workflows
 Agent Context
 ```
 
-This should make the project easier to understand and modify, both for developers and for Coding Agents assisting them.
+This should make the project easier for both developers and Coding Agents to understand, modify, and extend.
 
 ---
 
@@ -355,7 +359,7 @@ This should make the project easier to understand and modify, both for developer
 
 IMDb Tech Manager is currently under **active development**.
 
-The public repository is currently being used for:
+The public Repository is currently being used for:
 
 * 📖 Project documentation
 * 🧭 Roadmap planning
@@ -369,7 +373,7 @@ The public repository is currently being used for:
 
 **The source code has not yet been officially released.**
 
-Before the source release, the project still needs to complete work such as:
+Before the source release, the project still needs to complete:
 
 * Code cleanup
 * Sensitive-information review
@@ -381,7 +385,7 @@ Before the source release, the project still needs to complete work such as:
 * License selection
 * Release workflow preparation
 
-The source code will be added to this repository once it is ready for public release.
+The source code will be added to this Repository once preparations for the public release are complete.
 
 ---
 
@@ -389,7 +393,7 @@ The source code will be added to this repository once it is ready for public rel
 
 * [ ] Improve public documentation
 * [ ] Document the project architecture
-* [ ] Complete source-release security review
+* [ ] Complete the pre-release security review
 * [ ] Review Git history before publication
 * [ ] Prepare and publish `AGENTS.md`
 * [ ] Establish a stable testing workflow
@@ -397,9 +401,9 @@ The source code will be added to this repository once it is ready for public rel
 * [ ] Establish a standard Release workflow
 * [ ] Improve Technical Specifications normalization
 * [ ] Expand supported technical-specification data
-* [ ] Improve media-library technical-information presentation
-* [ ] Explore additional operating-system support
-* [ ] Explore additional media-server support
+* [ ] Improve media-library technical information presentation
+* [ ] Explore support for additional operating systems
+* [ ] Explore support for additional media servers
 * [ ] Improve Coding Agent development workflows
 
 The Roadmap will continue to evolve as the project develops.
@@ -408,11 +412,11 @@ The Roadmap will continue to evolve as the project develops.
 
 ## 💬 Discussions
 
-Ideas, technical discussions, UI concepts, metadata rules, media-library integration ideas, and development workflows are welcome in:
+Feature ideas, technical approaches, UI design, data-normalization rules, media-library integration methods, and development workflows are all welcome here:
 
 [**GitHub Discussions →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/discussions)
 
-Discussions are also a good place for ideas that are not yet concrete enough to become formal Issues.
+If an idea is not yet concrete enough to become a formal Issue, Discussions are also a good place to explore it first.
 
 ---
 
@@ -426,20 +430,20 @@ Confirmed bugs, reproducible problems, and clearly defined feature requests can 
 
 ## 🤝 Contributing
 
-The source code has not yet been publicly released.
+The project source code has not yet been officially released.
 
 At the current stage, contributions are mainly welcome through Discussions and Issues, including:
 
 * Feature suggestions
 * Technical approaches
-* Metadata normalization ideas
-* Camera / lens / production-format knowledge
+* Metadata-normalization ideas
+* Camera / lens / production-format information
 * UI / UX feedback
 * Bug reports
 * Media-library integration ideas
 * Agent workflow suggestions
 
-More complete contribution guidelines will be provided when the source code is opened.
+More complete contribution guidelines and Coding Agent development documentation will be provided when the source code is opened.
 
 ---
 
@@ -455,7 +459,7 @@ A clear `LICENSE` file describing the rules for using, modifying, and distributi
 
 IMDb Tech Manager is an independently developed project.
 
-It is **not officially affiliated with or endorsed by IMDb, Emby, or other third-party platforms**.
+It is **not officially affiliated with, authorized by, or endorsed by IMDb, Emby, or other third-party platforms**.
 
 Third-party names, trademarks, data, and services belong to their respective owners.
 
@@ -467,6 +471,6 @@ Users are responsible for ensuring that their use of third-party data and servic
 
 IMDb Tech Manager is still evolving.
 
-If you have ideas about IMDb technical data, normalization rules, cameras and lenses, media-library presentation, additional media-server support, workflow automation, or Coding Agent integration, feel free to join the Discussions.
+If you have ideas about IMDb technical data, normalization rules, cameras and lenses, media-library presentation, support for other media servers, workflow automation, or Coding Agent integration, feel free to join the Discussions.
 
 Ideas are welcome even when the implementation is not yet obvious.
