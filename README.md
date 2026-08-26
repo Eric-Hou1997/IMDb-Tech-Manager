@@ -4,10 +4,14 @@
 
 **简体中文** | [English](./README.en.md)
 
-[![Release](https://img.shields.io/badge/release-coming%20soon-lightgrey)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
-[![Downloads](https://img.shields.io/badge/downloads-coming%20soon-lightgrey)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
-[![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat\&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
+<p align="center">
+
+[![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+[![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+[![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/pulls)
+
+</p>
 
 影视技术规格与媒体库元数据管理工具
 
