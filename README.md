@@ -25,7 +25,7 @@
 
 </p>
 
-<img src="./docs/images/poster.jpg" alt="IMDb Tech Manager Poster" width="820">
+<img src="./docs/images/poster.jpg" alt="IMDb Tech Manager Poster" width="700">
 
 </div>
 
@@ -60,7 +60,7 @@ IMDb Tech Manager 希望把这些信息真正带进个人影视媒体库的工�
 
 <div align="center">
 
-<img src="./docs/images/data-management.png" alt="IMDb Tech Manager Data Management" width="900">
+<img src="./docs/images/data-management.png" alt="IMDb Tech Manager Data Management" width="700">
 
 </div>
 
@@ -72,7 +72,7 @@ nfo数据管理端用于 IMDb Technical Specifications 获取、技术规格整�
 
 <div align="center">
 
-<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="900">
+<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="700">
 
 </div>
 
