@@ -8,7 +8,7 @@
 
 [![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
-[![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
+[![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat\&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/pulls)
 
 </p>
@@ -51,6 +51,46 @@
 但一部影视作品**使用了什么摄影机、什么镜头、采用什么胶片或数字采集格式、经过怎样的制作流程，以及最终以什么规格完成和放映**，通常并没有得到完整、结构化的保存和展示。
 
 IMDb Tech Manager 希望把这些信息真正带进个人影视媒体库的工作流中。
+
+---
+
+## 🖼️ 界面预览
+
+### 数据管理
+
+<div align="center">
+
+<img src="./docs/images/data-management.png" alt="IMDb Tech Manager Data Management" width="900">
+
+</div>
+
+</p>
+
+nfo数据管理端用于 IMDb Technical Specifications 获取、技术规格整理、标签生成以及批量任务管理。
+
+### NFO 管理
+
+<div align="center">
+
+<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="900">
+
+</div>
+
+</p>
+
+Tag 管理功能用于检查、预演和修改媒体库中的技术元数据，并允许用户对自动生成的内容进行手动修正。
+
+### 媒体库技术规格展示
+
+<div align="center">
+
+<img src="./docs/images/media-library-card.png" alt="IMDb Tech Manager Media Library Technical Specifications" width="900">
+
+</div>
+
+</p>
+
+经过处理的技术规格可以进一步用于媒体库中的技术信息展示。
 
 ---
 
@@ -158,46 +198,6 @@ IMDb Tech Manager 将围绕这些数据建立解析、标准化、元数据管�
 * 其他媒体服务器
 * 其他部署方式
 * 其他客户端
-
----
-
-## 🖼️ 界面预览
-
-### 数据管理
-
-<div align="center">
-
-<img src="./docs/images/data-management.png" alt="IMDb Tech Manager Data Management" width="900">
-
-</div>
-
-</p>
-
-nfo数据管理端用于 IMDb Technical Specifications 获取、技术规格整理、标签生成以及批量任务管理。
-
-### NFO 管理
-
-<div align="center">
-
-<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="900">
-
-</div>
-
-</p>
-
-Tag 管理功能用于检查、预演和修改媒体库中的技术元数据，并允许用户对自动生成的内容进行手动修正。
-
-### 媒体库技术规格展示
-
-<div align="center">
-
-<img src="./docs/images/media-library-card.png" alt="IMDb Tech Manager Media Library Technical Specifications" width="900">
-
-</div>
-
-</p>
-
-经过处理的技术规格可以进一步用于媒体库中的技术信息展示。
 
 ---
 
