@@ -169,17 +169,17 @@ IMDb Tech Manager 将围绕这些数据建立解析、标准化、元数据管�
 
 </div>
 
-数据管理端用于 IMDb Technical Specifications 获取、技术规格整理、标签生成以及批量任务管理。
+nfo数据管理端用于 IMDb Technical Specifications 获取、技术规格整理、标签生成以及批量任务管理。
 
 ### NFO 管理
 
 <div align="center">
 
-<img src="./docs/images/nfo-management.png" alt="IMDb Tech Manager NFO Management" width="900">
+<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager TAG Management" width="900">
 
 </div>
 
-NFO 管理功能用于检查、预演和修改媒体库中的技术元数据，并允许用户对自动生成的内容进行手动修正。
+tag 管理功能用于检查、预演和修改媒体库中的技术元数据，并允许用户对自动生成的内容进行手动修正。
 
 ### 媒体库技术规格展示
 
