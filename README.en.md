@@ -165,17 +165,17 @@ Future versions may support additional:
 
 </div>
 
-The data-management side handles IMDb Technical Specifications acquisition, technical-specification processing, tag generation, and batch tasks.
+The NFO data-management side handles IMDb Technical Specifications acquisition, technical-specification processing, tag generation, and batch tasks.
 
 ### NFO Management
 
 <div align="center">
 
-<img src="./docs/images/nfo-management.png" alt="IMDb Tech Manager NFO Management" width="900">
+<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="900">
 
 </div>
 
-NFO management provides workflows for reviewing, previewing, and modifying technical metadata while preserving manual corrections.
+Tag management provides workflows for reviewing, previewing, and modifying technical metadata while preserving manual corrections.
 
 ### Media Library Technical Information
 
