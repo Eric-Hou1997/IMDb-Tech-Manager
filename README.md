@@ -29,6 +29,8 @@
 
 </div>
 
+</p>
+
 项目主要关注 **IMDb Technical Specifications（IMDb 技术规格）** 的获取、结构化、标准化与应用，将原本比较分散的影视制作技术资料转化为可以在个人媒体库中管理、检索和展示的元数据。
 
 目前主要关注：
@@ -169,6 +171,8 @@ IMDb Tech Manager 将围绕这些数据建立解析、标准化、元数据管�
 
 </div>
 
+</p>
+
 nfo数据管理端用于 IMDb Technical Specifications 获取、技术规格整理、标签生成以及批量任务管理。
 
 ### NFO 管理
@@ -179,6 +183,8 @@ nfo数据管理端用于 IMDb Technical Specifications 获取、技术规格整�
 
 </div>
 
+</p>
+
 Tag 管理功能用于检查、预演和修改媒体库中的技术元数据，并允许用户对自动生成的内容进行手动修正。
 
 ### 媒体库技术规格展示
@@ -188,6 +194,8 @@ Tag 管理功能用于检查、预演和修改媒体库中的技术元数据，�
 <img src="./docs/images/media-library-card.png" alt="IMDb Tech Manager Media Library Technical Specifications" width="900">
 
 </div>
+
+</p>
 
 经过处理的技术规格可以进一步用于媒体库中的技术信息展示。
 
