@@ -27,6 +27,8 @@
 
 <img src="./docs/images/poster.jpg" alt="IMDb Tech Manager Poster" width="820">
 
+</div>
+
 </p>
 
 项目主要关注 **IMDb Technical Specifications（IMDb 技术规格）** 的获取、结构化、标准化与应用，将原本比较分散的影视制作技术资料转化为可以在个人媒体库中管理、检索和展示的元数据。
