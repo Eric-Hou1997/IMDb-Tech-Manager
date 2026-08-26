@@ -82,7 +82,7 @@ Tag management is used to inspect, preview, and modify technical metadata in the
 
 <div align="center">
 
-<img src="./docs/images/ai-runtime-management.png" alt="IMDb Tech Manager AI Runtime Management" width="900">
+<img src="./docs/images/ai-runtime-management.png" alt="IMDb Tech Manager AI Runtime Management" width="700">
 
 </div>
 
