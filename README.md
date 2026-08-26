@@ -175,11 +175,11 @@ nfo数据管理端用于 IMDb Technical Specifications 获取、技术规格整�
 
 <div align="center">
 
-<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager TAG Management" width="900">
+<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="900">
 
 </div>
 
-tag 管理功能用于检查、预演和修改媒体库中的技术元数据，并允许用户对自动生成的内容进行手动修正。
+Tag 管理功能用于检查、预演和修改媒体库中的技术元数据，并允许用户对自动生成的内容进行手动修正。
 
 ### 媒体库技术规格展示
 
