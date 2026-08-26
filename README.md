@@ -8,7 +8,7 @@
 
 [![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
-[![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat\&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
+[![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/pulls)
 
 </p>
@@ -47,13 +47,11 @@
 * Coding Agent 辅助开发
 
 现在的大多数媒体库已经可以很好地展示片名、演员、年份、分辨率、编码格式和音频格式。
-
 但一部影视作品**使用了什么摄影机、什么镜头、采用什么胶片或数字采集格式、经过怎样的制作流程，以及最终以什么规格完成和放映**，通常并没有得到完整、结构化的保存和展示。
 
 IMDb Tech Manager 希望把这些信息真正带进个人影视媒体库的工作流中。
 
 ---
-
 ## 🖼️ 界面预览
 
 ### 数据管理
@@ -79,6 +77,18 @@ nfo数据管理端用于 IMDb Technical Specifications 获取、技术规格整�
 </p>
 
 Tag 管理功能用于检查、预演和修改媒体库中的技术元数据，并允许用户对自动生成的内容进行手动修正。
+
+### AI Runtime 管理
+
+<div align="center">
+
+<img src="./docs/images/ai-runtime-management.png" alt="IMDb Tech Manager AI Runtime Management" width="900">
+
+</div>
+
+</p>
+
+AI Runtime 管理界面用于配置模型接口、API Base URL、Prompt Cache、推理参数、系统提示词以及 AI 标签生成相关行为。
 
 ### 媒体库技术规格展示
 
@@ -123,7 +133,6 @@ NFO 元数据管理
 的结构化信息。
 
 ---
-
 ## 📚 主要技术信息
 
 IMDb Technical Specifications 中包含大量影视制作技术资料，例如：
@@ -147,7 +156,6 @@ IMDb Tech Manager 将围绕这些数据建立解析、标准化、元数据管�
 ## 🧩 项目架构
 
 从职责上看，IMDb Tech Manager 主要分成两个方向。
-
 ### 📦 数据管理端
 
 数据管理端负责技术规格的获取、处理、检查和元数据维护。
@@ -178,7 +186,6 @@ IMDb Tech Manager 将围绕这些数据建立解析、标准化、元数据管�
 * Web UI 集成
 * 不同媒体类型的兼容处理
 * 与媒体库元数据工作流联动
-
 ### 🧭 平台关系
 
 这两个方向在架构上**不与某一个操作系统永久绑定**。
@@ -228,7 +235,6 @@ AI 更适合处理：
 * 固定规则难以完整覆盖的表达
 
 AI 是系统中的一个能力模块，而不是整个项目唯一的基础。
-
 ### 3. AI Provider 可替换
 
 模型层会尽量保持可配置。
@@ -287,7 +293,6 @@ Preview / Dry Run
 * 错误以及受影响的项目
 
 ---
-
 ## 🤖 面向 Coding Agent 的开发
 
 IMDb Tech Manager 也希望探索一种更加适合现代 Coding Agent 的开发方式。
@@ -316,7 +321,6 @@ IMDb Tech Manager 也希望探索一种更加适合现代 Coding Agent 的开发
 * 完成代码修改前需要执行的检查
 
 希望未来开发者 Fork 或 Clone 项目后，可以直接使用 Codex 等 Coding Agent：
-
 ```text
 Fork / Clone
         ↓
@@ -356,7 +360,6 @@ Agent Context
 希望降低开发者和 Coding Agent 理解、修改和扩展这个项目的门槛。
 
 ---
-
 ## 🚧 当前状态
 
 IMDb Tech Manager 目前仍处于 **活跃开发阶段**。
@@ -390,7 +393,6 @@ IMDb Tech Manager 目前仍处于 **活跃开发阶段**。
 完成公开发布准备后，源码会加入当前 Repository。
 
 ---
-
 ## 🗺️ Roadmap
 
 * [ ] 完善公开项目文档
@@ -411,7 +413,6 @@ IMDb Tech Manager 目前仍处于 **活跃开发阶段**。
 Roadmap 会随着项目继续开发而调整。
 
 ---
-
 ## 💬 Discussions
 
 功能想法、技术方案、UI 设计、数据标准化规则、媒体库集成方式以及开发工作流都欢迎在这里讨论：
@@ -429,7 +430,6 @@ Roadmap 会随着项目继续开发而调整。
 [**GitHub Issues →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/issues)
 
 ---
-
 ## 🤝 Contributing
 
 项目源码目前尚未正式公开。
@@ -468,7 +468,6 @@ IMDb Tech Manager 是一个独立开发项目。
 用户在使用第三方数据或服务时，应自行确保相关使用方式符合适用的服务条款和法律要求。
 
 ---
-
 ## 💡 反馈与建议
 
 IMDb Tech Manager 仍然处于持续发展阶段。
