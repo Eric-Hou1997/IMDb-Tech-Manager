@@ -82,7 +82,7 @@ Tag 管理功能用于检查、预演和修改媒体库中的技术元数据，�
 
 <div align="center">
 
-<img src="./docs/images/ai-runtime-management.png" alt="IMDb Tech Manager AI Runtime Management" width="900">
+<img src="./docs/images/ai-runtime-management.png" alt="IMDb Tech Manager AI Runtime Management" width="700">
 
 </div>
 
