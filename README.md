@@ -12,7 +12,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/pulls)
 
 </p>
-
+<img src="./macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
 影视技术规格与媒体库元数据管理工具
 
 ---
