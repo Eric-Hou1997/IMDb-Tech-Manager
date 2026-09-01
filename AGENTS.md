@@ -75,3 +75,14 @@ These instructions are part of the public repository. Apply them to every change
 - The current formal macOS deliverable is an Apple Silicon arm64 `.app` contained in a ZIP. Never place a bare `.app` or executable in `releases/`. Do not infer packaging rules for a future platform port; define and verify them when that port is explicitly undertaken.
 - Audit the exact release range and all primary flows before packaging. Create a new version rather than overwrite an artifact.
 - Do not build a release package, create a tag, push, or publish a release unless the maintainer explicitly requests that release after review. A successful build alone is not release approval.
+
+## OTA release signing
+
+- Every official IMDb Tech Manager macOS OTA release must be signed with the project's existing Ed25519 OTA private key.
+- Supply the private key through `IMDB_TECH_UPDATE_PRIVATE_KEY`; its value must be the absolute path to the Ed25519 PEM private-key file stored outside the Git repository.
+- Private keys and sensitive files such as `*.pem` and `*.key` must never be added to Git, committed, pushed, or attached to a GitHub Release.
+- Never print, echo, log, copy, or expose the private-key contents. Only reference the private key by its filesystem path.
+- Never generate a replacement OTA key merely to complete packaging, and never replace `techUpdatePublicKey` in `macos/update.go` without explicit maintainer authorization.
+- If the private key is missing, `IMDB_TECH_UPDATE_PRIVATE_KEY` is unavailable, or the private key does not match the embedded public key, stop the release and report the blocker to the maintainer.
+- Every official release must generate the ZIP's matching `.sig` file and, before publication, verify that signature again using the public key embedded in the source.
+- Ed25519 OTA signing and Apple codesign, Developer ID signing, and notarization are separate security mechanisms; never treat one as proof that another was completed.
