@@ -47,7 +47,7 @@ assert "catalogRevision" in web and "syncLibraryChanges()" in web and "/api/libr
 assert "requestAnimationFrame" in web and "splitter.addEventListener('pointermove',apply)" in web
 assert ".selectionTools .btn{padding:5px 9px;font-size:12px}" in web
 assert "revision<state.catalogRevision" in web and "pendingCatalogPayload.reset" in web
-print("OK 1: legacy versioning, resident delta endpoint, UI batching, and splitter handling are wired")
+print("OK 1: resident delta endpoint, UI batching, and splitter handling are wired")
 
 
 with tempfile.TemporaryDirectory(prefix="imdb-tech-contract-") as raw:

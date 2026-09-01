@@ -144,6 +144,7 @@ with tempfile.TemporaryDirectory(prefix="imdb-tech-ui-") as temp_dir:
         'data-task-toggle="ok"': "task center click toggles both layout states",
         'data-movie-type-hidden="true"': "movie page hides redundant level filter",
         'data-tv-type-visible="true"': "TV page shows populated level filter",
+        'data-tv-tree-hierarchy="ok"': "TV show, season, and episode rows keep distinct visual hierarchy with a usable disclosure control",
         'data-scope-selector-absent="true"': "legacy scope selector is absent",
         'data-selection-scope="ok"': "checked rows become the automatic scope",
         'data-current-scope="ok"': "focused NFO is the fallback automatic scope",

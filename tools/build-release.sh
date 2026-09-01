@@ -12,10 +12,11 @@ CLANG_CACHE="$TMP/clang-cache"
 MAC_APP_NAME="IMDb Tech Manager.app"
 MAC_ZIP_NAME="IMDb-Tech-Manager-macOS-v4.0.0-AppleSilicon-App.zip"
 SHA_NAME="SHA256SUMS-IMDb-Tech-Manager-macOS-v4.0.0.txt"
+SIG_NAME="$MAC_ZIP_NAME.sig"
 README_NAME="README-macOS-v4.0.0.txt"
 CHANGELOG_NAME="CHANGELOG-macOS-v4.0.0.txt"
 
-for target in "$OUT/$MAC_ZIP_NAME" "$OUT/$SHA_NAME" "$OUT/$README_NAME" "$OUT/$CHANGELOG_NAME"; do
+for target in "$OUT/$MAC_ZIP_NAME" "$OUT/$SIG_NAME" "$OUT/$SHA_NAME" "$OUT/$README_NAME" "$OUT/$CHANGELOG_NAME"; do
   if [ -e "$target" ]; then
     echo "refusing to overwrite existing release target: $target" >&2
     exit 2
@@ -42,9 +43,14 @@ codesign --force --deep --sign - "$MAC_APP"
 codesign --verify --deep --strict "$MAC_APP"
 ditto -c -k --sequesterRsrc --keepParent "$MAC_APP" "$OUT/$MAC_ZIP_NAME"
 unzip -t "$OUT/$MAC_ZIP_NAME" >/dev/null
+if [ -z "${IMDB_TECH_UPDATE_PRIVATE_KEY:-}" ]; then
+  echo "error: set IMDB_TECH_UPDATE_PRIVATE_KEY to the Ed25519 private key before packaging a release" >&2
+  exit 4
+fi
+IMDB_TECH_UPDATE_PRIVATE_KEY="$IMDB_TECH_UPDATE_PRIVATE_KEY" sh "$ROOT/packaging/sign-update.sh" "$OUT/$MAC_ZIP_NAME"
 (
   cd "$OUT"
-  shasum -a 256 "$MAC_ZIP_NAME" > "$SHA_NAME"
+  shasum -a 256 "$MAC_ZIP_NAME" "$SIG_NAME" > "$SHA_NAME"
   shasum -a 256 -c "$SHA_NAME"
 )
 cp "$ROOT/packaging/README.txt" "$OUT/$README_NAME"

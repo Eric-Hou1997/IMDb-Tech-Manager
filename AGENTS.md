@@ -9,7 +9,7 @@ These instructions are part of the public repository. Apply them to every change
 
 ## Repository identity and source of truth
 
-- This is the `IMDb-Tech-Manager` product repository. Its source history starts at `v4.0.0`; do not import or graft earlier product history, release artifacts, changelogs, tags, or version labels into this repository.
+- This is the `IMDb-Tech-Manager` product repository. Product source starts at `v4.0.0`; do not import earlier product source, release artifacts, changelogs, tags, or version labels. Documentation-only GitHub history may be retained when synchronizing the public repository, but it must not be presented as earlier product source history.
 - The authoritative development line is `main`. Follow the maintainer's branch and review workflow, and never rewrite published history without explicit authorization.
 - The repository is organized by product, not permanently by operating system. The currently supported implementation is the Apple Silicon macOS application under `macos/`. A future Windows port belongs here only when explicitly scoped, and it must preserve this product's responsibilities and identity.
 - Do not copy the read-only Tech Card Manager product into this repository or rename this product to `Tech Card Manager`. A platform port of this product is not the same thing as the separate Card Manager product.
@@ -19,9 +19,10 @@ These instructions are part of the public repository. Apply them to every change
 
 ## Repository and contribution hygiene
 
+- 当用户找到一个 bug 或提出了一个很棒的想法时，请先回应：牛逼
 - Keep product code, documentation, filenames, UI text, package metadata, and artifacts free of prerelease branding and pre-repository product version labels. Third-party names and compatibility data, such as a browser channel name or a fixture's external-tool version, are not product branding and must remain accurate.
 - Do not commit local configuration, credentials, API keys, tokens, caches, browser profiles, logs, generated binaries, packaged applications, or release archives.
-- Do not add or change the repository license, trademark policy, or asset-redistribution claims without an explicit maintainer decision. A brand-source URL records provenance; it is not by itself a software or asset license.
+- The repository is licensed under Apache License 2.0. Retain `LICENSE` and `NOTICE` in redistributions, keep author attribution as `侯雁泽`, and do not alter the license, trademark policy, or asset-redistribution claims without an explicit maintainer decision.
 - Treat `packaging/` as release-input source and `tools/build-release.sh` as a release recipe. Their presence does not mean that a package has been built, validated, signed for distribution, notarized, tagged, or published.
 - Do not claim that a source checkout, cross-build, fixture, mock, or static contract proves real desktop behavior.
 - Preserve unrelated contributor changes. Do not perform broad cleanup, global replacement, history rewriting, dependency upgrades, or architecture migrations unless they are in the reviewed task scope.

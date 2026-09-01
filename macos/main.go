@@ -130,7 +130,7 @@ func knownStockAIPrompt(prompt string) bool {
 	return prompt == strings.TrimSpace(previous) // Go legacy / legacy stock prompt
 }
 
-//go:embed web/index.html engine/mac-engine.py assets/imdb-app-icon.png
+//go:embed web/index.html engine/mac-engine.py assets/ITM_logo_letter_only.png assets/ITM_logo_tiny.png
 var assets embed.FS
 
 type Settings struct {
@@ -360,7 +360,7 @@ func resolvedAutoModeOnAppStart(set Settings, legacyPlatformEnabled bool) bool {
 	return legacyPlatformEnabled
 }
 
-// migrateAutoModeOnAppStartPreference retires the pre-v4.0.0 Agent
+// migrateAutoModeOnAppStartPreference retires the obsolete Agent
 // LaunchAgent setting. Its selected value becomes an application-start
 // preference; AppAutoStart remains the sole macOS login-item setting.
 func migrateAutoModeOnAppStartPreference() error {
@@ -568,7 +568,8 @@ func runUI(nativeHosted bool) {
 	uiToken = newSessionToken()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", serveIndex)
-	mux.HandleFunc("/assets/imdb-app-icon.png", serveBrandIcon)
+	mux.HandleFunc("/assets/ITM_logo_letter_only.png", serveBrandIcon("assets/ITM_logo_letter_only.png"))
+	mux.HandleFunc("/assets/ITM_logo_tiny.png", serveBrandIcon("assets/ITM_logo_tiny.png"))
 	mux.HandleFunc("/api/status", requireToken(handleStatus))
 	mux.HandleFunc("/api/onboarding", requireToken(handleOnboarding))
 	mux.HandleFunc("/api/action", requireToken(handleAction))
@@ -589,6 +590,7 @@ func runUI(nativeHosted bool) {
 	mux.HandleFunc("/api/job", requireToken(handleJob))
 	mux.HandleFunc("/api/task-history", requireToken(handleTaskHistory))
 	mux.HandleFunc("/api/quit", requireToken(handleQuit))
+	mux.HandleFunc("/api/update", requireToken(handleTechUpdate))
 	mux.HandleFunc("/api/heartbeat", requireToken(func(w http.ResponseWriter, r *http.Request) {
 		lastHeartbeatUnix.Store(time.Now().Unix())
 		writeJSON(w, map[string]bool{"ok": true})
@@ -654,7 +656,8 @@ func bundleSelfCheck() error {
 	checks := []string{
 		"web/index.html",
 		"engine/mac-engine.py",
-		"assets/imdb-app-icon.png",
+		"assets/ITM_logo_letter_only.png",
+		"assets/ITM_logo_tiny.png",
 	}
 	for _, name := range checks {
 		b, err := assets.ReadFile(name)
@@ -749,15 +752,17 @@ func handleUILayout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func serveBrandIcon(w http.ResponseWriter, r *http.Request) {
-	b, err := assets.ReadFile("assets/imdb-app-icon.png")
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+func serveBrandIcon(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		b, err := assets.ReadFile(name)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		w.Header().Set("Cache-Control", "no-store")
+		_, _ = w.Write(b)
 	}
-	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Cache-Control", "no-store")
-	_, _ = w.Write(b)
 }
 
 func handleStatus(w http.ResponseWriter, r *http.Request) {

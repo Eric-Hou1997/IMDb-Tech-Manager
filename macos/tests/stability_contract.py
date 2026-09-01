@@ -15,7 +15,7 @@ checks = {
     'agent process has no login-item branch': 'platformAutoStartEnabled()' not in platform[platform.index('func platformStartAgentProcessOnly'):platform.index('func platformStopAgentProcessOnly')],
     'application login item remains independent': 'platformSetAppAutoStart' in platform,
     'autostart polling race guarded': 'autoStartDirty' in web,
-    'official square IMDb UI mark': 'assets/imdb-app-icon.png' in main and 'class="logo"' in web and 'object-fit:contain' in web,
+    'official Tech UI mark': 'assets/ITM_logo_letter_only.png' in main and 'class="logo"' in web and 'object-fit:contain' in web,
     'preview candidate endpoint': '/api/preview-candidates' in main,
     'scope preview action': 'ai-preview-selected' in main and 'previewScope' in web,
     'paired AI/rules try-write actions': all(action in main and action in web for action in ('ai-preview-write-selected', 'ai-approve-selected', 'local-preview-write-selected', 'local-approve-selected')),
