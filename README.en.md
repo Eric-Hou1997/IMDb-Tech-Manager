@@ -8,14 +8,12 @@
 
 [![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
-[![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
+[![Stars](https://img.shields.io/github/stars/Eric-Hou1997/IMDb-Tech-Manager?style=flat\&logo=github)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/stargazers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/pulls)
 
 </p>
 
 Technical specifications and metadata management for film & media libraries.
-
-**🚧 Active Development · Source Code Coming Later**
 
 ---
 
@@ -31,7 +29,7 @@ Technical specifications and metadata management for film & media libraries.
 
 </p>
 
-The project focuses on acquiring, structuring, normalizing, and applying **IMDb Technical Specifications**, transforming relatively scattered production information into metadata that can be managed, searched, and presented inside personal media libraries.
+The project focuses on acquiring, structuring, normalizing, and applying **IMDb Technical Specifications**, transforming scattered film and television production information into metadata that can be managed, searched, and presented inside personal media libraries.
 
 Current areas of focus include:
 
@@ -47,11 +45,13 @@ Current areas of focus include:
 * Coding Agent-assisted development
 
 Most media libraries already provide excellent information about titles, cast members, release years, resolution, codecs, and audio formats.
-However, information such as **which cameras and lenses were used, which film or digital capture formats were involved, what production processes were used, and how the final work was mastered and presented** is rarely preserved and presented in a complete, structured way.
+
+However, information such as **which cameras and lenses were used, which film or digital capture formats were involved, what production processes were used, and how the final work was mastered and presented** is rarely preserved and displayed in a complete and structured way.
 
 IMDb Tech Manager aims to bring this information into the personal media-library workflow.
 
 ---
+
 ## 🖼️ Screenshots
 
 ### Data Management
@@ -64,7 +64,7 @@ IMDb Tech Manager aims to bring this information into the personal media-library
 
 </p>
 
-The NFO data management side is used for IMDb Technical Specifications acquisition, technical specification organization, tag generation, and batch task management.
+The NFO data management interface is used for IMDb Technical Specifications acquisition, technical specification organization, tag generation, and batch task management.
 
 ### NFO Management
 
@@ -88,7 +88,7 @@ Tag management is used to inspect, preview, and modify technical metadata in the
 
 </p>
 
-The AI Runtime management interface is used to configure the model endpoint, API Base URL, Prompt Cache, inference parameters, system prompt, and other behaviors related to AI-based tag generation.
+The AI Runtime management interface is used to configure model endpoints, API Base URLs, Prompt Cache, inference parameters, system prompts, and other behaviors related to AI-based tag generation.
 
 ### Media Library Technical Specifications
 
@@ -100,7 +100,7 @@ The AI Runtime management interface is used to configure the model endpoint, API
 
 </p>
 
-Processed technical specifications can be further used for technical information presentation inside media libraries.
+Processed technical specifications can be further used to present technical information inside media libraries.
 
 ---
 
@@ -131,6 +131,7 @@ The goal is not simply to preserve raw text from IMDb pages. Instead, the projec
 * Reused by other tools
 
 ---
+
 ## 📚 Technical Information
 
 IMDb Technical Specifications contain a wide range of film and television production information, including:
@@ -146,92 +147,130 @@ IMDb Technical Specifications contain a wide range of film and television produc
 * 📽️ Master and presentation formats
 * 🎬 Printed film formats
 * Other production-related Technical Specifications
+
 IMDb Tech Manager builds parsing, normalization, metadata-management, and presentation capabilities around this information.
 
 ---
+
 ## 🧩 Project Architecture
 
-Conceptually, IMDb Tech Manager is divided into two major areas.
-### 📦 Data Management
+IMDb Tech Manager (ITM) and [Tech Card Manager (TCM)](https://github.com/Eric-Hou1997/Tech-Card-Manager) work together around the same **Technical Specifications** workflow.
 
-The data-management side is responsible for acquiring, processing, reviewing, and maintaining technical metadata.
+The two tools are responsible for different stages:
+
+* **ITM** handles the acquisition, processing, inspection, and maintenance of technical specifications and related metadata.
+* **TCM** applies processed technical specifications to media libraries — for example, by generating corresponding Technical Specifications cards in the Emby interface — and handles presentation and integration.
+
+ITM and TCM are independent tools designed to work together, but they can also be used and developed independently depending on the workflow.
+
+### 📦 IMDb Tech Manager (ITM)
+
+**IMDb Tech Manager (ITM)** primarily handles Technical Specifications data management and processing.
 
 Its responsibilities include:
 
 * IMDb Technical Specifications acquisition
 * Technical Specifications structuring
+* Technical specification normalization
 * NFO file management
 * Writing Technical Specifications to NFO files
 * Technical tag generation
-* Technical specification normalization
 * AI-assisted semantic processing
 * Preview / Dry Run
 * Manual correction
 * Batch processing
 * Metadata maintenance
-### 🖥️ Media Library Presentation & Integration
 
-The presentation and integration side is responsible for bringing processed technical information into media libraries.
+ITM turns raw technical specifications into stable, structured, and maintainable media metadata.
+
+Technical Specifications processed by ITM can then be used by **TCM** to generate, present, and synchronize technical specification cards inside media libraries.
+
+### 🖥️ [Tech Card Manager (TCM)](https://github.com/Eric-Hou1997/Tech-Card-Manager)
+
+**Tech Card Manager (TCM)** primarily handles the presentation and integration of Technical Specifications inside media libraries.
 
 Its responsibilities include:
 
-* Technical specification cards
+* Reading Technical Specifications provided by ITM or other compatible data sources
+* Technical specification card generation and maintenance
 * Technical information presentation
 * Metadata synchronization
 * Web UI integration
 * Compatibility handling for different media types
 * Integration with media-library metadata workflows
-### 🧭 Platform Independence
 
-These two areas are **not permanently tied to a particular operating system**.
+TCM and ITM use the same Technical Specifications data model while focusing on different responsibilities.
 
-The architecture describes responsibilities rather than platform limitations.
+ITM focuses on acquiring, organizing, and maintaining the technical information itself, while TCM applies that processed data to real media-library environments.
 
-Current implementations focus on:
+Together, they can form a complete workflow:
 
-* A data-management application currently running on **macOS**
-* A media-library presentation and integration solution currently developed around **Emby**
-These are simply the implementations that currently exist and do not mean the project can only run on these platforms in the future.
+**IMDb → ITM → NFO / Technical Specifications → TCM → Media Library Presentation**
 
-Future versions may support:
+### 🧭 Platform Relationship
+
+The responsibilities of ITM and TCM are **not permanently tied to any particular operating system or media server**.
+
+The implementations currently available or under active development are:
+
+* **ITM**: a Technical Specifications data-management application currently focused on **macOS**
+* **TCM**: a Technical Specifications card-management and media-library integration tool currently focused on **Emby**
+
+These are simply the current implementations and do not mean that either project will remain limited to these platforms.
+
+Future expansion may include:
 
 * Additional operating systems
 * Additional media servers
-* Additional deployment environments
+* Additional deployment methods
 * Additional client applications
+* Additional compatible Technical Specifications data sources
 
----
+ITM and TCM remain relatively independent at the architectural level and communicate through standardized Technical Specifications and media metadata, leaving room for future expansion across platforms and media-library environments.
+
 ## 🧠 Design Principles
 
-### 1. Prefer deterministic rules
+One of the core development goals of IMDb Tech Manager is to keep automation **controllable, inspectable, and recoverable**.
 
-When a problem can be reliably solved using explicit rules, deterministic local logic is preferred.
+Whether a task uses deterministic local rules or AI, the goal is to maintain the user's media metadata reliably rather than simply maximize automation.
+
+### 1. Prefer Deterministic Rules
+
+When a problem can be solved reliably with explicit rules, deterministic local logic is preferred.
 
 Examples include:
 
 * Known format mappings
-* Tag normalization
-* Data transformations
-* NFO operations
+* Technical specification normalization
+* Tag rules
+* Data structure transformations
+* NFO reading and writing
 * File processing
-* Validation
+* Data validation
+* Ownership determination
 
-AI should not be introduced merely for the sake of using AI.
-### 2. Use AI for ambiguous semantics
+These tasks have clearly defined inputs and outputs, making deterministic logic easier to test, reproduce, and verify.
 
-AI is better suited to:
+Tasks that can be solved reliably with rules are not handed to AI merely for the sake of using AI.
+
+### 2. Use AI for Ambiguous Semantics
+
+AI is primarily used for semantic problems that are difficult to cover completely with fixed rules, such as:
 
 * Irregular natural-language descriptions
 * Ambiguous technical specifications
-* Semantic decomposition
-* Expressions that are difficult to cover using fixed rules
+* Complex semantic decomposition
+* Identifying relationships between manufacturers, series, and models
+* Normalizing multiple ways of expressing the same information
+* Technical information that requires contextual interpretation
 
-AI is treated as one capability of the system rather than the foundation of the entire project.
-### 3. Keep AI providers replaceable
+AI is one capability within IMDb Tech Manager.
 
-The model layer should remain configurable wherever practical.
+It complements areas where deterministic rules are less effective without replacing the overall data-processing pipeline.
 
-Typical configuration includes:
+### 3. Keep AI Providers Replaceable
+
+The model layer remains configurable, allowing different model services to be connected through configurations such as:
 
 ```text
 Provider
@@ -240,218 +279,423 @@ API Key
 Model
 ```
 
-Different model services can therefore be selected based on capability, cost, availability, deployment environment, and privacy requirements.
-### 4. Preview before modification
+This allows users to switch model services based on:
 
-Operations with side effects should generally follow:
+* Model capability
+* API cost
+* Availability
+* API compatibility
+* Deployment environment
+* Privacy requirements
+
+The core data workflow is not permanently tied to a specific AI provider.
+
+### 4. Preview Before Writing
+
+Operations that modify NFO files or media metadata should provide an inspectable result before performing the actual write whenever practical.
+
+Typical workflow:
 
 ```text
 Preview / Dry Run
         ↓
-User confirmation
+Review changes
         ↓
-Execution
+Execute
+        ↓
+Verify the result
 ```
 
-This applies especially to:
+This is especially important for:
 
 * NFO modifications
-* Technical tag writing
-* Metadata changes
+* Technical Specifications writes
+* Technical tag generation
+* Technical tag updates
 * Batch operations
-### 5. Respect user-managed metadata
+* Metadata migrations
 
-Automatically generated data should not silently overwrite user-maintained metadata without a clear reason.
+For batch operations, knowing what is about to change is more important than simply maximizing execution speed.
 
-User-created additions, modifications, and corrections should remain under user control.
-### 6. Keep behavior observable and verifiable
+### 5. Respect User-Maintained Data
 
-The project aims to make important background operations as transparent as practical.
+IMDb Tech Manager distinguishes metadata by source and ownership.
 
-Useful information may include:
+Automated processes may only modify data that the application can authoritatively identify as its own. Text similarity alone must never be used to assume that a tag belongs to IMDb Tech Manager.
 
-* What was processed
-* What was changed
+In particular:
+
+* Tags manually maintained by users
+* Tags generated by external tools
+* Data maintained by applications such as TMM
+* Data with unknown ownership
+
+must not be silently deleted, claimed, or overwritten by background tasks.
+
+A Generated Tech Tag that has been manually edited by the user is treated as protected user-maintained data.
+
+### 6. Separate Technical Specifications from Tags
+
+The project treats **Technical Specifications** as the factual data layer and **Tags** as derived information generated from that factual layer.
+
+```text
+Technical Specifications
+        ↓
+Normalization / Semantic Processing
+        ↓
+Technical Tags
+```
+
+Therefore:
+
+* Spec Agent is responsible only for Technical Specifications
+* Tag generators are responsible for Technical Tags
+* Editing Technical Specifications should not implicitly trigger an IMDb refresh
+* Tag rebuilding should remain an independent and observable operation
+
+This separation helps prevent different processing stages from interfering with each other and makes it easier to regenerate tags or integrate additional tools later.
+
+### 7. Writes Must Be Safe
+
+NFO files are important long-term media-library data, so modification workflows should minimize the risk of partial writes, accidental tag deletion, or file corruption.
+
+The project continues to strengthen:
+
+* XML validity checks
+* Backups before modification
+* Original-file state checks
+* Atomic writes
+* Path safety validation
+* Tag ownership verification
+* Conflict detection
+* Leaving the original file unchanged on failure
+* Recovery and undo capabilities
+
+When the system cannot safely determine whether data should be modified, the default behavior is to skip the operation rather than risk an unsafe write.
+
+### 8. Background Behavior Should Be Observable and Verifiable
+
+Important background operations should expose clear status information whenever possible.
+
+For example:
+
+* What is being processed
+* What was modified
 * Which results came from local rules
 * Which results came from AI
-* API call count
+* API call counts
 * Token usage
 * Cache hits
 * Estimated cost
-* Task results
-* Errors and affected items
+* Current task phase
+* Success / failure / skipped states
+* Error reasons
+* Affected titles or NFO files
+
+The project aims to avoid reducing complex background work to a simple "success" message without showing what actually happened.
 
 ---
-## 🤖 Agent-Friendly Development
 
-IMDb Tech Manager is also exploring a development workflow designed for modern Coding Agents.
+## 🤖 Development with Coding Agents
 
-When the source code is publicly released, the Repository plans to provide:
+The public IMDb Tech Manager repository includes:
 
-**`AGENTS.md`**
+[**`AGENTS.md` →**](./AGENTS.md)
 
-This file will act as an important entry point for Coding Agents to understand the project.
+It serves as an important context entry point for Coding Agents such as Codex when understanding and modifying the project.
 
-It is expected to include:
-* Project goals
-* Software architecture
-* Repository structure
-* Module responsibilities
-* Module boundaries
-* Development principles
-* Design constraints that should not be broken
-* Coding conventions
-* Testing requirements
-* Build procedures
-* Release workflow
-* Known issues
-* Common development pitfalls
-* Required checks before completing a code change
+`AGENTS.md` currently covers:
 
-The intended workflow is:
+* Repository identity and source boundaries
+* Current product responsibilities
+* Software architecture constraints
+* NFO safety rules
+* Tag ownership rules
+* AI calls and Token accounting rules
+* Lifecycle management requirements
+* Testing and verification requirements
+* Release boundaries
+* OTA signing requirements
+* Platform-support boundaries
+* Changes that should not be made
+* Checks required before completing a modification
+
+After Forking or Cloning the repository, developers can let Coding Agents with Repository Context support read `AGENTS.md` before analyzing or modifying the code.
+
+Recommended workflow:
+
 ```text
 Fork / Clone
         ↓
 Coding Agent reads AGENTS.md
         ↓
-Understands architecture and project rules
+Read relevant source code and tests
         ↓
-Analyzes affected modules
+Understand module responsibilities and boundaries
         ↓
-Plans the change
+Analyze affected functional paths
         ↓
-Modifies the code
+Create an implementation plan
         ↓
-Runs tests
+Modify code
         ↓
-Verifies the result
+Run relevant tests
         ↓
-Submits a Pull Request
+Verify actual behavior
+        ↓
+Submit Pull Request
 ```
 
-The project intends to make more than just its source code available.
+IMDb Tech Manager aims to provide more than source code alone:
 
-Where practical, it also aims to share:
 ```text
 Source Code
     +
 Architecture Knowledge
     +
+Design Constraints
+    +
 Development Rules
     +
-Testing Workflows
+Testing Methods
     +
 Agent Context
 ```
 
-This should make the project easier for both developers and Coding Agents to understand, modify, and extend.
+This helps both developers reading the code directly and developers working with Coding Agents such as Codex understand the project more quickly, while reducing the risk of changes that technically work but violate existing design constraints.
 
 ---
+
 ## 🚧 Current Status
 
-IMDb Tech Manager is currently under **active development**.
+IMDb Tech Manager is currently in an **open-source, actively developed** stage.
 
-The public Repository is currently being used for:
+The public source-code history starts with **v4.0.0**.
 
-* 📖 Project documentation
-* 🧭 Roadmap planning
-* 💬 Feature discussions
-* 🏗️ Architecture discussions
-* 🧪 Development experiments
-* 🐛 Issue tracking
-* 🤝 Community feedback
-### Source Code
+The repository currently includes:
 
-**The source code has not yet been officially released.**
-
-Before the source release, the project still needs to complete:
-
-* Code cleanup
-* Sensitive-information review
-* Git history review
-* Repository restructuring
-* Test improvements
-* Development documentation
+* Complete project source code
+* Current macOS implementation
 * `AGENTS.md`
-* License selection
-* Release workflow preparation
+* Test code
+* Release build tools
+* Packaging configuration
+* Project documentation
+* `LICENSE`
+* `NOTICE`
+* `SECURITY.md`
+* `PRIVACY.md`
+* `TERMS.md`
 
-The source code will be added to this Repository once preparations for the public release are complete.
+### Currently Supported Platform
+
+The currently maintained implementation is:
+
+**macOS · Apple Silicon (arm64)**
+
+The current desktop application is primarily composed of:
+
+```text
+Native Launcher
+      +
+Go Core
+      +
+Local Web UI
+      +
+Python Engine
+```
+
+The repository is organized around the product rather than permanently around an operating system.
+
+If Windows or other platforms are supported in the future, they will remain part of IMDb Tech Manager as long as they preserve the same product responsibilities and data workflow.
+
+### Current Official Release
+
+Current public release:
+
+**IMDb Tech Manager v4.0.0**
+
+The Release provides the Apple Silicon `.app` as a ZIP package together with:
+
+* Release Changelog
+* SHA-256 verification information
+* OTA Ed25519 signature
+* Installation instructions
+
+[**View Releases →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+
+The project remains under active development, and its features, architecture, test coverage, and platform support will continue to evolve.
 
 ---
+
 ## 🗺️ Roadmap
-* [ ] Improve public documentation
-* [ ] Document the project architecture
-* [ ] Complete the pre-release security review
-* [ ] Review Git history before publication
-* [ ] Prepare and publish `AGENTS.md`
-* [ ] Establish a stable testing workflow
-* [ ] Open the core source code
-* [ ] Establish a standard Release workflow
-* [ ] Improve Technical Specifications normalization
-* [ ] Expand supported technical-specification data
-* [ ] Improve media-library technical information presentation
+
+### Completed
+
+* [x] Establish the public Repository
+* [x] Open the core source code
+* [x] Establish the basic project structure
+* [x] Publish `AGENTS.md`
+* [x] Select the open-source license
+* [x] Establish the initial testing framework
+* [x] Establish the Release build workflow
+* [x] Publish the first public source release, `v4.0.0`
+* [x] Establish the macOS Apple Silicon Release workflow
+* [x] Add Release integrity verification and OTA signing
+
+### In Progress
+
+* [ ] Improve Technical Specifications normalization rules
+* [ ] Expand Technical Specifications data-processing capabilities
+* [ ] Improve Local / AI technical tag generation
+* [ ] Strengthen NFO data ownership and safety mechanisms
+* [ ] Expand automated testing and real-world regression coverage
+* [ ] Improve task status, error localization, and recovery
+* [ ] Improve AI Provider and model configuration
+* [ ] Improve Token, Cache, and API cost accounting
+* [ ] Improve application update and Release workflows
+* [ ] Improve Developer ID signing and the macOS distribution experience
+* [ ] Continue improving `AGENTS.md` and Coding Agent Context
+* [ ] Improve contribution and Pull Request workflows
 * [ ] Explore support for additional operating systems
-* [ ] Explore support for additional media servers
-* [ ] Improve Coding Agent development workflows
-The Roadmap will continue to evolve as the project develops.
+* [ ] Improve the Technical Specifications workflow integration with [Tech Card Manager (TCM)](https://github.com/Eric-Hou1997/Tech-Card-Manager)
+* [ ] Explore integration with additional media servers and client applications
+
+The Roadmap will continue to evolve based on project development and real-world feedback.
 
 ---
+
 ## 💬 Discussions
 
-Feature ideas, technical approaches, UI design, data-normalization rules, media-library integration methods, and development workflows are all welcome here:
+Feature ideas, technical approaches, UI design, Technical Specifications normalization rules, and development workflows are all welcome in Discussions:
 
-[**GitHub Discussions →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/discussions)
+[**Go to GitHub Discussions →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/discussions)
 
-If an idea is not yet concrete enough to become a formal Issue, Discussions are also a good place to explore it first.
+Suitable topics include:
+
+* New feature ideas
+* Technical design discussions
+* Technical Specifications data rules
+* Camera / lens / film / production-format information
+* UI / UX suggestions
+* AI tag-generation strategies
+* ITM and TCM workflows
+* Coding Agent development approaches
+* Ideas that still require further exploration
+
+If an idea still needs discussion and validation before becoming a well-defined task, Discussions is a good place to start before opening an Issue.
 
 ---
+
 ## 🐛 Issues
 
-Confirmed bugs, reproducible problems, and clearly defined feature requests can be submitted through:
+For problems that can already be described clearly, open an Issue directly:
 
 [**GitHub Issues →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/issues)
 
+Examples include:
+
+* Reproducible bugs
+* Clearly missing functionality
+* Data parsing errors
+* Technical Specifications normalization errors
+* NFO modification problems
+* UI behavior issues
+* Release / installation problems
+* Well-defined feature requests
+
+When possible, include the relevant version, media type, reproduction steps, and error information to make diagnosis easier.
+
 ---
+
 ## 🤝 Contributing
 
-The project source code has not yet been officially released.
+IMDb Tech Manager is open source. Forks, research, modifications, and Pull Requests are welcome.
 
-At the current stage, contributions are mainly welcome through Discussions and Issues, including:
+Before modifying the code, please read:
 
-* Feature suggestions
-* Technical approaches
-* Metadata-normalization ideas
+[**`AGENTS.md` →**](./AGENTS.md)
+
+It documents important architecture rules, data-safety constraints, testing requirements, and Release boundaries.
+
+In particular, understand the existing design before modifying areas such as:
+
+* NFO reading and writing
+* Technical Specifications
+* Technical Tags
+* Tag ownership
+* AI calls
+* Token / Cache accounting
+* Batch tasks
+* Application lifecycle
+* Platform-specific code
+* Updates and Releases
+
+Contributions are welcome in areas including, but not limited to:
+
+* Bug fixes
+* Feature improvements
+* Technical Specifications parsing rules
+* Technical specification normalization
 * Camera / lens / production-format information
-* UI / UX feedback
-* Bug reports
-* Media-library integration ideas
-* Agent workflow suggestions
-More complete contribution guidelines and Coding Agent development documentation will be provided when the source code is opened.
+* Test cases
+* UI / UX improvements
+* Performance and stability improvements
+* Documentation
+* Coding Agent Context improvements
+
+When changing existing behavior, please add appropriate tests or regression verification whenever practical to avoid fixing one issue while breaking an existing media-metadata workflow.
 
 ---
+
 ## 📄 License
 
-A final open-source license has not yet been selected.
+IMDb Tech Manager is open source under the **Apache License 2.0**.
 
-A clear `LICENSE` file describing the rules for using, modifying, and distributing the source code will be added before the public source release.
+See the full license:
+
+[**LICENSE →**](./LICENSE)
+
+The Repository also includes:
+
+[**NOTICE →**](./NOTICE)
+
+When using, modifying, or distributing the source code, please comply with the Apache License 2.0 and the relevant notices included in the Repository.
 
 ---
+
 ## ⚠️ Disclaimer
 
-IMDb Tech Manager is an independently developed project.
+IMDb Tech Manager is an independently developed open-source project.
 
-It is **not officially affiliated with, authorized by, or endorsed by IMDb, Emby, or other third-party platforms**.
+This project is **not officially affiliated with, authorized by, or endorsed by IMDb, Emby, or any other third-party platform**.
 
-Third-party names, trademarks, data, and services belong to their respective owners.
+All third-party names, trademarks, data, and services remain the property of their respective owners.
 
-Users are responsible for ensuring that their use of third-party data and services complies with applicable terms of service and legal requirements.
+IMDb Tech Manager provides tools for technical specification acquisition, processing, and media metadata management.
+
+Users are responsible for ensuring that their use of third-party data, APIs, websites, and services complies with applicable terms of service, licensing requirements, and laws.
 
 ---
-## 💡 Feedback
 
-IMDb Tech Manager is still evolving.
+## 💡 Feedback & Suggestions
 
-If you have ideas about IMDb technical data, normalization rules, cameras and lenses, media-library presentation, support for other media servers, workflow automation, or Coding Agent integration, feel free to join the Discussions.
+IMDb Tech Manager remains under active development.
 
-Ideas are welcome even when the implementation is not yet obvious.
+If you have ideas related to:
+
+* IMDb Technical Specifications
+* Technical specification normalization
+* Camera and lens information
+* Film and digital capture formats
+* NFO metadata management
+* Technical tag rules
+* AI-assisted semantic processing
+* UI / UX
+* ITM and TCM collaboration
+* Support for additional operating systems
+* Coding Agent development workflows
+
+you are welcome to participate through Discussions or Issues.
+
+The project will continue to evolve its features, data rules, and development direction based on real-world feedback.
