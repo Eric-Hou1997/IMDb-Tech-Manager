@@ -13,6 +13,8 @@
 
 </p>
 
+<img src="./macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
+
 Technical specifications and metadata management for film & media libraries.
 
 ---
