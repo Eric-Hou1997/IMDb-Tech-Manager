@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<movie>
+  <title>007别传：皇家夜总会</title>
+  <originaltitle>Casino Royale</originaltitle>
+  <year>1967</year>
+  <id>tt0061452</id>
+  <uniqueid default="true" type="imdb">tt0061452</uniqueid>
+  <tag>casino</tag>
+  <tag>scotland</tag>
+  <tag>spy</tag>
+  <tag>intelligence</tag>
+  <tag>queen</tag>
+  <tag>stutter</tag>
+  <tag>baccarat</tag>
+  <tag>spoof</tag>
+  <tag>british spy</tag>
+  <tag>psychedelic</tag>
+  <tag>Panavision Lenses</tag>
+  <tag>2.39 : 1</tag>
+  <tag>35 mm</tag>
+  <tag>Panavision (anamorphic)</tag>
+  <!-- tmm-imdb-tech:BEGIN -->
+  <technicalspecs source="IMDb" imdbid="tt0061452" mediatype="movie" fetched="2026-08-17T20:55:33+00:00" formatVersion="11" localtitle="007别传：皇家夜总会">
+    <section name="Runtime"><item>2h 11m (131 min)</item></section>
+    <section name="Sound mix">
+      <item>70 mm 6-Track (Westrex Recording System, 70 mm prints)</item>
+      <item>Mono (35 mm prints)</item>
+      <item>Dolby Digital (5.1 Surround Sound)</item>
+    </section>
+    <section name="Aspect ratio"><item>2.39 : 1</item></section>
+    <section name="Camera"><item>Panavision Lenses</item></section>
+    <section name="Negative Format"><item>35 mm</item></section>
+    <section name="Cinematographic Process"><item>Panavision (anamorphic)</item></section>
+    <section name="Printed Film Format"><item>35 mm</item></section>
+    <url>https://www.imdb.com/title/tt0061452/technical/</url>
+  </technicalspecs>
+  <!-- tmm-imdb-tech:END -->
+  <tmm_locked/>
+</movie>

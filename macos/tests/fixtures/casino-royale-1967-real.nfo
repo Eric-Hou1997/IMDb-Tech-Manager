@@ -1,0 +1,698 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--created on 2026-08-15 18:55:53 by tinyMediaManager 5.3.1 for EMBY-->
+<movie>
+  <title>007别传：皇家夜总会</title>
+  <originaltitle>Casino Royale</originaltitle>
+  <sorttitle/>
+  <epbookmark/>
+  <year>1967</year>
+  <ratings>
+    <rating default="true" max="10" name="imdb">
+      <value>5.0</value>
+      <votes>35155</votes>
+    </rating>
+    <rating default="false" max="10" name="themoviedb">
+      <value>5.2</value>
+      <votes>840</votes>
+    </rating>
+  </ratings>
+  <userrating>0</userrating>
+  <set tmdbcolid="645">
+    <name>007（系列）</name>
+    <overview>007是风靡全球的一系列谍战电影，007不仅是影片的名称，更是主人公特工詹姆斯·邦德的代号。詹姆斯·邦德是一套小说和系列电影的主角名称。小说原作者是英国作家伊恩·佛莱明。在故事里，邦德是英国情报机构军情六处的间谍，代号007，被授予可以除去任何妨碍行动的人的权力，此外，詹姆斯·邦德总是有美女相伴，那些女士被称为“邦女郎”。邦德冷酷但多情，机智且勇敢，总能在最危难时化险为夷，也总能邂逅一段浪漫的爱情。历任007都是大帅哥，再加上性感漂亮的邦女郎，以及扣人心弦的精彩剧情，让这部影片直至今天仍被广大影迷所热爱。第一部007电影于1962年10月5日公映后，007电影系列风靡全球，到今天历经五十余年长盛不衰。</overview>
+  </set>
+  <plot>男主角是已退休的邦德爵士，正在备感无聊之际，他以前的上司 M 被杀，邦德乃从伦敦前往苏格兰探访M的遗孀，不料遗孀却企图勾引他，失败之后跑去当修女。邦德继续追查凶手，接触了一群形形色色的间谍，最后在皇家夜总会展开大对决。&#13; 影片中众多的噱头普遍偏于老式，但片中可称精彩的部分还不算少，伍迪第一次出场从一个形成逃到另一个刑场的段落、东德拍卖小黄色照片的拍卖会、如果你喜欢看大场面，那最后一个大混战的场面也许你会满意——真正是一场“混战”。&#13; 影片拍摄时，正是肖恩·康纳利的 007 大行其道之时，于是就在四部正式的 007 之后，有了这部“无厘头”版的 007 。其实，影片也是根据 007 之父伊安·弗莱明的原著改编，而且是早在第一部 007《诺博士》之前八年就有改编版本问世的，只不过那时候 007 还是个电视上的小字号。毕竟是那个时代大制作的搞笑片，影片中很多小细节虽然“笑果”不算惊人，但都是如今搞笑片中不多见的大手笔，而片中对于 007 系列作品的戏仿却启发了后辈们很多同类作品。像老邦德见到自己的秘书玛番妮，拥抱接吻后才得知，她是原来秘书的女儿，那周星驰的《国产 007》中的同样段落恐怕就不是原创了，诸如此类的东西还很多。不过，不能不说，这部豪华搞笑片中的笑料，不是缺乏幽默感，就是有点过于老式，如今看来稍嫌温吞。&#13; 影片最大的特色就是明星云集，单导演就有五位，其中最著名的就是大导演约翰·休斯敦，他甚至还客串了片中的短命鬼 M 。明星中，老邦德是老牌英国绅士大卫·尼文，赌博高手爱弗林是英国“千面人”彼得·塞勒斯，像魔术师一样极富魅力的老千高手就是大名鼎鼎的奥逊·威尔斯，再年轻的有刚刚出道的伍迪·艾伦，他从这个刑场逃到那个刑场的段落之让人想起周星驰刑场脱困的那一段，而他控制世界的大阴谋也有着典型的伍迪特色。所以，即使影片稍嫌落伍与时代，但这些大明星的风采还是颇值得一看的。</plot>
+  <outline>男主角是已退休的邦德爵士，正在备感无聊之际，他以前的上司 M 被杀，邦德乃从伦敦前往苏格兰探访M的遗孀，不料遗孀却企图勾引他，失败之后跑去当修女。邦德继续追查凶手，接触了一群形形色色的间谍，最后在皇家夜总会展开大对决。&#13; 影片中众多的噱头普遍偏于老式，但片中可称精彩的部分还不算少，伍迪第一次出场从一个形成逃到另一个刑场的段落、东德拍卖小黄色照片的拍卖会、如果你喜欢看大场面，那最后一个大混战的场面也许你会满意——真正是一场“混战”。&#13; 影片拍摄时，正是肖恩·康纳利的 007 大行其道之时，于是就在四部正式的 007 之后，有了这部“无厘头”版的 007 。其实，影片也是根据 007 之父伊安·弗莱明的原著改编，而且是早在第一部 007《诺博士》之前八年就有改编版本问世的，只不过那时候 007 还是个电视上的小字号。毕竟是那个时代大制作的搞笑片，影片中很多小细节虽然“笑果”不算惊人，但都是如今搞笑片中不多见的大手笔，而片中对于 007 系列作品的戏仿却启发了后辈们很多同类作品。像老邦德见到自己的秘书玛番妮，拥抱接吻后才得知，她是原来秘书的女儿，那周星驰的《国产 007》中的同样段落恐怕就不是原创了，诸如此类的东西还很多。不过，不能不说，这部豪华搞笑片中的笑料，不是缺乏幽默感，就是有点过于老式，如今看来稍嫌温吞。&#13; 影片最大的特色就是明星云集，单导演就有五位，其中最著名的就是大导演约翰·休斯敦，他甚至还客串了片中的短命鬼 M 。明星中，老邦德是老牌英国绅士大卫·尼文，赌博高手爱弗林是英国“千面人”彼得·塞勒斯，像魔术师一样极富魅力的老千高手就是大名鼎鼎的奥逊·威尔斯，再年轻的有刚刚出道的伍迪·艾伦，他从这个刑场逃到那个刑场的段落之让人想起周星驰刑场脱困的那一段，而他控制世界的大阴谋也有着典型的伍迪特色。所以，即使影片稍嫌落伍与时代，但这些大明星的风采还是颇值得一看的。</outline>
+  <tagline>《皇家赌场》对一个詹姆斯·邦德来说太过分了！</tagline>
+  <runtime>131</runtime>
+  <thumb aspect="poster">https://image.tmdb.org/t/p/original/rqLowoCnbWlBFPXFs965qmtN1rr.jpg</thumb>
+  <thumb aspect="banner">https://assets.fanart.tv/fanart/casino-royale-5501964b5073e.jpg</thumb>
+  <thumb aspect="clearart">https://assets.fanart.tv/fanart/casino-royale-55a9070c03699.png</thumb>
+  <thumb aspect="clearlogo">https://image.tmdb.org/t/p/original/87cswd9MDZhzW87tXxWahtQhbWp.png</thumb>
+  <thumb aspect="discart">https://assets.fanart.tv/fanart/casino-royale-5f32640d9452a.png</thumb>
+  <thumb aspect="landscape">https://assets.fanart.tv/fanart/casino-royale-5501965ac31dd.jpg</thumb>
+  <thumb aspect="keyart">https://assets.fanart.tv/fanart/casino-royale-5554ff12c97f6.jpg</thumb>
+  <fanart>
+    <thumb>https://artworks.thetvdb.com/banners/movies/2748/backgrounds/2748.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/bzd7Uph8qfAB3fi488rIE3x2pWg.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/cji3ONgtjL0Ae9EkqZIUOucCdbj.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/6UU8onWZoMzS1dKPJicLZxeAr6X.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/9dZGiF6X3bcmDlSA40qAouR7w2O.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/l7ILQ9mp9sUpLInQisU5mb3gxdV.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/mSt4o4dSxQ05OKyzxd6hAFDR9h5.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/3C8FqRRV9dbODt2qMBSjl3YxiLD.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/bUkb4f3c6iL9pazC0L5HHkWqPgL.jpg</thumb>
+    <thumb>https://image.tmdb.org/t/p/original/wMVKsxaQzZLDZMToGbWTzxBveaD.jpg</thumb>
+  </fanart>
+  <mpaa>PG</mpaa>
+  <certification>PG</certification>
+  <id>tt0061452</id>
+  <tmdbid>12208</tmdbid>
+  <uniqueid default="false" type="tmdb">12208</uniqueid>
+  <uniqueid default="true" type="imdb">tt0061452</uniqueid>
+  <uniqueid default="false" type="wikidata">Q591272</uniqueid>
+  <country>美国</country>
+  <status/>
+  <code/>
+  <premiered>1967-04-18</premiered>
+  <watched>false</watched>
+  <playcount>0</playcount>
+  <genre>Adventure</genre>
+  <genre>Action</genre>
+  <genre>Comedy</genre>
+  <studio>Famous Artists Productions</studio>
+  <studio>Columbia Pictures</studio>
+  <tag>casino</tag>
+  <tag>scotland</tag>
+  <tag>spy</tag>
+  <tag>intelligence</tag>
+  <tag>queen</tag>
+  <tag>stutter</tag>
+  <tag>baccarat</tag>
+  <tag>spoof</tag>
+  <tag>british spy</tag>
+  <tag>psychedelic</tag>
+  <tag>Panavision Lenses</tag>
+  <tag>2.39 : 1</tag>
+  <tag>35 mm</tag>
+  <tag>Panavision (anamorphic)</tag>
+  <actor>
+    <name>彼得·塞勒斯</name>
+    <role>Evelyn Tremble</role>
+    <thumb>https://image.tmdb.org/t/p/h632/sCVIv2DGoC9U16anTjLwMxKBPZ.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/12446</profile>
+    <tmdbid>12446</tmdbid>
+  </actor>
+  <actor>
+    <name>乌苏拉·安德斯</name>
+    <role>Vesper Lynd</role>
+    <thumb>https://image.tmdb.org/t/p/h632/mZSFE3vayIgXmfot4btC7K1rECZ.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/9871</profile>
+    <tmdbid>9871</tmdbid>
+  </actor>
+  <actor>
+    <name>大卫·尼文</name>
+    <role>James Bond</role>
+    <thumb>https://image.tmdb.org/t/p/h632/ioW2DU6T2HPvTdqUSaLLQmGPb38.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/14261</profile>
+    <tmdbid>14261</tmdbid>
+  </actor>
+  <actor>
+    <name>奥逊·威尔斯</name>
+    <role>Le Chiffre</role>
+    <thumb>https://image.tmdb.org/t/p/h632/e9lGmqQq3EsHeUQgQLByo275hcc.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/40</profile>
+    <tmdbid>40</tmdbid>
+  </actor>
+  <actor>
+    <name>乔安娜·佩蒂</name>
+    <role>Mata Bond</role>
+    <thumb>https://image.tmdb.org/t/p/h632/c5mXJYTMy1mKM9r59GmWrUf18CG.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/51315</profile>
+    <tmdbid>51315</tmdbid>
+  </actor>
+  <actor>
+    <name>Daliah Lavi</name>
+    <role>The Detainer</role>
+    <thumb>https://image.tmdb.org/t/p/h632/185wZM1WuDkoxiPrVjK8QLjpu2Q.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/39754</profile>
+    <tmdbid>39754</tmdbid>
+  </actor>
+  <actor>
+    <name>伍迪·艾伦</name>
+    <role>Jimmy Bond</role>
+    <thumb>https://image.tmdb.org/t/p/h632/xj5QkPJBHJrTNH7jDfterFt1gAE.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/1243</profile>
+    <tmdbid>1243</tmdbid>
+  </actor>
+  <actor>
+    <name>黛博拉·蔻儿</name>
+    <role>Agent Mimi</role>
+    <thumb>https://image.tmdb.org/t/p/h632/dHFhOEhHnn5cQjQN29IGRxzoxBP.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/20141</profile>
+    <tmdbid>20141</tmdbid>
+  </actor>
+  <actor>
+    <name>威廉·霍尔顿</name>
+    <role>Ransome</role>
+    <thumb>https://image.tmdb.org/t/p/h632/qEuJZiPXKFm1LdtbnHKGj2hQm8a.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/8252</profile>
+    <tmdbid>8252</tmdbid>
+  </actor>
+  <actor>
+    <name>查尔斯·博</name>
+    <role>Le Grand</role>
+    <thumb>https://image.tmdb.org/t/p/h632/uVV5HiMl0xP1haPwqcJNweGizZ1.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/29519</profile>
+    <tmdbid>29519</tmdbid>
+  </actor>
+  <actor>
+    <name>约翰·休斯顿</name>
+    <role>McTarry</role>
+    <thumb>https://image.tmdb.org/t/p/h632/saIbkr0jPzscRBKNG1suhgd3Yxb.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/6593</profile>
+    <tmdbid>6593</tmdbid>
+  </actor>
+  <actor>
+    <name>Kurt Kasznar</name>
+    <role>Smernov</role>
+    <thumb>https://image.tmdb.org/t/p/h632/ewpi0jZ6aPM5aQ0mIISXLQGZ04u.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/40620</profile>
+    <tmdbid>40620</tmdbid>
+  </actor>
+  <actor>
+    <name>George Raft</name>
+    <role>George Raft</role>
+    <thumb>https://image.tmdb.org/t/p/h632/rTNM6gZpPduQfPb5UrDmYj48ALk.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/3152</profile>
+    <tmdbid>3152</tmdbid>
+  </actor>
+  <actor>
+    <name>让-保罗·贝尔蒙多</name>
+    <role>French Legionnaire</role>
+    <thumb>https://image.tmdb.org/t/p/h632/wTofz0bBIO7kKXATnZNNBF3Jxle.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/3829</profile>
+    <tmdbid>3829</tmdbid>
+  </actor>
+  <actor>
+    <name>Terence Cooper</name>
+    <role>Cooper</role>
+    <thumb>https://image.tmdb.org/t/p/h632/fspkF4iU9tuZO6bwCLrRP2i2AAo.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/136546</profile>
+    <tmdbid>136546</tmdbid>
+  </actor>
+  <actor>
+    <name>芭芭拉·布薛特</name>
+    <role>Moneypenny</role>
+    <thumb>https://image.tmdb.org/t/p/h632/fVrl3R8UQGFrhfuId7MRqWpnOsA.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/16021</profile>
+    <tmdbid>16021</tmdbid>
+  </actor>
+  <actor>
+    <name>Angela Scoular</name>
+    <role>Buttercup</role>
+    <thumb>https://image.tmdb.org/t/p/h632/l3rXWOCmyNo96rhnXbXvNpp8IiV.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/10171</profile>
+    <tmdbid>10171</tmdbid>
+  </actor>
+  <actor>
+    <name>Gabriella Licudi</name>
+    <role>Eliza</role>
+    <thumb>https://image.tmdb.org/t/p/h632/prANI6Yedk7LjVs59R3z11r8taR.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/240215</profile>
+    <tmdbid>240215</tmdbid>
+  </actor>
+  <actor>
+    <name>Tracey Crisp</name>
+    <role>Heather</role>
+    <profile>https://www.themoviedb.org/person/240216</profile>
+    <tmdbid>240216</tmdbid>
+  </actor>
+  <actor>
+    <name>Elaine Taylor</name>
+    <role>Peg</role>
+    <thumb>https://image.tmdb.org/t/p/h632/qMZN6PRfXDJlz6jabpPZt9JcmaP.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/240217</profile>
+    <tmdbid>240217</tmdbid>
+  </actor>
+  <actor>
+    <name>杰奎琳·比塞特</name>
+    <role>Miss Goodthighs</role>
+    <thumb>https://image.tmdb.org/t/p/h632/4exg9F02WamsI67Hww6AZfTX0kI.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/14061</profile>
+    <tmdbid>14061</tmdbid>
+  </actor>
+  <actor>
+    <name>Alexandra Bastedo</name>
+    <role>Meg</role>
+    <thumb>https://image.tmdb.org/t/p/h632/hKflpBezpRpP0pnBrxqXi7QIFSM.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/105159</profile>
+    <tmdbid>105159</tmdbid>
+  </actor>
+  <actor>
+    <name>Anna Quayle</name>
+    <role>Frau Hoffner</role>
+    <thumb>https://image.tmdb.org/t/p/h632/AbwkoWmGWY0PmaOTaLjCQVBfkoO.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/10599</profile>
+    <tmdbid>10599</tmdbid>
+  </actor>
+  <actor>
+    <name>Derek Nimmo</name>
+    <role>Hadley</role>
+    <thumb>https://image.tmdb.org/t/p/h632/lH4iG8RKKBmKJvq38Y3BC3rojhh.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/94842</profile>
+    <tmdbid>94842</tmdbid>
+  </actor>
+  <actor>
+    <name>Ronnie Corbett</name>
+    <role>Polo</role>
+    <thumb>https://image.tmdb.org/t/p/h632/nAaP1oQQ9tLC4enD8m9x6KWXfic.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/152814</profile>
+    <tmdbid>152814</tmdbid>
+  </actor>
+  <actor>
+    <name>Colin Gordon</name>
+    <role>Casino Director</role>
+    <thumb>https://image.tmdb.org/t/p/h632/aGLWJWtW0bVEUCCEEDAshz4qu2Y.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/14263</profile>
+    <tmdbid>14263</tmdbid>
+  </actor>
+  <actor>
+    <name>伯纳德·克里宾斯</name>
+    <role>Taxi Driver</role>
+    <thumb>https://image.tmdb.org/t/p/h632/lLdaHLskigTNayxy4Tbrt7EKly2.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/40943</profile>
+    <tmdbid>40943</tmdbid>
+  </actor>
+  <actor>
+    <name>特蕾西·里德</name>
+    <role>Fang Leader</role>
+    <thumb>https://image.tmdb.org/t/p/h632/ts9KswPwZfhJQFdp4WBhzPfVJOQ.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/126354</profile>
+    <tmdbid>126354</tmdbid>
+  </actor>
+  <actor>
+    <name>约翰.布鲁塞尔</name>
+    <role>Casino Doorman / MI5 Man</role>
+    <thumb>https://image.tmdb.org/t/p/h632/vdM8UyPL8Plaroa7rlOVX4SWbJ6.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/8398</profile>
+    <tmdbid>8398</tmdbid>
+  </actor>
+  <actor>
+    <name>Geoffrey Bayldon</name>
+    <role>Q</role>
+    <thumb>https://image.tmdb.org/t/p/h632/11XZ9KrxGBzDzWarlEPv1sBLIGE.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/123209</profile>
+    <tmdbid>123209</tmdbid>
+  </actor>
+  <actor>
+    <name>John Wells</name>
+    <role>Q's Assistant</role>
+    <profile>https://www.themoviedb.org/person/141347</profile>
+    <tmdbid>141347</tmdbid>
+  </actor>
+  <actor>
+    <name>Duncan Macrae</name>
+    <role>Inspector Mathis</role>
+    <thumb>https://image.tmdb.org/t/p/h632/tB8uVu4mB4Hp6dgvxHHiSKJs8ll.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/97426</profile>
+    <tmdbid>97426</tmdbid>
+  </actor>
+  <actor>
+    <name>Graham Stark</name>
+    <role>Cashier</role>
+    <thumb>https://image.tmdb.org/t/p/h632/qPlAT4tr2ZspEKDCjqeEAs75x2G.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/14107</profile>
+    <tmdbid>14107</tmdbid>
+  </actor>
+  <actor>
+    <name>Chic Murray</name>
+    <role>Chic</role>
+    <thumb>https://image.tmdb.org/t/p/h632/q0RBDnERN6R48qzeGvP7SdmuQjL.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/1402697</profile>
+    <tmdbid>1402697</tmdbid>
+  </actor>
+  <actor>
+    <name>Jonathan Routh</name>
+    <role>John</role>
+    <profile>https://www.themoviedb.org/person/1248633</profile>
+    <tmdbid>1248633</tmdbid>
+  </actor>
+  <actor>
+    <name>理查德·沃蒂斯</name>
+    <role>British Army Officer</role>
+    <thumb>https://image.tmdb.org/t/p/h632/9pTeYuFSEN85DACrS77vGZ1tm6D.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/85935</profile>
+    <tmdbid>85935</tmdbid>
+  </actor>
+  <actor>
+    <name>Vladek Sheybal</name>
+    <role>Le Chiffre's Representative</role>
+    <thumb>https://image.tmdb.org/t/p/h632/1DT8AE1sD7ADGaoPxYvYo1EzrKz.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/39036</profile>
+    <tmdbid>39036</tmdbid>
+  </actor>
+  <actor>
+    <name>Percy Herbert</name>
+    <role>Piper #1</role>
+    <thumb>https://image.tmdb.org/t/p/h632/wfyliApDtqvOxLh35Ijj5yyg8Uf.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/33220</profile>
+    <tmdbid>33220</tmdbid>
+  </actor>
+  <actor>
+    <name>Penny Riley</name>
+    <role>Control Girl</role>
+    <thumb>https://image.tmdb.org/t/p/h632/bI3MWWnSlwECwDmmZh0oNwDf7jh.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/1642319</profile>
+    <tmdbid>1642319</tmdbid>
+  </actor>
+  <actor>
+    <name>Jeanne Roland</name>
+    <role>Captain of the Guards</role>
+    <thumb>https://image.tmdb.org/t/p/h632/mmxJda3jNCfb95ZIVyXW4UaCIm3.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/199904</profile>
+    <tmdbid>199904</tmdbid>
+  </actor>
+  <actor>
+    <name>Jack Gwillim</name>
+    <role>British Officer at Auction (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/sxi3CEhSnYIHljsXrCUvJ2cvrdV.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/13331</profile>
+    <tmdbid>13331</tmdbid>
+  </actor>
+  <actor>
+    <name>杰拉丁·卓别林</name>
+    <role>Keystone Kop (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/teiPgoY0Fgyw4Xs07IGDsJmcsjL.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/400</profile>
+    <tmdbid>400</tmdbid>
+  </actor>
+  <actor>
+    <name>卡罗琳·门罗</name>
+    <role>Guard Girl (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/k49eLZtSy9EE9rHn80tWHvgbucJ.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/10461</profile>
+    <tmdbid>10461</tmdbid>
+  </actor>
+  <actor>
+    <name>安杰丽卡·休斯顿</name>
+    <role>Agent Mimi's Hands (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/6hnYeHa7Rc1w1MmQ3JsLSIb7yCX.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/5657</profile>
+    <tmdbid>5657</tmdbid>
+  </actor>
+  <actor>
+    <name>彼得·奥图尔</name>
+    <role>Scottish Piper (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/7HzyrEuRVPpjmyJTeiU5oILd3Cn.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/11390</profile>
+    <tmdbid>11390</tmdbid>
+  </actor>
+  <actor>
+    <name>米蕾叶·达尔克</name>
+    <role>Jag (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/bosjtoUKc8jfJROwnXOwB9hmis9.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/39646</profile>
+    <tmdbid>39646</tmdbid>
+  </actor>
+  <actor>
+    <name>瓦伦丁·戴尔</name>
+    <role>Lynd's Assistant / Dr. Noah (voice) (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/f3BH0htYZgXlw4CcajW7Nu4D7XH.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/47480</profile>
+    <tmdbid>47480</tmdbid>
+  </actor>
+  <actor>
+    <name>Ian Hendry</name>
+    <role>(uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/dl0HL5adsOSJ5y2l9KXuSClGQMM.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/58339</profile>
+    <tmdbid>58339</tmdbid>
+  </actor>
+  <actor>
+    <name>Stirling Moss</name>
+    <role>Driver (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/66CI64Xz94moWojBOfm0bTRUjW4.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/1223379</profile>
+    <tmdbid>1223379</tmdbid>
+  </actor>
+  <actor>
+    <name>Nikki Van der Zyl</name>
+    <role>Vesper Lynd (voice) (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/gGwXA5HdL6z2Va3habgd7qrWJ2C.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/1595501</profile>
+    <tmdbid>1595501</tmdbid>
+  </actor>
+  <actor>
+    <name>Eddie Powell</name>
+    <role>Man in Casino (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/rdrJbQxIokXxiBHCJuAsqTKFbXH.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/1077325</profile>
+    <tmdbid>1077325</tmdbid>
+  </actor>
+  <actor>
+    <name>大卫·鲍罗斯</name>
+    <role>Frankenstein's Creature (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/nPFKENjKHuklJ8i54mZroNAgKaI.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/24342</profile>
+    <tmdbid>24342</tmdbid>
+  </actor>
+  <actor>
+    <name>John Le Mesurier</name>
+    <role>M's Driver (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/2rElQQzZXkxPj2UnqsDSCkFHQxk.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/14264</profile>
+    <tmdbid>14264</tmdbid>
+  </actor>
+  <actor>
+    <name>Veronica Carlson</name>
+    <role>Tall Blonde (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/gSwJTqutHRgqDFqBkchSktMw5A1.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/30140</profile>
+    <tmdbid>30140</tmdbid>
+  </actor>
+  <actor>
+    <name>Erik Chitty</name>
+    <role>Butler (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/6LV1SdtAYpDQwVXl8zjyCTlwOf4.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/14018</profile>
+    <tmdbid>14018</tmdbid>
+  </actor>
+  <actor>
+    <name>John Hollis</name>
+    <role>Fred (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/9x9OllrGIoJyMLHb2DpEWyVVRCZ.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/27165</profile>
+    <tmdbid>27165</tmdbid>
+  </actor>
+  <actor>
+    <name>郭弼</name>
+    <role>Chinese General (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/h65id1QbugPnKfC45NDkM7uJlSb.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/21944</profile>
+    <tmdbid>21944</tmdbid>
+  </actor>
+  <actor>
+    <name>莫娜·沃什伯恩</name>
+    <role>Tea Lady (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/3verXd1ywWcpiOIPxqApEV3TvTT.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/89895</profile>
+    <tmdbid>89895</tmdbid>
+  </actor>
+  <actor>
+    <name>Jennifer White</name>
+    <role>Bond Girl (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/vVpHBrmg3rv7yEVDlFVS3hhRplf.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/1157706</profile>
+    <tmdbid>1157706</tmdbid>
+  </actor>
+  <actor>
+    <name>Richard Reeves</name>
+    <role>Hit Man (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/vdElv5edpZWmHpgmbFTuVumQCXm.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/43822</profile>
+    <tmdbid>43822</tmdbid>
+  </actor>
+  <actor>
+    <name>Hal Galili</name>
+    <role>USA Officer at Auction (uncredited)</role>
+    <profile>https://www.themoviedb.org/person/186212</profile>
+    <tmdbid>186212</tmdbid>
+  </actor>
+  <actor>
+    <name>Robin Tolhurst</name>
+    <role>Casino Girl (uncredited)</role>
+    <profile>https://www.themoviedb.org/person/2262360</profile>
+    <tmdbid>2262360</tmdbid>
+  </actor>
+  <actor>
+    <name>Suki Potier</name>
+    <role>Casino Girl (uncredited)</role>
+    <thumb>https://image.tmdb.org/t/p/h632/c6pDsuv43FoLCmVCgOyYpD0LoP4.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/4194433</profile>
+    <tmdbid>4194433</tmdbid>
+  </actor>
+  <credits tmdbid="71656">约翰·劳</credits>
+  <credits tmdbid="29663">沃尔夫·曼科维茨</credits>
+  <credits tmdbid="71657">迈克尔·塞耶斯</credits>
+  <director tmdbid="47792">约瑟夫·麦格拉思</director>
+  <director tmdbid="8514">罗伯特·R·帕里什</director>
+  <director tmdbid="70308">肯·休斯</director>
+  <director tmdbid="6593">约翰·休斯顿</director>
+  <director tmdbid="39853">瓦尔·格斯特</director>
+  <producer tmdbid="10535">
+    <name>Charles K. Feldman</name>
+    <role>Producer</role>
+    <profile>https://www.themoviedb.org/person/10535</profile>
+  </producer>
+  <producer tmdbid="39761">
+    <name>Jerry Bresler</name>
+    <role>Producer</role>
+    <profile>https://www.themoviedb.org/person/39761</profile>
+  </producer>
+  <trailer/>
+  <languages>日语, 英语, 法语, 苏格兰盖尔语, 德语</languages>
+  <dateadded>2026-08-13 14:24:00</dateadded>
+  <lockdata>true</lockdata>
+  <fileinfo>
+    <streamdetails>
+      <video>
+        <codec>h264</codec>
+        <aspect>1.78</aspect>
+        <width>1920</width>
+        <height>1080</height>
+        <resolution>1080</resolution>
+        <durationinseconds>7868</durationinseconds>
+      </video>
+      <audio>
+        <codec>dtshd_ma</codec>
+        <language>eng</language>
+        <channels>6</channels>
+      </audio>
+      <subtitle>
+        <language>zho</language>
+      </subtitle>
+      <subtitle>
+        <language>zho</language>
+      </subtitle>
+    </streamdetails>
+  </fileinfo>
+  <!--tinyMediaManager meta data-->
+  <source>BLURAY</source>
+  <edition>NONE</edition>
+  <original_filename>Casino.Royale.1967.1080p.Bluray.REMUX.AVC.DTS-HD.MA.5.1.mkv</original_filename>
+  <user_note/>
+  <english_title>Casino Royale</english_title>
+  <crew>
+    <name>Jack Hildyard</name>
+    <role subrole="Director of Photography">CAMERA</role>
+    <thumb>https://image.tmdb.org/t/p/h632/cWncV7KXdRlD2Vvx5Hlfw4kfiC.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/12242</profile>
+    <tmdbid>12242</tmdbid>
+  </crew>
+  <crew>
+    <name>Bill Lenny</name>
+    <role subrole="Editor">EDITOR</role>
+    <profile>https://www.themoviedb.org/person/40355</profile>
+    <tmdbid>40355</tmdbid>
+  </crew>
+  <crew>
+    <name>Jim Shields</name>
+    <role subrole="Dialogue Editor">EDITOR</role>
+    <profile>https://www.themoviedb.org/person/9854</profile>
+    <tmdbid>9854</tmdbid>
+  </crew>
+  <crew>
+    <name>Burt Bacharach</name>
+    <role subrole="Original Music Composer">COMPOSER</role>
+    <thumb>https://image.tmdb.org/t/p/h632/dPmf3Z8KqbnGSnWVSgBSOiJvIRp.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/9580</profile>
+    <tmdbid>9580</tmdbid>
+  </crew>
+  <crew>
+    <name>Charles K. Feldman</name>
+    <role subrole="Producer">PRODUCER</role>
+    <profile>https://www.themoviedb.org/person/10535</profile>
+    <tmdbid>10535</tmdbid>
+  </crew>
+  <crew>
+    <name>Jerry Bresler</name>
+    <role subrole="Producer">PRODUCER</role>
+    <profile>https://www.themoviedb.org/person/39761</profile>
+    <tmdbid>39761</tmdbid>
+  </crew>
+  <crew>
+    <name>约翰·劳</name>
+    <role subrole="Screenplay">WRITER</role>
+    <profile>https://www.themoviedb.org/person/71656</profile>
+    <tmdbid>71656</tmdbid>
+  </crew>
+  <crew>
+    <name>沃尔夫·曼科维茨</name>
+    <role subrole="Screenplay">WRITER</role>
+    <thumb>https://image.tmdb.org/t/p/h632/vhzYfHW34gYPkhNOy8INxJUqWNi.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/29663</profile>
+    <tmdbid>29663</tmdbid>
+  </crew>
+  <crew>
+    <name>迈克尔·塞耶斯</name>
+    <role subrole="Screenplay">WRITER</role>
+    <profile>https://www.themoviedb.org/person/71657</profile>
+    <tmdbid>71657</tmdbid>
+  </crew>
+  <crew>
+    <name>约瑟夫·麦格拉思</name>
+    <role subrole="Director">DIRECTOR</role>
+    <thumb>https://image.tmdb.org/t/p/h632/zv35f6b9WUAzZIqg0LgPzQ9jgwI.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/47792</profile>
+    <tmdbid>47792</tmdbid>
+  </crew>
+  <crew>
+    <name>罗伯特·R·帕里什</name>
+    <role subrole="Director">DIRECTOR</role>
+    <thumb>https://image.tmdb.org/t/p/h632/yK9q7WLaI3QVfesG15IVAV6Rn45.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/8514</profile>
+    <tmdbid>8514</tmdbid>
+  </crew>
+  <crew>
+    <name>肯·休斯</name>
+    <role subrole="Director">DIRECTOR</role>
+    <thumb>https://image.tmdb.org/t/p/h632/9xASt331VoDObNJ2d8u1PJNWX7s.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/70308</profile>
+    <tmdbid>70308</tmdbid>
+  </crew>
+  <crew>
+    <name>约翰·休斯顿</name>
+    <role subrole="Director">DIRECTOR</role>
+    <thumb>https://image.tmdb.org/t/p/h632/saIbkr0jPzscRBKNG1suhgd3Yxb.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/6593</profile>
+    <tmdbid>6593</tmdbid>
+  </crew>
+  <crew>
+    <name>瓦尔·格斯特</name>
+    <role subrole="Director">DIRECTOR</role>
+    <thumb>https://image.tmdb.org/t/p/h632/ssAKGF2Rd0kGuvzLV4zCmRrl5bo.jpg</thumb>
+    <profile>https://www.themoviedb.org/person/39853</profile>
+    <tmdbid>39853</tmdbid>
+  </crew>
+  <!-- tmm-imdb-tech:BEGIN -->
+  <technicalspecs source="IMDb" imdbid="tt0061452" mediatype="movie" fetched="2026-08-17T20:55:33+00:00" formatVersion="11" localtitle="007别传：皇家夜总会">
+    <section name="Runtime">
+      <item>2h 11m (131 min)</item>
+    </section>
+    <section name="Sound mix">
+      <item>70 mm 6-Track (Westrex Recording System, 70 mm prints)</item>
+      <item>Mono (35 mm prints)</item>
+      <item>Dolby Digital (5.1 Surround Sound)</item>
+    </section>
+    <section name="Color">
+      <item>Color</item>
+      <item>Black and White (archive footage: Keystone Cops)</item>
+    </section>
+    <section name="Aspect ratio">
+      <item>2.39 : 1</item>
+    </section>
+    <section name="Camera">
+      <item>Panavision Lenses</item>
+    </section>
+    <section name="Laboratory">
+      <item>Technicolor, London, UK (colour)</item>
+    </section>
+    <section name="Film Length">
+      <item>3,547 m (Norway)</item>
+      <item>3,598 m</item>
+    </section>
+    <section name="Negative Format">
+      <item>35 mm</item>
+    </section>
+    <section name="Cinematographic Process">
+      <item>Panavision (anamorphic)</item>
+    </section>
+    <section name="Printed Film Format">
+      <item>35 mm</item>
+    </section>
+    <url>https://www.imdb.com/title/tt0061452/technical/</url>
+  </technicalspecs>
+  <!-- tmm-imdb-tech:END -->
+  <tmm_locked/>
+</movie>

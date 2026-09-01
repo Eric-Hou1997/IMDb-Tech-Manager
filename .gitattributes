@@ -1,0 +1,2 @@
+# Preserve the authoritative real-world NFO fixture byte-for-byte, including CRLF.
+macos/tests/fixtures/casino-royale-1967-real.nfo -text -diff
