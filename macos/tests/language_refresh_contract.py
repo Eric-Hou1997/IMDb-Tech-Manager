@@ -103,7 +103,7 @@ with tempfile.TemporaryDirectory() as raw:
     assert indexed[os.path.realpath(str(show))]["title"] == "Show A", "TV catalog must remain untouched by movie refresh"
     print("OK 3: movie-only reconcile merges results without scanning/replacing TV state")
 
-assert 'const appVersion = "4.0.0"' in MAIN
+assert 'const appVersion = "4.0.1"' in MAIN
 for required in (
     "刷新当前媒体库", "发行年份", "添加日期", "Spec 状态", "Tag 状态",
     "columnWrench", "data-resize-field", "appAutoStart", 'id="language"',
@@ -118,7 +118,7 @@ for required in (
 assert "状态（自动计算）" not in WEB
 assert "emoji" not in WEB.lower()
 assert 'id="clearFilters"' not in WEB
-assert "function displayVersion(value){return 'v'+String(value||'4.0.0')}" in WEB
+assert "function displayVersion(value){return 'v'+String(value||'4.0.1')}" in WEB
 assert "platformRepairAppAutoStartAfterBundleReplacement" in PLATFORM
 assert "app bundle upgrade login item repair" in MAIN
 assert 'MAC_APP_NAME="IMDb Tech Manager.app"' in BUILD

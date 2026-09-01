@@ -5,16 +5,18 @@ set -eu
 # stable so Finder can replace the prior installation without manual renaming.
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 OUT="$ROOT/releases"
-TMP=$(mktemp -d "${TMPDIR:-/tmp}/imdb-tech-manager-4.0.0.XXXXXX")
+VERSION="4.0.1"
+ARTIFACT_BASE="ITM-v${VERSION}-MacOS-AArch64-APP"
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/imdb-tech-manager-${VERSION}.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT HUP INT TERM
 GO_CACHE="$TMP/go-cache"
 CLANG_CACHE="$TMP/clang-cache"
 MAC_APP_NAME="IMDb Tech Manager.app"
-MAC_ZIP_NAME="IMDb-Tech-Manager-macOS-v4.0.0-AppleSilicon-App.zip"
-SHA_NAME="SHA256SUMS-IMDb-Tech-Manager-macOS-v4.0.0.txt"
+MAC_ZIP_NAME="${ARTIFACT_BASE}.zip"
+SHA_NAME="${ARTIFACT_BASE}-SHA256SUMS.txt"
 SIG_NAME="$MAC_ZIP_NAME.sig"
-README_NAME="README-macOS-v4.0.0.txt"
-CHANGELOG_NAME="CHANGELOG-macOS-v4.0.0.txt"
+README_NAME="${ARTIFACT_BASE}-README.txt"
+CHANGELOG_NAME="${ARTIFACT_BASE}-CHANGELOG.txt"
 
 for target in "$OUT/$MAC_ZIP_NAME" "$OUT/$SIG_NAME" "$OUT/$SHA_NAME" "$OUT/$README_NAME" "$OUT/$CHANGELOG_NAME"; do
   if [ -e "$target" ]; then
@@ -65,4 +67,4 @@ if find "$OUT" -maxdepth 1 -type f \( -name '*.exe' -o -name '*Core' \) -print -
   exit 3
 fi
 
-echo "4.0.0 macOS release generated (ZIP only): $OUT/$MAC_ZIP_NAME"
+echo "${VERSION} macOS release generated (ZIP only): $OUT/$MAC_ZIP_NAME"

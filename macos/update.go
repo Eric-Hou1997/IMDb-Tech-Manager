@@ -97,11 +97,15 @@ func techUpdateStatus() (map[string]interface{}, githubRelease, error) {
 	if err != nil {
 		return nil, githubRelease{}, err
 	}
+	releaseURL := strings.TrimSpace(release.HTMLURL)
+	if releaseURL == "" {
+		releaseURL = techReleasePage
+	}
 	return map[string]interface{}{
 		"current_version": "v" + appVersion,
 		"latest_version":  release.TagName,
 		"available":       cmp < 0,
-		"release_url":     techReleasePage,
+		"release_url":     releaseURL,
 		"published_at":    release.PublishedAt,
 	}, release, nil
 }
@@ -139,28 +143,49 @@ func handleTechUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func stageTechUpdate(release githubRelease) error {
-	appPath, err := currentAppBundlePath()
+func techUpdateArchiveName(tag string) (string, error) {
+	match := versionPattern.FindStringSubmatch(strings.TrimSpace(tag))
+	if match == nil {
+		return "", errors.New("版本号必须为 vX.Y.Z")
+	}
+	return fmt.Sprintf("ITM-v%s.%s.%s-MacOS-AArch64-APP.zip", match[1], match[2], match[3]), nil
+}
+
+func selectTechUpdateAssets(release githubRelease) (githubReleaseAsset, githubReleaseAsset, error) {
+	expectedArchive, err := techUpdateArchiveName(release.TagName)
 	if err != nil {
-		return fmt.Errorf("自动更新仅支持已安装的 IMDb Tech Manager.app：%w", err)
+		return githubReleaseAsset{}, githubReleaseAsset{}, err
 	}
 	archive, signature := githubReleaseAsset{}, githubReleaseAsset{}
 	for _, asset := range release.Assets {
-		if strings.HasSuffix(asset.Name, ".zip") && strings.Contains(asset.Name, "IMDb-Tech-Manager") {
+		if asset.Name == expectedArchive {
 			archive = asset
+			break
 		}
 	}
 	if archive.Name == "" {
-		return errors.New("该正式发布缺少 macOS Apple Silicon ZIP 更新包")
+		return githubReleaseAsset{}, githubReleaseAsset{}, fmt.Errorf("该正式发布缺少指定更新包 %s", expectedArchive)
 	}
 	for _, asset := range release.Assets {
-		if asset.Name == archive.Name+".sig" {
+		if asset.Name == expectedArchive+".sig" {
 			signature = asset
 			break
 		}
 	}
 	if signature.Name == "" {
-		return errors.New("该正式发布缺少签名文件，已拒绝更新")
+		return githubReleaseAsset{}, githubReleaseAsset{}, fmt.Errorf("该正式发布缺少签名文件 %s.sig，已拒绝更新", expectedArchive)
+	}
+	return archive, signature, nil
+}
+
+func stageTechUpdate(release githubRelease) error {
+	appPath, err := currentAppBundlePath()
+	if err != nil {
+		return fmt.Errorf("自动更新仅支持已安装的 IMDb Tech Manager.app：%w", err)
+	}
+	archive, signature, err := selectTechUpdateAssets(release)
+	if err != nil {
+		return err
 	}
 	updates := filepath.Join(baseDir(), "updates")
 	if err := os.MkdirAll(updates, 0700); err != nil {

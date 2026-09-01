@@ -241,7 +241,7 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
     WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
     configuration.websiteDataStore = WKWebsiteDataStore.defaultDataStore;
     configuration.userContentController = controller;
-    configuration.applicationNameForUserAgent = @"IMDbTechManager/4.0.0";
+    configuration.applicationNameForUserAgent = @"IMDbTechManager/4.0.1";
 
     WKWebView *web = [[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration];
     web.navigationDelegate = self;

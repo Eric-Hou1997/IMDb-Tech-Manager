@@ -76,6 +76,16 @@ These instructions are part of the public repository. Apply them to every change
 - Audit the exact release range and all primary flows before packaging. Create a new version rather than overwrite an artifact.
 - Do not build a release package, create a tag, push, or publish a release unless the maintainer explicitly requests that release after review. A successful build alone is not release approval.
 
+## Release naming, tags, and OTA compatibility
+
+- Use the short, canonical artifact base for every official IMDb Tech Manager release: `ITM-vX.Y.Z-MacOS-AArch64-APP` for a macOS arm64 app ZIP and `ITM-vX.Y.Z-Windows-x64-EXE` for a future Windows x64 EXE ZIP. The ZIP filename is the base plus `.zip`.
+- Companion assets must use the same base: `.zip.sig` for the macOS OTA signature, `-SHA256SUMS.txt` for checksums, `-README.txt` for release instructions, and `-CHANGELOG.txt` for release notes. Never restore the older long product-name-first artifact convention.
+- Keep the in-ZIP application name stable for replacement: `IMDb Tech Manager.app` on macOS and `IMDb-Tech-Manager.exe` for a future Windows portable package. The version belongs in the archive name, not in the installed app name.
+- The release build recipe, checksum manifest, GitHub Release asset names, updater selector, update UI, release notes, and all tests must agree on the exact canonical filename for the tag being released. Reject a release if the required platform package or macOS signature is missing, ambiguously named, or belongs to a different tag/platform.
+- Before publishing, verify the actual GitHub Release API response, not merely local files: the newest stable `vX.Y.Z` tag must expose the exact expected archive, and on macOS its matching `.sig` must verify against the public key embedded in source.
+- Do not tag unreleased work. After the maintainer approves the complete source range for a formal release, place exactly its matching `vX.Y.Z` tag on the final release commit immediately before pushing. Never create or push a preliminary tag, move or reuse a published tag, or overwrite a published release.
+- If an already-published asset needs only a filename correction, rename it in place through the GitHub Release asset API after comparing its digest before and after. Do not re-upload, rebuild, alter its bytes, or silently change release contents.
+
 ## OTA release signing
 
 - Every official IMDb Tech Manager macOS OTA release must be signed with the project's existing Ed25519 OTA private key.

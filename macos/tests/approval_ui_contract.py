@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""v4.0.0 regressions for approval refresh and catalog UI polish."""
+"""v4.0.1 regressions for approval refresh and catalog UI polish."""
 import importlib.util
 import pathlib
 
@@ -32,7 +32,7 @@ print("OK 1: preview tag roles come from the engine result, not UI text guessing
 
 
 for required in (
-    'const appVersion = "4.0.0"',
+    'const appVersion = "4.0.1"',
     'ID        string `json:"job_id,omitempty"`',
     'jobID := strings.TrimSpace(r.URL.Query().Get("id"))',
     'jobs.snapshot(jobID)',
@@ -46,7 +46,7 @@ print("OK 2: approval waits on an immutable job identity and overlapping jobs fa
 
 
 for required in (
-    'content="v4.0.0"',
+    'content="v4.0.1"',
     "function renderCatalogHeader()",
     "header.style.gridTemplateColumns=listGrid()",
     "qa('#libraryList .row').forEach(row=>row.style.gridTemplateColumns=grid)",
@@ -121,7 +121,7 @@ for marker in (
     "layoutRestore", "layoutFallback",
 ):
     assert f"root.dataset.{marker}" in WEB, marker
-print("OK 6: v4.0.0 browser smoke covers the reported visual regressions")
+print("OK 6: v4.0.1 browser smoke covers the reported visual regressions")
 
 
 for required in (
@@ -183,8 +183,8 @@ assert "localStorage.taskHeight=height" not in WEB
 print("OK 7: native window and web workspace geometry use durable, validated lifecycle ownership")
 
 
-assert "<key>CFBundleVersion</key><string>4.0.0</string>" in INFO
-assert "<key>CFBundleShortVersionString</key><string>4.0.0</string>" in INFO
-assert 'IMDbTechManager/4.0.0' in LAUNCHER
-assert 'IMDbTechManagerFetcher/4.0.0' in FETCHER
-print("OK 8: core, Web UI, bundle metadata, and native user agents share v4.0.0")
+assert "<key>CFBundleVersion</key><string>4.0.1</string>" in INFO
+assert "<key>CFBundleShortVersionString</key><string>4.0.1</string>" in INFO
+assert 'IMDbTechManager/4.0.1' in LAUNCHER
+assert 'IMDbTechManagerFetcher/4.0.1' in FETCHER
+print("OK 8: core, Web UI, bundle metadata, and native user agents share v4.0.1")

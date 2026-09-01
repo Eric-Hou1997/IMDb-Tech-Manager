@@ -223,4 +223,4 @@ with tempfile.TemporaryDirectory(prefix="imdb-tech-ui-") as temp_dir:
     assert 'data-ui-ready="true"' in fallback_dom, corrupt_errors.read_text(encoding="utf-8")[-2000:]
     assert 'data-layout-fallback="ok"' in fallback_dom, "corrupt persisted layout did not fall back safely"
 
-print("OK v4.0.0 real DOM startup, persisted layout, fallback, alignment, and interaction contract")
+print("OK v4.0.1 real DOM startup, persisted layout, fallback, alignment, and interaction contract")

@@ -7,8 +7,8 @@ web = (ROOT / 'web/index.html').read_text()
 platform = (ROOT / 'platform_darwin.go').read_text()
 
 checks = {
-    'app version 4.0.0': 'const appVersion = "4.0.0"' in main,
-    'web UI version 4.0.0': '4.0.0' in web,
+    'app version 4.0.1': 'const appVersion = "4.0.1"' in main,
+    'web UI version 4.0.1': '4.0.1' in web,
     'Darwin embed excludes Windows assets': 'engine/windows-engine.ps1' not in main and 'engine/technical-specs-card.js' not in main,
     'app-start auto mode preference is independent': 'AutoModeOnAppStartConfigured' in main and 'auto_mode_on_app_start' in web,
     'legacy agent login item is retired safely': 'migrateAutoModeOnAppStartPreference' in main and 'platformSetAutoStart(false, io.Discard)' in main,
