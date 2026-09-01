@@ -15,8 +15,6 @@
 
 影视技术规格与媒体库元数据管理工具
 
-**🚧 持续开发中 · 源码将在准备完成后开放**
-
 ---
 
 ## 🎬 项目简介
@@ -155,49 +153,69 @@ IMDb Tech Manager 将围绕这些数据建立解析、标准化、元数据管�
 
 ## 🧩 项目架构
 
-从职责上看，IMDb Tech Manager 主要分成两个方向。
-### 📦 数据管理端
+IMDb Tech Manager（ITM）与 [Tech Card Manager（TCM）](https://github.com/Eric-Hou1997/Tech-Card-Manager) 围绕同一套 **Technical Specifications** 工作流协同工作。
 
-数据管理端负责技术规格的获取、处理、检查和元数据维护。
+两者分别负责不同阶段：
+
+* **ITM** 负责技术规格的获取、处理、检查与元数据维护
+* **TCM** 负责将已经处理好的技术规格应用到媒体库（如在Emby的界面中生成相应的技术规格卡片），并完成展示与集成
+
+两者是相互配合的独立工具，也可以根据实际需求分别使用和独立发展。
+
+### 📦 IMDb Tech Manager（ITM）
+
+**IMDb Tech Manager（ITM）** 主要负责 Technical Specifications 的数据管理与处理。
 
 主要职责包括：
 
 * IMDb Technical Specifications 数据获取
 * Technical Specifications 结构化
+* 技术规格标准化
 * NFO 文件管理
 * Technical Specifications 写入 NFO
 * 技术标签生成
-* 技术规格标准化
 * AI 辅助语义处理
 * Preview / Dry Run
 * 手动修正
 * 批量处理
 * 元数据维护
 
-### 🖥️ 媒体库展示与集成端
+ITM 负责将原始技术规格整理成稳定、结构化、可维护的媒体元数据。
 
-媒体库展示与集成端负责将已经处理好的技术信息应用到媒体库中。
+这些经过 ITM 处理后的 Technical Specifications，可以进一步交由 **TCM** 使用，在媒体库中完成技术规格卡片生成、展示与同步。
+
+### 🖥️ [Tech Card Manager（TCM）](https://github.com/Eric-Hou1997/Tech-Card-Manager)
+
+**Tech Card Manager（TCM）** 主要负责 Technical Specifications 在媒体库中的展示与集成。
 
 主要职责包括：
 
-* 技术规格卡片
+* 读取 ITM 或其他兼容数据源提供的 Technical Specifications
+* 技术规格卡片生成与维护
 * 技术信息展示
 * 元数据同步
 * Web UI 集成
 * 不同媒体类型的兼容处理
 * 与媒体库元数据工作流联动
+
+TCM 与 ITM 使用相同的 Technical Specifications 数据体系，但职责有所区分。
+
+ITM 更关注技术信息本身的获取、整理和维护，TCM 则负责将这些已经整理好的数据应用到实际媒体库环境中。
+
+因此，两者可以形成一套完整的工作流：
+
+**IMDb → ITM → NFO / Technical Specifications → TCM → 媒体库展示**
+
 ### 🧭 平台关系
 
-这两个方向在架构上**不与某一个操作系统永久绑定**。
-
-这里描述的是模块职责，而不是平台限制。
+ITM 与 TCM 的职责划分**不与某一个操作系统或媒体服务器永久绑定**。
 
 目前实际已经实现或正在重点开发的是：
 
-* 一个当前运行于 **macOS** 的数据管理工具
-* 一套当前围绕 **Emby** 开发的媒体库展示与集成方案
+* **ITM**：当前主要运行于 **macOS** 的 Technical Specifications 数据管理工具
+* **TCM**：当前主要围绕 **Emby** 开发的 Technical Specifications 卡片管理与媒体库集成工具
 
-这些只是现阶段已经存在的实现，并不代表项目未来只能运行在这些平台上。
+这些只是现阶段的实现形态，并不代表两个项目未来只能运行在这些平台上。
 
 后续可以继续扩展：
 
@@ -205,41 +223,53 @@ IMDb Tech Manager 将围绕这些数据建立解析、标准化、元数据管�
 * 其他媒体服务器
 * 其他部署方式
 * 其他客户端
+* 其他兼容的 Technical Specifications 数据源
 
----
+ITM 与 TCM 在架构上保持相对独立，通过标准化的 Technical Specifications 与媒体元数据进行衔接，从而为后续扩展不同平台和媒体库提供空间。
 
 ## 🧠 项目设计原则
 
+IMDb Tech Manager 的开发重点之一，是让自动化能力保持**可控、可检查、可回退**。
+
+无论使用本地规则还是 AI，最终目标都是可靠地维护用户的媒体元数据，而不是单纯追求自动化程度。
+
 ### 1. 确定性规则优先
 
-对于可以通过明确规则可靠解决的问题，优先使用本地确定性逻辑。
+对于可以通过明确规则稳定解决的问题，优先使用本地确定性逻辑。
 
 例如：
 
 * 已知格式映射
-* 标签标准化
+* 技术规格标准化
+* 标签规则
 * 数据结构转换
-* NFO 操作
+* NFO 读取与写入
 * 文件处理
 * 数据验证
+* 所有权判断
 
-不会为了使用 AI 而刻意把这些任务交给 AI。
+这类任务具有明确输入和明确结果，使用确定性规则通常更容易测试、复现和验证。
+
+不会为了使用 AI，而把能够可靠解决的问题交给模型处理。
 
 ### 2. AI 处理模糊语义
 
-AI 更适合处理：
+AI 主要用于固定规则难以完整覆盖的语义问题，例如：
 
 * 不规则自然语言
 * 有歧义的技术规格
-* 语义拆分
-* 固定规则难以完整覆盖的表达
+* 复杂语义拆分
+* 厂商、系列与型号关系判断
+* 多种表达方式的归一化
+* 需要结合上下文理解的技术信息
 
-AI 是系统中的一个能力模块，而不是整个项目唯一的基础。
+AI 是 IMDb Tech Manager 的一个能力模块。
+
+它负责补充规则系统不擅长的部分，而不会取代整个数据处理流程。
+
 ### 3. AI Provider 可替换
 
-模型层会尽量保持可配置。
-
-典型配置包括：
+模型层保持可配置，当前主要通过类似下面的配置接入不同模型服务：
 
 ```text
 Provider
@@ -248,40 +278,109 @@ API Key
 Model
 ```
 
-这样可以根据模型能力、调用成本、可用性、部署环境和隐私要求切换不同的模型服务。
+这样可以根据：
+
+* 模型能力
+* 调用成本
+* 可用性
+* API 兼容性
+* 部署环境
+* 隐私要求
+
+切换不同的模型服务。
+
+项目不会把核心数据工作流永久绑定到某一个 AI Provider。
 
 ### 4. 修改前先预演
 
-涉及副作用的操作原则上优先遵循：
+涉及 NFO 和媒体元数据修改的操作，尽可能先提供可检查的结果，再执行正式写入。
+
+典型流程：
 
 ```text
 Preview / Dry Run
         ↓
-用户确认
+检查修改结果
         ↓
 正式执行
+        ↓
+验证写入结果
 ```
 
 尤其适用于：
 
 * NFO 修改
-* 技术标签写入
-* 元数据变更
+* Technical Specifications 写入
+* 技术标签生成
+* 技术标签更新
 * 批量操作
+* 元数据迁移
+
+对于批量修改，能够提前看到“将要发生什么”比单纯提高执行速度更重要。
 
 ### 5. 尊重用户维护的数据
 
-自动生成的数据不应该在没有明确理由的情况下覆盖用户手动维护的元数据。
+IMDb Tech Manager 会区分不同来源和所有权的元数据。
 
-用户自己增加、修改和修正过的数据应该继续由用户掌控。
+自动化流程只能修改自己能够明确确认所有权的数据，不应该因为文本相似，就推断某个标签属于 IMDb Tech Manager。
 
-### 6. 后台行为可观察、可验证
+特别是：
 
-项目希望尽可能让重要后台行为透明。
+* 用户手动维护的标签
+* 外部工具生成的标签
+* TMM 等其他应用维护的数据
+* 无法确认来源的数据
 
-例如可以看到：
+都不应该被后台任务擅自删除、接管或覆盖。
 
-* 处理了什么
+用户手动修改过的 Generated Tech Tag 会被视为需要保护的人工数据。
+
+### 6. Technical Specifications 与 Tags 分层
+
+项目将 **Technical Specifications** 视为事实数据层，将 **Tags** 视为基于事实数据进一步生成的派生信息。
+
+```text
+Technical Specifications
+        ↓
+标准化 / 语义处理
+        ↓
+Technical Tags
+```
+
+因此：
+
+* Spec Agent 只负责 Technical Specifications
+* 标签生成器负责 Technical Tags
+* 修改 Technical Specifications 不应该隐式触发 IMDb 数据刷新
+* 标签重建应该是独立、可观察的操作
+
+这样可以避免不同处理阶段互相污染，也方便后续重新生成标签或接入其他工具。
+
+### 7. 写入操作必须安全
+
+NFO 是媒体库的重要长期数据，因此修改流程需要尽量避免“写了一半”“误删标签”或“文件损坏”这类问题。
+
+项目会持续强化：
+
+* XML 有效性检查
+* 修改前备份
+* 原文件状态检查
+* 原子写入
+* 路径安全检查
+* 标签所有权验证
+* 冲突检测
+* 失败时保持原文件不变
+* 可恢复与可撤销能力
+
+当系统无法安全判断是否应该修改某项数据时，默认选择跳过，而不是冒险写入。
+
+### 8. 后台行为可观察、可验证
+
+重要后台操作应该尽可能向用户提供明确状态。
+
+例如：
+
+* 正在处理什么
 * 修改了什么
 * 哪些结果来自本地规则
 * 哪些结果来自 AI
@@ -289,66 +388,73 @@ Preview / Dry Run
 * Token 使用情况
 * Cache 命中情况
 * 估算费用
-* 任务结果
-* 错误以及受影响的项目
+* 当前任务阶段
+* 成功 / 失败 / 跳过状态
+* 错误原因
+* 受影响的影片或 NFO
+
+项目尽量避免只显示一个简单的“成功”，而忽略中间实际发生了什么。
 
 ---
+
 ## 🤖 面向 Coding Agent 的开发
 
-IMDb Tech Manager 也希望探索一种更加适合现代 Coding Agent 的开发方式。
+IMDb Tech Manager 的公开 Repository 已经提供：
 
-源码正式开放后，Repository 计划同时提供：
+[**`AGENTS.md` →**](./AGENTS.md)
 
-**`AGENTS.md`**
+它是 Codex 等 Coding Agent 理解和修改项目的重要上下文入口。
 
-它会作为 Coding Agent 理解整个项目的重要入口。
+`AGENTS.md` 目前已经包含：
 
-计划包含：
+* Repository 身份与源码边界
+* 当前产品职责
+* 软件架构约束
+* NFO 安全规则
+* 标签所有权规则
+* AI 调用与 Token 统计规则
+* 生命周期管理要求
+* 测试与验证要求
+* Release 边界
+* OTA 签名要求
+* 平台支持边界
+* 不应该进行的修改
+* 修改完成前需要执行的检查
 
-* 项目目标
-* 软件架构
-* Repository 目录结构
-* 各模块职责
-* 模块边界
-* 开发原则
-* 不应该破坏的设计约束
-* 编码规范
-* 测试要求
-* 构建方式
-* Release 流程
-* 已知问题
-* 常见开发陷阱
-* 完成代码修改前需要执行的检查
+开发者 Fork 或 Clone 项目后，可以让支持 Repository Context 的 Coding Agent 先读取 `AGENTS.md`，再开始分析和修改代码。
 
-希望未来开发者 Fork 或 Clone 项目后，可以直接使用 Codex 等 Coding Agent：
+推荐工作流：
+
 ```text
 Fork / Clone
         ↓
 Coding Agent 读取 AGENTS.md
         ↓
-理解项目架构和开发规则
+读取相关源码与测试
         ↓
-分析受到影响的模块
+理解模块职责与修改边界
+        ↓
+分析受到影响的功能链路
         ↓
 制定修改方案
         ↓
 修改代码
         ↓
-运行测试
+运行相关测试
         ↓
-验证结果
+验证真实行为
         ↓
 提交 Pull Request
 ```
 
-项目未来希望开放的不只有源代码。
-
-还会尽可能同时开放：
+IMDb Tech Manager 希望 Repository 提供的不只是源码本身：
 
 ```text
 源代码
   +
 架构知识
+  +
+设计约束
   +
 开发规则
   +
@@ -357,121 +463,240 @@ Coding Agent 读取 AGENTS.md
 Agent Context
 ```
 
-希望降低开发者和 Coding Agent 理解、修改和扩展这个项目的门槛。
+这样无论是开发者直接阅读代码，还是使用 Codex 等 Coding Agent，都可以更快理解项目，同时减少“代码能运行，但破坏了既有设计”的修改。
 
 ---
+
 ## 🚧 当前状态
 
-IMDb Tech Manager 目前仍处于 **活跃开发阶段**。
+IMDb Tech Manager 目前处于 **公开源码、持续开发阶段**。
 
-当前公开 Repository 主要用于：
+公开源码从 **v4.0.0** 开始维护。
 
-* 📖 项目介绍与文档
-* 🧭 Roadmap
-* 💬 功能讨论
-* 🏗️ 架构讨论
-* 🧪 开发思路验证
-* 🐛 问题反馈
-* 🤝 社区交流
+当前 Repository 已经包含：
 
-### 源代码
-
-**项目源码目前尚未正式公开。**
-
-正式开放源码之前，还需要完成：
-
-* 代码整理
-* 敏感信息检查
-* Git 历史检查
-* Repository 结构整理
-* 测试完善
-* 开发文档整理
+* 完整项目源码
+* macOS 当前实现
 * `AGENTS.md`
-* License 确认
-* Release 流程整理
+* 测试代码
+* Release 构建工具
+* Packaging 配置
+* 项目文档
+* `LICENSE`
+* `NOTICE`
+* `SECURITY.md`
+* `PRIVACY.md`
+* `TERMS.md`
 
-完成公开发布准备后，源码会加入当前 Repository。
+### 当前支持平台
+
+目前正式维护的实现为：
+
+**macOS · Apple Silicon（arm64）**
+
+当前桌面端主要由以下部分组成：
+
+```text
+Native Launcher
+      +
+Go Core
+      +
+Local Web UI
+      +
+Python Engine
+```
+
+Repository 按产品组织，而不是永久按照操作系统划分。
+
+未来如果扩展 Windows 或其他平台，仍然属于 IMDb Tech Manager，只要保持相同的产品职责和数据工作流。
+
+### 当前正式版本
+
+当前公开版本：
+
+**IMDb Tech Manager v4.0.0**
+
+Release 已提供 Apple Silicon `.app` 的 ZIP 发布包，并同时提供：
+
+* Release Changelog
+* SHA-256 校验信息
+* OTA Ed25519 签名
+* 安装说明
+
+[**查看 Releases →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+
+项目仍然处于持续开发阶段，功能、架构、测试覆盖和平台支持都会继续迭代。
 
 ---
+
 ## 🗺️ Roadmap
 
-* [ ] 完善公开项目文档
-* [ ] 整理并记录项目架构
-* [ ] 完成源码公开前安全检查
-* [ ] 检查公开前 Git 历史
-* [ ] 整理并发布 `AGENTS.md`
-* [ ] 建立稳定的测试流程
-* [ ] 开放核心源码
-* [ ] 建立标准 Release 流程
-* [ ] 完善 Technical Specifications 标准化规则
-* [ ] 扩展更多技术规格数据
-* [ ] 改进媒体库技术信息展示
-* [ ] 探索更多操作系统支持
-* [ ] 探索更多媒体服务器支持
-* [ ] 完善 Coding Agent 开发工作流
+### 已完成
 
-Roadmap 会随着项目继续开发而调整。
+* [x] 建立公开 Repository
+* [x] 开放核心源码
+* [x] 建立项目基础目录结构
+* [x] 发布 `AGENTS.md`
+* [x] 确定开源许可证
+* [x] 建立基础测试体系
+* [x] 建立 Release 构建流程
+* [x] 发布首个公开源码版本 `v4.0.0`
+* [x] 建立 macOS Apple Silicon 发布流程
+* [x] 加入 Release 完整性校验与 OTA 签名
+
+### 持续推进
+
+* [ ] 完善 Technical Specifications 标准化规则
+* [ ] 扩展更多 Technical Specifications 数据处理能力
+* [ ] 完善 Local / AI 技术标签生成
+* [ ] 强化 NFO 数据所有权与安全机制
+* [ ] 扩展自动化测试与真实场景回归测试
+* [ ] 改进任务状态、错误定位与恢复能力
+* [ ] 完善 AI Provider 与模型配置能力
+* [ ] 优化 Token、Cache 与调用成本统计
+* [ ] 完善应用更新与 Release 工作流
+* [ ] 完善 Developer ID 签名与 macOS 分发体验
+* [ ] 持续完善 `AGENTS.md` 与 Coding Agent Context
+* [ ] 完善贡献与 Pull Request 工作流
+* [ ] 探索其他操作系统支持
+* [ ] 与 [Tech Card Manager（TCM）](https://github.com/Eric-Hou1997/Tech-Card-Manager) 完善 Technical Specifications 工作流衔接
+* [ ] 探索更多媒体服务器与客户端的集成方式
+
+Roadmap 会随着项目开发和实际使用反馈持续调整。
 
 ---
+
 ## 💬 Discussions
 
-功能想法、技术方案、UI 设计、数据标准化规则、媒体库集成方式以及开发工作流都欢迎在这里讨论：
+功能想法、技术方案、UI 设计、Technical Specifications 标准化规则以及开发工作流，都欢迎在 Discussions 中交流：
 
 [**进入 GitHub Discussions →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/discussions)
 
-如果一个想法暂时还不够明确，不适合直接成为 Issue，也很适合先放到 Discussions 中交流。
+适合 Discussions 的内容包括：
+
+* 新功能想法
+* 技术方案讨论
+* Technical Specifications 数据规则
+* 摄影机 / 镜头 / 胶片 / 制作格式资料
+* UI / UX 建议
+* AI 标签生成策略
+* ITM 与 TCM 的工作流
+* Coding Agent 开发方式
+* 尚未完全确定的问题
+
+如果一个想法还需要进一步讨论和验证，可以先放到 Discussions，而不必立即整理成 Issue。
 
 ---
 
 ## 🐛 Issues
 
-明确的 Bug、能够复现的问题以及已经比较清晰的功能需求，可以提交到：
+对于已经能够明确描述的问题，可以直接提交 Issue：
 
 [**GitHub Issues →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/issues)
 
+例如：
+
+* 可以稳定复现的 Bug
+* 明确的功能缺失
+* 数据解析错误
+* Technical Specifications 标准化错误
+* NFO 修改异常
+* UI 行为异常
+* Release / 安装问题
+* 已经比较清晰的功能需求
+
+提交问题时，如果条件允许，建议同时提供相关版本、媒体类型、操作步骤和错误信息，以便更快定位问题。
+
 ---
+
 ## 🤝 Contributing
 
-项目源码目前尚未正式公开。
+IMDb Tech Manager 已经开放源码，欢迎 Fork、研究、修改并提交 Pull Request。
 
-现阶段主要欢迎通过 Discussions 和 Issues 提供：
+开始修改代码之前，建议先阅读：
 
-* 功能建议
-* 技术方案
-* 元数据标准化建议
+[**`AGENTS.md` →**](./AGENTS.md)
+
+它记录了项目当前的重要架构规则、数据安全约束、测试要求和 Release 边界。
+
+尤其是在修改以下模块时，请先了解现有设计：
+
+* NFO 读写
+* Technical Specifications
+* Technical Tags
+* 标签所有权
+* AI 调用
+* Token / Cache 统计
+* 批量任务
+* 应用生命周期
+* 平台相关代码
+* 更新与 Release
+
+项目欢迎包括但不限于以下类型的贡献：
+
+* Bug 修复
+* 功能改进
+* Technical Specifications 解析规则
+* 技术规格标准化
 * 摄影机 / 镜头 / 制作格式资料
-* UI / UX 反馈
-* Bug 信息
-* 媒体库集成方案
-* Agent 工作流建议
+* 测试用例
+* UI / UX 改进
+* 性能与稳定性改进
+* 文档完善
+* Coding Agent Context 改进
 
-源码开放后，会进一步提供完整的贡献指南和 Coding Agent 开发说明。
+在修改已有行为时，请尽量补充对应的测试或回归验证，避免修复一个问题的同时破坏已有媒体数据工作流。
 
 ---
 
 ## 📄 License
 
-项目目前尚未最终确定开源许可证。
+IMDb Tech Manager 采用 **Apache License 2.0** 开源。
 
-正式开放源码之前，会加入明确的 `LICENSE` 文件，说明源码的使用、修改和分发规则。
+完整许可证请查看：
+
+[**LICENSE →**](./LICENSE)
+
+Repository 同时提供：
+
+[**NOTICE →**](./NOTICE)
+
+使用、修改和分发源码时，请遵守 Apache License 2.0 以及 Repository 中相关说明。
 
 ---
 
 ## ⚠️ 免责声明
 
-IMDb Tech Manager 是一个独立开发项目。
+IMDb Tech Manager 是一个独立开发的开源项目。
 
 本项目**与 IMDb、Emby 以及其他第三方平台不存在官方隶属、授权或背书关系**。
 
 相关第三方名称、商标、数据和服务归各自权利方所有。
 
-用户在使用第三方数据或服务时，应自行确保相关使用方式符合适用的服务条款和法律要求。
+IMDb Tech Manager 提供的是技术规格获取、处理和媒体元数据管理工具。
+
+用户在使用第三方数据、API、网站或服务时，应自行确认相关使用方式符合适用的服务条款、授权条件和法律要求。
 
 ---
+
 ## 💡 反馈与建议
 
-IMDb Tech Manager 仍然处于持续发展阶段。
+IMDb Tech Manager 仍在持续开发。
 
-如果你对 IMDb 技术数据、标准化规则、摄影机与镜头资料、媒体库展示方式、其他媒体服务器支持、工作流自动化或 Coding Agent 集成有想法，欢迎到 Discussions 中交流。
+如果你对以下方向有想法：
 
-即使现在还不知道具体应该怎样实现，也可以先把想法提出来。
+* IMDb Technical Specifications
+* 技术规格标准化
+* 摄影机与镜头资料
+* 胶片与数字采集格式
+* NFO 元数据管理
+* 技术标签规则
+* AI 辅助语义处理
+* UI / UX
+* ITM 与 TCM 的协作方式
+* 其他操作系统支持
+* Coding Agent 开发工作流
+
+欢迎通过 Discussions 或 Issues 参与项目。
+
+项目会根据实际使用反馈继续调整功能、数据规则和开发方向。
