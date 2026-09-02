@@ -5,7 +5,7 @@ set -eu
 # stable so Finder can replace the prior installation without manual renaming.
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 OUT="$ROOT/releases"
-VERSION="4.0.1"
+VERSION="4.0.2"
 ARTIFACT_BASE="ITM-v${VERSION}-MacOS-AArch64-APP"
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/imdb-tech-manager-${VERSION}.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT HUP INT TERM

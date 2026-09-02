@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const appVersion = "4.0.1"
+const appVersion = "4.0.2"
 
 const (
 	uiLayoutSchema        = 1

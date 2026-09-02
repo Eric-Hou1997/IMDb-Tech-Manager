@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cache settings/API/UI boundary contract for v4.0.1."""
+"""Cache settings/API/UI boundary contract for v4.0.2."""
 from pathlib import Path
 
 

@@ -1,7 +1,7 @@
-IMDb Tech Manager macOS v4.0.1（Apple Silicon）
+IMDb Tech Manager macOS v4.0.2（Apple Silicon）
 
 正式发布时仅提供 ZIP。ZIP 内仅包含 Apple Silicon arm64 的 IMDb Tech Manager.app。
-正式发布文件名为 `ITM-v4.0.1-MacOS-AArch64-APP.zip`；应用包名称保持为 `IMDb Tech Manager.app`，以支持自动替换。
+正式发布文件名为 `ITM-v4.0.2-MacOS-AArch64-APP.zip`；应用包名称保持为 `IMDb Tech Manager.app`，以支持自动替换。
 
 运行要求：macOS 12.0 或更高版本，Apple Silicon。
 

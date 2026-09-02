@@ -11,13 +11,13 @@ update = (ROOT / "update.go").read_text(encoding="utf-8")
 
 checks = {
     "formal version is synchronized": (
-        'const appVersion = "4.0.1"' in main
-        and 'content="v4.0.1"' in web
-        and "<key>CFBundleVersion</key><string>4.0.1</string>" in info
-        and "<key>CFBundleShortVersionString</key><string>4.0.1</string>" in info
+        'const appVersion = "4.0.2"' in main
+        and 'content="v4.0.2"' in web
+        and "<key>CFBundleVersion</key><string>4.0.2</string>" in info
+        and "<key>CFBundleShortVersionString</key><string>4.0.2</string>" in info
     ),
     "about metadata has a real release date": (
-        "v4.0.1　2026-09-02 发布　macOS · Apple Silicon" in web
+        "v4.0.2　2026-09-02 发布　macOS · Apple Silicon" in web
         and "正式发布时写入日期" not in web
     ),
     "every settings open starts an update check": (
@@ -60,4 +60,4 @@ for name, ok in checks.items():
     print(("OK  " if ok else "FAIL ") + name)
 if failed:
     raise SystemExit("macOS release metadata/update contract failed: " + ", ".join(failed))
-print("OK IMDb Tech Manager v4.0.1 release metadata and settings update contract")
+print("OK IMDb Tech Manager v4.0.2 release metadata and settings update contract")
