@@ -99,8 +99,9 @@ func platformSetAppAutoStart(enabled bool, w io.Writer) error {
 	}
 	return nil
 }
-func platformSetOutputLanguage(language string) error { return nil }
-func platformIMDbCacheMaxMB() int                     { return defaultIMDbCacheMaxMB }
+func platformSetOutputLanguage(language string) error   { return nil }
+func platformReadOutputLanguage() (string, bool, error) { return "", false, nil }
+func platformIMDbCacheMaxMB() int                       { return defaultIMDbCacheMaxMB }
 func platformSetIMDbCacheMaxMB(value int) error {
 	return fmt.Errorf("IMDb 抓取缓存设置仅在 macOS 产品中支持")
 }

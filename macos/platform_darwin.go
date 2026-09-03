@@ -166,6 +166,32 @@ func platformSetOutputLanguage(language string) error {
 	return atomicWrite(macConfigPath(), b, 0600)
 }
 
+func platformReadOutputLanguage() (string, bool, error) {
+	b, err := os.ReadFile(macConfigPath())
+	if errors.Is(err, os.ErrNotExist) {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, err
+	}
+	var root map[string]json.RawMessage
+	if err := json.Unmarshal(b, &root); err != nil || root == nil {
+		if err == nil {
+			err = errors.New("engine config root is not an object")
+		}
+		return "", false, fmt.Errorf("读取 Engine 输出语言失败：%w", err)
+	}
+	value, ok := root["output_language"]
+	if !ok {
+		return "", false, nil
+	}
+	var language string
+	if err := json.Unmarshal(value, &language); err != nil || !supportedLanguage(language) {
+		return "", false, nil
+	}
+	return language, true, nil
+}
+
 func platformIMDbCacheMaxMB() int {
 	var cfg struct {
 		MaxMB int `json:"imdb_cache_max_mb"`
@@ -847,22 +873,23 @@ func collectStatus() (Status, error) {
 			LibraryRoots LibraryRoots `json:"library_roots"`
 		}
 		if json.Unmarshal(b, &cfg) == nil {
-			rootKinds := map[string]string{}
+			rootSpaces := map[string]string{}
 			for _, p := range cfg.LibraryRoots.Movies {
-				rootKinds[p] = "电影"
+				rootSpaces[p] = "movies"
 			}
 			for _, p := range cfg.LibraryRoots.TV {
-				rootKinds[p] = "电视剧"
+				rootSpaces[p] = "tv"
 			}
 			for _, p := range cfg.Roots {
-				if _, ok := rootKinds[p]; !ok {
-					rootKinds[p] = "待分类"
+				if _, ok := rootSpaces[p]; !ok {
+					rootSpaces[p] = "unassigned"
 				}
 			}
-			for p, kind := range rootKinds {
+			for p, space := range rootSpaces {
 				// Status polling deliberately does not stat or enumerate configured
 				// network volumes. Only explicit scans and the background agent access them.
-				lib := LibraryInfo{Path: p, Kind: kind, State: "configured"}
+				kind := map[string]string{"movies": "电影", "tv": "电视剧", "unassigned": "待分类"}[space]
+				lib := LibraryInfo{Path: p, Space: space, Kind: kind, State: "configured"}
 				st.Libraries = append(st.Libraries, lib)
 			}
 		}

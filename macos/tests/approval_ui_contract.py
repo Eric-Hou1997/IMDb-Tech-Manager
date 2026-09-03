@@ -33,7 +33,6 @@ print("OK 1: preview tag roles come from the engine result, not UI text guessing
 
 for required in (
     'const appVersion = "4.0.2"',
-    'ID        string `json:"job_id,omitempty"`',
     'jobID := strings.TrimSpace(r.URL.Query().Get("id"))',
     'jobs.snapshot(jobID)',
     '"job_id": jobID',
@@ -41,6 +40,7 @@ for required in (
 ):
     assert required in MAIN, required
 assert "func (m *jobManager) begin" in MAIN
+assert "type JobState struct {" in MAIN and '`json:"job_id,omitempty"`' in MAIN
 assert "已有任务正在运行" in MAIN
 print("OK 2: approval waits on an immutable job identity and overlapping jobs fail closed")
 

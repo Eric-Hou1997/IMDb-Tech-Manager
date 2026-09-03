@@ -389,6 +389,17 @@ AI_KEYCHAIN_SERVICE = "local.imdb-tech-manager.ai"
 AI_KEYCHAIN_ACCOUNT = "api-key"
 AI_ALLOWED_FIELDS = set(TAG_SECTIONS)
 LANGUAGE_CONTRACT_VERSION = 1
+LANGUAGE_OPTIONS = {
+    "zh-CN": {"review_language": "zh-CN"},
+    "en-US": {"review_language": "en-US"},
+}
+
+
+def normalized_output_language(value):
+    value = clean(str(value or ""))
+    return value if value in LANGUAGE_OPTIONS else "zh-CN"
+
+
 LANGUAGE_BOUNDARY_PROMPT = """\
 Language boundary (mandatory, overrides any conflicting instruction): input.output_language controls only the natural language of warnings/review explanations. It must never translate or rewrite tags[].value, field, source_indexes, confidence, operation, JSON keys, or Technical Specifications. Preserve structured facts, established English enums, and source spelling exactly regardless of output_language.
 """.strip()
@@ -461,7 +472,7 @@ def ai_config():
         "run_request_limit": max(0, int(raw.get("run_request_limit", 0) or 0)),
         "run_token_limit": max(0, int(raw.get("run_token_limit", 0) or 0)),
         "run_cost_limit": max(0.0, float(raw.get("run_cost_limit", 0) or 0)),
-        "output_language": "en-US" if clean(str(cfg.get("output_language") or "zh-CN")) == "en-US" else "zh-CN",
+        "output_language": normalized_output_language(cfg.get("output_language")),
     }
     return out
 
@@ -4604,6 +4615,16 @@ def _apply_summary_overlay(item, dynamic=None):
             "kind": failure.get("kind") or "ai-failure", "message": failure.get("message") or "AI 处理失败",
             "time": failure.get("last_time") or failure.get("updated_at") or "", "task_id": failure.get("task_id") or "", "path": path_str,
         })
+
+    # Old index-cache records contain only a localized message. Attach a
+    # stable presentation key at read time instead of rewriting or rebuilding
+    # the user's cache during an application-language upgrade.
+    for issue in issues:
+        kind = clean(str(issue.get("kind") or "unknown"))
+        if re.fullmatch(r"[a-z0-9][a-z0-9-]*", kind):
+            issue.setdefault("message_code", "issue." + kind)
+        else:
+            issue.setdefault("message_code", "issue.unknown")
 
     acknowledgements = dynamic.get("acknowledgements") or {}
     ack = acknowledgements.get(path_str, {}) if isinstance(acknowledgements, dict) else {}

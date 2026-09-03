@@ -188,6 +188,7 @@ type aiConfigRequest struct {
 type LibraryInfo struct {
 	Name          string `json:"name,omitempty"`
 	Path          string `json:"path"`
+	Space         string `json:"space,omitempty"`
 	Kind          string `json:"kind,omitempty"`
 	Online        bool   `json:"online"`
 	State         string `json:"state,omitempty"`
@@ -211,14 +212,16 @@ type RootCandidate struct {
 }
 
 type JobState struct {
-	ID        string `json:"job_id,omitempty"`
-	Running   bool   `json:"running"`
-	Action    string `json:"action,omitempty"`
-	StartedAt string `json:"started_at,omitempty"`
-	EndedAt   string `json:"ended_at,omitempty"`
-	ExitCode  int    `json:"exit_code,omitempty"`
-	Message   string `json:"message,omitempty"`
-	Log       string `json:"log,omitempty"`
+	ID          string `json:"job_id,omitempty"`
+	Running     bool   `json:"running"`
+	Action      string `json:"action,omitempty"`
+	StartedAt   string `json:"started_at,omitempty"`
+	EndedAt     string `json:"ended_at,omitempty"`
+	ExitCode    int    `json:"exit_code,omitempty"`
+	Message     string `json:"message,omitempty"`
+	MessageCode string `json:"message_code,omitempty"`
+	Language    string `json:"language,omitempty"`
+	Log         string `json:"log,omitempty"`
 }
 
 type AgentCycleState struct {
@@ -246,6 +249,8 @@ type Status struct {
 	AutoStart       bool                   `json:"auto_start"`
 	AppAutoStart    bool                   `json:"app_auto_start"`
 	Language        string                 `json:"language"`
+	Languages       []LanguageOption       `json:"languages"`
+	LanguageSync    LanguageSyncStatus     `json:"language_sync"`
 	AgentPID        int                    `json:"agent_pid,omitempty"`
 	LastHeartbeat   string                 `json:"last_heartbeat,omitempty"`
 	LastCycle       AgentCycleState        `json:"last_cycle"`
@@ -321,6 +326,7 @@ var reconcileScheduled atomic.Bool
 var uiToken string
 var uiLayoutMu sync.Mutex
 var uiLayoutPathOverride string
+var settingsRequestMu sync.Mutex
 var autoModeStartupState struct {
 	sync.RWMutex
 	Requested bool
@@ -436,11 +442,13 @@ func (m *jobManager) begin(action string) (JobState, error) {
 		return JobState{}, fmt.Errorf("已有任务正在运行：%s", m.st.Action)
 	}
 	st := JobState{
-		ID:        nextJobID(),
-		Running:   true,
-		Action:    action,
-		StartedAt: time.Now().Format(time.RFC3339Nano),
-		Message:   "运行中",
+		ID:          nextJobID(),
+		Running:     true,
+		Action:      action,
+		StartedAt:   time.Now().Format(time.RFC3339Nano),
+		Message:     "运行中",
+		MessageCode: "job.running",
+		Language:    normalizedLanguage(loadSettings().Language),
 	}
 	m.st = st
 	m.rememberLocked(st)
@@ -459,6 +467,11 @@ func (m *jobManager) complete(id, action string, code int, msg, log string) JobS
 	st.EndedAt = time.Now().Format(time.RFC3339Nano)
 	st.ExitCode = code
 	st.Message = msg
+	if code == 0 {
+		st.MessageCode = "job.completed"
+	} else {
+		st.MessageCode = "job.failed"
+	}
 	st.Log = tailString(log, 40000)
 	m.rememberLocked(st)
 	if m.st.ID == id {
@@ -525,6 +538,9 @@ func main() {
 
 	if err := ensureAssets(); err != nil {
 		appendManagerLog("ensureAssets: " + err.Error())
+	}
+	if err := migrateLanguagePreference(); err != nil {
+		appendManagerLog("language preference migration: " + err.Error())
 	}
 	if err := upgradeInstalledRuntime(); err != nil {
 		appendManagerLog("runtime upgrade: " + err.Error())
@@ -813,6 +829,8 @@ func decorateCommonStatus(st *Status) {
 	// A deleted/stale plist must never be shown as a working login item.
 	st.AppAutoStart = platformAppAutoStartEnabled()
 	st.Language = normalizedLanguage(set.Language)
+	st.Languages = supportedLanguages()
+	st.LanguageSync = currentLanguageSyncStatus()
 	st.AgentPID = readAgentPID()
 	st.LastCycle = loadAgentCycle()
 	if st.Paths == nil {
@@ -931,6 +949,8 @@ func handleSettings(w http.ResponseWriter, r *http.Request) {
 		writeJSONStatus(w, 405, map[string]string{"error": "POST only"})
 		return
 	}
+	settingsRequestMu.Lock()
+	defer settingsRequestMu.Unlock()
 	var raw map[string]json.RawMessage
 	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
 		writeJSONStatus(w, 400, map[string]string{"error": err.Error()})
@@ -938,6 +958,8 @@ func handleSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	set := loadSettings()
+	previousSettings := set
+	requestedLanguage := ""
 	cacheLimitMB := 0
 	hasCacheLimit := false
 	if value, ok := raw["imdb_cache_max_mb"]; ok {
@@ -992,19 +1014,22 @@ func handleSettings(w http.ResponseWriter, r *http.Request) {
 
 	if v, ok := raw["language"]; ok {
 		var language string
-		if err := json.Unmarshal(v, &language); err != nil || (language != "zh-CN" && language != "en-US") {
+		if err := json.Unmarshal(v, &language); err != nil || !supportedLanguage(language) {
 			writeJSONStatus(w, 400, map[string]string{"error": "语言只能选择简体中文或 English (United States)"})
 			return
 		}
 		set.Language = language
-		if err := platformSetOutputLanguage(language); err != nil {
-			writeJSONStatus(w, 500, map[string]string{"error": err.Error()})
-			return
-		}
+		requestedLanguage = language
 	}
 
-	if err := saveSettings(set); err != nil {
-		writeJSONStatus(w, 500, map[string]string{"error": err.Error()})
+	var settingsErr error
+	if requestedLanguage != "" {
+		settingsErr = saveLanguagePreference(previousSettings, set, requestedLanguage)
+	} else {
+		settingsErr = saveSettings(set)
+	}
+	if settingsErr != nil {
+		writeJSONStatus(w, 500, map[string]string{"error": settingsErr.Error()})
 		return
 	}
 	if hasCacheLimit {
@@ -1718,17 +1743,7 @@ func ensureAssets() error {
 		}
 	}
 	_ = os.MkdirAll(logDir(), 0755)
-	if _, err := os.Stat(settingsPath()); errors.Is(err, os.ErrNotExist) {
-		_ = saveSettings(Settings{IntervalSeconds: 60, Language: "zh-CN"})
-	}
 	return nil
-}
-
-func normalizedLanguage(language string) string {
-	if language == "en-US" {
-		return language
-	}
-	return "zh-CN"
 }
 
 func loadSettings() Settings {
@@ -1749,7 +1764,32 @@ func saveSettings(s Settings) error {
 		s.IntervalSeconds = 60
 	}
 	s.Language = normalizedLanguage(s.Language)
-	b, _ := json.MarshalIndent(s, "", "  ")
+	root := map[string]json.RawMessage{}
+	if existing, err := os.ReadFile(settingsPath()); err == nil {
+		if err := json.Unmarshal(existing, &root); err != nil || root == nil {
+			if err == nil {
+				err = errors.New("settings root is not an object")
+			}
+			return fmt.Errorf("应用设置损坏，未覆盖原文件：%w", err)
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	knownBytes, err := json.Marshal(s)
+	if err != nil {
+		return err
+	}
+	var known map[string]json.RawMessage
+	if err := json.Unmarshal(knownBytes, &known); err != nil {
+		return err
+	}
+	for key, value := range known {
+		root[key] = value
+	}
+	b, err := json.MarshalIndent(root, "", "  ")
+	if err != nil {
+		return err
+	}
 	return atomicWrite(settingsPath(), b, 0644)
 }
 
