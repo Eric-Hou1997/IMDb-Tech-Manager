@@ -78,6 +78,7 @@ These instructions are part of the public repository. Apply them to every change
 
 ## Release naming, tags, and OTA compatibility
 
+- The GitHub Release title must be exactly the canonical tag `vX.Y.Z`. Do not prefix or suffix it with the product name, platform, architecture, package type, or descriptive text. This title rule does not change canonical release-asset filenames.
 - Use the short, canonical artifact base for every official IMDb Tech Manager release: `ITM-vX.Y.Z-MacOS-AArch64-APP` for a macOS arm64 app ZIP and `ITM-vX.Y.Z-Windows-x64-EXE` for a future Windows x64 EXE ZIP. The ZIP filename is the base plus `.zip`.
 - Companion assets must use the same base: `.zip.sig` for the macOS OTA signature, `-SHA256SUMS.txt` for checksums, `-README.txt` for release instructions, and `-CHANGELOG.txt` for release notes. Never restore the older long product-name-first artifact convention.
 - Keep the in-ZIP application name stable for replacement: `IMDb Tech Manager.app` on macOS and `IMDb-Tech-Manager.exe` for a future Windows portable package. The version belongs in the archive name, not in the installed app name.
