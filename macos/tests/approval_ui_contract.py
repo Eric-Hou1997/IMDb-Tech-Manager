@@ -68,6 +68,7 @@ for required in (
     "aria-orientation=\"vertical\"",
 ):
     assert required in WEB, required
+assert "@media(max-width:780px){.toolbarSecondary" not in WEB, "catalog toolbar must respond to its own measured width, not the whole window"
 assert WEB.count("function renderListHeader()") == 1
 assert "headerGrid" not in WEB
 assert WEB.count("event.target.closest('#resetColumns')") == 1
@@ -109,7 +110,9 @@ for required in (
     assert required in WEB, required
 assert ".tagChip.new{" not in WEB
 assert WEB.count("function showPreviewResults()") == 1
-assert WEB.count("new MutationObserver(") == 1
+assert WEB.count("new MutationObserver(") == 2
+assert WEB.count("const uiMutationObserver=new MutationObserver(") == 1
+assert WEB.count("new MutationObserver(normalizeExactCog)") == 1
 print("OK 5: preview semantics, footer, settings controls, and specs copy are coherent")
 
 
@@ -117,7 +120,7 @@ for marker in (
     "compactDefault", "catalogAlignment", "splitterHit", "compactLayout",
     "checkboxMetrics", "previewSemantics", "previewFooter", "headerGeometry",
     "headerFit", "inspectorAlignment", "responsiveContainment", "splitBounds",
-    "activeTabIndicator", "responsiveEdges", "narrowToolbar", "movieSelectionSummary", "toolbarHeight", "catalogControlParity", "tvToolbarThreshold", "tvToolbarPathStable", "autoModeStartupPreference", "textSelectionPolicy",
+    "activeTabIndicator", "responsiveEdges", "narrowToolbar", "movieSelectionSummary", "localizedToolbarResponsive", "localizedRegionResponsive", "futureLocaleResponsive", "i18nRegionLayout", "toolbarHeight", "catalogControlParity", "tvToolbarThreshold", "tvToolbarPathStable", "autoModeStartupPreference", "textSelectionPolicy",
     "layoutRestore", "layoutFallback",
 ):
     assert f"root.dataset.{marker}" in WEB, marker
@@ -160,10 +163,13 @@ for required in (
     "if(Number(snapshot.revision)<Number(uiLayout.revision))return",
     "function applyTaskHeight(",
     "function tvToolbarNeedsWrap(",
+    "function selectionToolbarNeedsWrap(",
+    "function runLocalizedToolbarResponsiveSmoke(",
+    "function syncResponsiveRegions(",
     "function resetCatalogToolbarLayout(",
     "function tvToolbarSnapshot(",
     "function runAutoModeStartupPreferenceSmoke(",
-    "secondaryMinimum=",
+    "required>available+.5",
     "root.dataset.tvToolbarPathStable=",
     "addEventListener('pagehide'",
     "navigator.sendBeacon(`/api/ui-layout?token=",
