@@ -1,5 +1,7 @@
 # Privacy Policy
 
+[简体中文](../../PRIVACY.md) | [繁體中文](./PRIVACY.zh-Hant.md) | **English** | [Français](./PRIVACY.fr.md) | [Русский](./PRIVACY.ru.md) | [日本語](./PRIVACY.ja.md) | [Español](./PRIVACY.es.md) | [ไทย](./PRIVACY.th.md)
+
 IMDb Tech Manager is a local desktop tool. It does not operate its own telemetry, advertising-tracking, or account system.
 
 - Media folders, NFO files, configuration, caches, and task records you select are stored locally.

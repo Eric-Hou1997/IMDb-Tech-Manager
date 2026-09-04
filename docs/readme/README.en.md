@@ -486,8 +486,8 @@ The repository currently includes:
 * `LICENSE`
 * `NOTICE`
 * `SECURITY.md`
-* `PRIVACY.md`
-* `TERMS.md`
+* [`PRIVACY.md`](../legal/PRIVACY.en.md)
+* [`TERMS.md`](../legal/TERMS.en.md)
 
 ### Currently Supported Platform
 

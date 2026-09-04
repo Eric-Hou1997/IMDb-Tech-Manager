@@ -487,8 +487,8 @@ IMDb Tech Manager 目前处于 **公开源码、持续开发阶段**。
 * `LICENSE`
 * `NOTICE`
 * `SECURITY.md`
-* `PRIVACY.md`
-* `TERMS.md`
+* [`PRIVACY.md`](./PRIVACY.md)
+* [`TERMS.md`](./TERMS.md)
 
 ### 当前支持平台
 
