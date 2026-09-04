@@ -18,7 +18,7 @@ import (
 // engine process. It returns handled=false when the call shape is not served
 // (caller falls back to a one-shot process) or when the resident process
 // cannot be started/kept alive.
-func residentInspectorJSON(args ...string) (json.RawMessage, error, bool) {
+func residentInspectorJSON(language string, args ...string) (json.RawMessage, error, bool) {
 	if len(args) == 0 {
 		return nil, nil, false
 	}
@@ -70,14 +70,14 @@ func residentInspectorJSON(args ...string) (json.RawMessage, error, bool) {
 	default:
 		return nil, nil, false
 	}
-	res, err := resident.call(cmd, payload, timeout)
+	res, err := resident.callLocalized(cmd, payload, normalizedLanguage(language), timeout)
 	if err != nil {
 		return nil, err, false // resident path failed: fall back to one-shot
 	}
 	if !res.OK {
 		message := res.Error
 		if message == "" {
-			message = "Inspector Engine 返回错误"
+			message = localized(language, "Inspector Engine 返回错误", "Inspector Engine returned an error")
 		}
 		payload, _ := json.Marshal(map[string]string{"error": message, "kind": res.Kind})
 		return payload, errors.New(message), true
@@ -187,6 +187,10 @@ func (r *residentProc) killLocked() {
 
 // call sends one JSON-RPC request and waits for the matching response.
 func (r *residentProc) call(command string, payload interface{}, timeout time.Duration) (*residentResponse, error) {
+	return r.callLocalized(command, payload, loadSettings().Language, timeout)
+}
+
+func (r *residentProc) callLocalized(command string, payload interface{}, language string, timeout time.Duration) (*residentResponse, error) {
 	r.mu.Lock()
 	if !r.alive || r.cmd == nil {
 		r.killLocked()
@@ -200,6 +204,7 @@ func (r *residentProc) call(command string, payload interface{}, timeout time.Du
 	ch := make(chan *residentResponse, 1)
 	r.pending[id] = ch
 	req := map[string]interface{}{"id": id, "cmd": command}
+	req["language"] = normalizedLanguage(language)
 	if m, ok := payload.(map[string]interface{}); ok {
 		for k, v := range m {
 			req[k] = v

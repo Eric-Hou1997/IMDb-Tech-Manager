@@ -5,7 +5,7 @@ set -eu
 # stable so Finder can replace the prior installation without manual renaming.
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 OUT="$ROOT/releases"
-VERSION="4.0.2"
+VERSION="4.0.4"
 ARTIFACT_BASE="ITM-v${VERSION}-MacOS-AArch64-APP"
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/imdb-tech-manager-${VERSION}.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT HUP INT TERM
@@ -37,6 +37,7 @@ mkdir -p "$OUT" "$MAC_APP/Contents/MacOS" "$MAC_APP/Contents/Resources"
 clang -arch arm64 -fobjc-arc -fmodules -fmodules-cache-path="$CLANG_CACHE" -mmacosx-version-min=12.0 "$ROOT/macos/native/IMDbTechManagerLauncher.m" -framework Cocoa -framework WebKit -o "$MAC_APP/Contents/MacOS/IMDbTechManagerLauncher"
 clang -arch arm64 -fobjc-arc -fmodules -fmodules-cache-path="$CLANG_CACHE" -mmacosx-version-min=12.0 "$ROOT/macos/native/IMDbWebKitFetcher.m" -framework Cocoa -framework WebKit -o "$MAC_APP/Contents/MacOS/IMDbWebKitFetcher"
 cp "$ROOT/packaging/Info.plist" "$MAC_APP/Contents/Info.plist"
+cp -R "$ROOT/packaging/zh-Hans.lproj" "$ROOT/packaging/en.lproj" "$MAC_APP/Contents/Resources/"
 cp "$ROOT/macos/assets/AppIcon.icns" "$MAC_APP/Contents/Resources/AppIcon.icns"
 chmod 755 "$MAC_APP/Contents/MacOS/IMDbTechManagerLauncher" "$MAC_APP/Contents/MacOS/IMDbTechManagerCore" "$MAC_APP/Contents/MacOS/IMDbWebKitFetcher"
 

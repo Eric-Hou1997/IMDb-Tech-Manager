@@ -1,0 +1,3 @@
+"NSDocumentsFolderUsageDescription" = "Allows IMDb Tech Manager to read and edit NFO files when a selected media library is in Documents.";
+"NSNetworkVolumesUsageDescription" = "Allows IMDb Tech Manager to read and edit NFO files in network media libraries you explicitly select.";
+"NSRemovableVolumesUsageDescription" = "Allows IMDb Tech Manager to read and edit NFO files in external media libraries you explicitly select.";

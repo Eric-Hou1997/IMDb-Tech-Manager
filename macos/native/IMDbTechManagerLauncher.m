@@ -5,6 +5,7 @@
 
 static NSString * const IMDBHandshakePrefix = @"IMDB_TECH_MANAGER_UI_URL=";
 static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
+static NSString * const IMDBLanguageDefaultsKey = @"IMDBLanguageV1";
 
 @interface IMDBAppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler>
 @property(nonatomic, strong) NSWindow *window;
@@ -21,6 +22,14 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
 @end
 
 @implementation IMDBAppDelegate
+
+- (BOOL)usesEnglish {
+    return [[NSUserDefaults.standardUserDefaults stringForKey:IMDBLanguageDefaultsKey] isEqualToString:@"en-US"];
+}
+
+- (NSString *)localizedChinese:(NSString *)chinese english:(NSString *)english {
+    return self.usesEnglish ? english : chinese;
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     (void)notification;
@@ -48,6 +57,7 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
     self.terminating = YES;
     [self saveWindowFrameIfEligible];
     [self.webView.configuration.userContentController removeScriptMessageHandlerForName:@"clipboard"];
+    [self.webView.configuration.userContentController removeScriptMessageHandlerForName:@"language"];
     BOOL graceful = [self requestGracefulCoreQuit];
     if (self.core.running && !graceful) {
         [self.core terminate];
@@ -90,9 +100,9 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
     NSMenuItem *appItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
     [main addItem:appItem];
     NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@""];
-    [appMenu addItemWithTitle:@"关于 IMDb Tech Manager" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+    [appMenu addItemWithTitle:[self localizedChinese:@"关于 IMDb Tech Manager" english:@"About IMDb Tech Manager"] action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
     [appMenu addItem:NSMenuItem.separatorItem];
-    [appMenu addItemWithTitle:@"退出 IMDb Tech Manager" action:@selector(terminate:) keyEquivalent:@"q"];
+    [appMenu addItemWithTitle:[self localizedChinese:@"退出 IMDb Tech Manager" english:@"Quit IMDb Tech Manager"] action:@selector(terminate:) keyEquivalent:@"q"];
     appItem.submenu = appMenu;
     NSApp.mainMenu = main;
 }
@@ -101,7 +111,7 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
     NSURL *executable = NSBundle.mainBundle.executableURL;
     NSURL *coreURL = [[executable URLByDeletingLastPathComponent] URLByAppendingPathComponent:@"IMDbTechManagerCore"];
     if (!coreURL || ![NSFileManager.defaultManager isExecutableFileAtPath:coreURL.path]) {
-        [self failStartup:@"App 内缺少 IMDbTechManagerCore。"];
+        [self failStartup:[self localizedChinese:@"App 内缺少 IMDbTechManagerCore。" english:@"IMDbTechManagerCore is missing from the app bundle."]];
         return;
     }
 
@@ -132,7 +142,8 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
             typeof(self) strongSelf = weakSelf;
             if (!strongSelf || strongSelf.terminating) return;
             if (!strongSelf.didLoadUI) {
-                [strongSelf failStartup:[NSString stringWithFormat:@"本地服务启动失败（退出码 %d）。", finished.terminationStatus]];
+                NSString *format = [strongSelf localizedChinese:@"本地服务启动失败（退出码 %d）。" english:@"The local service failed to start (exit code %d)."];
+                [strongSelf failStartup:[NSString stringWithFormat:format, finished.terminationStatus]];
             }
             [NSApp terminate:nil];
         });
@@ -140,7 +151,8 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
 
     NSError *error = nil;
     if (![task launchAndReturnError:&error]) {
-        [self failStartup:[NSString stringWithFormat:@"无法启动本地服务：%@", error.localizedDescription]];
+        NSString *format = [self localizedChinese:@"无法启动本地服务：%@" english:@"Could not start the local service: %@"];
+        [self failStartup:[NSString stringWithFormat:format, error.localizedDescription]];
         return;
     }
     self.core = task;
@@ -162,7 +174,7 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
                          stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
         NSURL *url = [NSURL URLWithString:raw];
         if (![url.scheme isEqualToString:@"http"] || ![url.host isEqualToString:@"127.0.0.1"]) {
-            [self failStartup:@"本地服务返回了无效地址。"];
+            [self failStartup:[self localizedChinese:@"本地服务返回了无效地址。" english:@"The local service returned an invalid address."]];
             return;
         }
         [self showWindow:url];
@@ -233,7 +245,8 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
 
     WKUserContentController *controller = [[WKUserContentController alloc] init];
     [controller addScriptMessageHandler:self name:@"clipboard"];
-    NSString *bridge = @"window.__imdbNativeCopy=function(value){window.webkit.messageHandlers.clipboard.postMessage(String(value==null?'':value));return Promise.resolve();};";
+    [controller addScriptMessageHandler:self name:@"language"];
+    NSString *bridge = @"window.__imdbNativeCopy=function(value){window.webkit.messageHandlers.clipboard.postMessage(String(value==null?'':value));return Promise.resolve();};window.__imdbNativeSetLanguage=function(value){window.webkit.messageHandlers.language.postMessage(String(value==null?'':value));};";
     [controller addUserScript:[[WKUserScript alloc] initWithSource:bridge
                                                    injectionTime:WKUserScriptInjectionTimeAtDocumentStart
                                                 forMainFrameOnly:NO]];
@@ -241,7 +254,7 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
     WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
     configuration.websiteDataStore = WKWebsiteDataStore.defaultDataStore;
     configuration.userContentController = controller;
-    configuration.applicationNameForUserAgent = @"IMDbTechManager/4.0.2";
+    configuration.applicationNameForUserAgent = @"IMDbTechManager/4.0.4";
 
     WKWebView *web = [[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration];
     web.navigationDelegate = self;
@@ -331,9 +344,9 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
     if (self.terminating) return;
     NSAlert *alert = [[NSAlert alloc] init];
     alert.alertStyle = NSAlertStyleCritical;
-    alert.messageText = @"IMDb Tech Manager 无法启动";
+    alert.messageText = [self localizedChinese:@"IMDb Tech Manager 无法启动" english:@"IMDb Tech Manager Could Not Start"];
     alert.informativeText = message;
-    [alert addButtonWithTitle:@"退出"];
+    [alert addButtonWithTitle:[self localizedChinese:@"退出" english:@"Quit"]];
     [alert runModal];
     [NSApp terminate:nil];
 }
@@ -341,6 +354,13 @@ static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
 - (void)userContentController:(WKUserContentController *)userContentController
       didReceiveScriptMessage:(WKScriptMessage *)message {
     (void)userContentController;
+    if ([message.name isEqualToString:@"language"]) {
+        NSString *language = [message.body description];
+        if (![language isEqualToString:@"en-US"]) language = @"zh-CN";
+        [NSUserDefaults.standardUserDefaults setObject:language forKey:IMDBLanguageDefaultsKey];
+        [self installMainMenu];
+        return;
+    }
     if (![message.name isEqualToString:@"clipboard"]) return;
     [NSPasteboard.generalPasteboard clearContents];
     [NSPasteboard.generalPasteboard setString:[message.body description] forType:NSPasteboardTypeString];
@@ -380,7 +400,8 @@ didFailProvisionalNavigation:(WKNavigation *)navigation
        withError:(NSError *)error {
     (void)navigation;
     if ([self isAllowedURL:webView.URL ?: self.serviceURL]) {
-        [self failStartup:[NSString stringWithFormat:@"本地界面载入失败：%@", error.localizedDescription]];
+        NSString *format = [self localizedChinese:@"本地界面载入失败：%@" english:@"The local interface failed to load: %@"];
+        [self failStartup:[NSString stringWithFormat:format, error.localizedDescription]];
     }
 }
 
@@ -398,7 +419,7 @@ completionHandler:(void (^)(void))completionHandler {
     (void)frame;
     NSAlert *alert = [[NSAlert alloc] init];
     alert.messageText = message;
-    [alert addButtonWithTitle:@"好"];
+    [alert addButtonWithTitle:[self localizedChinese:@"好" english:@"OK"]];
     [alert beginSheetModalForWindow:self.window completionHandler:^(__unused NSModalResponse response) {
         completionHandler();
     }];
@@ -412,8 +433,8 @@ completionHandler:(void (^)(BOOL result))completionHandler {
     (void)frame;
     NSAlert *alert = [[NSAlert alloc] init];
     alert.messageText = message;
-    [alert addButtonWithTitle:@"确认"];
-    [alert addButtonWithTitle:@"取消"];
+    [alert addButtonWithTitle:[self localizedChinese:@"确认" english:@"Confirm"]];
+    [alert addButtonWithTitle:[self localizedChinese:@"取消" english:@"Cancel"]];
     [alert beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse response) {
         completionHandler(response == NSAlertFirstButtonReturn);
     }];
@@ -431,8 +452,8 @@ completionHandler:(void (^)(NSString * _Nullable result))completionHandler {
     NSTextField *field = [NSTextField textFieldWithString:defaultText ?: @""];
     field.frame = NSMakeRect(0, 0, 360, 24);
     alert.accessoryView = field;
-    [alert addButtonWithTitle:@"确认"];
-    [alert addButtonWithTitle:@"取消"];
+    [alert addButtonWithTitle:[self localizedChinese:@"确认" english:@"Confirm"]];
+    [alert addButtonWithTitle:[self localizedChinese:@"取消" english:@"Cancel"]];
     [alert beginSheetModalForWindow:self.window completionHandler:^(NSModalResponse response) {
         completionHandler(response == NSAlertFirstButtonReturn ? field.stringValue : nil);
     }];

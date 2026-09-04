@@ -11,7 +11,7 @@ LAUNCHER = (ROOT / "native" / "IMDbTechManagerLauncher.m").read_text(encoding="u
 FETCHER = (ROOT / "native" / "IMDbWebKitFetcher.m").read_text(encoding="utf-8")
 BUILD = (ROOT.parent / "tools" / "build-release.sh").read_text(encoding="utf-8")
 
-assert 'const appVersion = "4.0.2"' in MAIN and "v4.0.2" in WEB
+assert 'const appVersion = "4.0.4"' in MAIN and "v4.0.4" in WEB
 assert 'id="aiProtocol"' in WEB and "OpenAI Chat Completions" in WEB and "Anthropic Messages" in WEB
 assert 'id="aiProvider"' not in WEB and "api_protocol:q('#aiProtocol').value" in WEB
 assert 'APIProtocol' in MAIN and '`json:"api_protocol"`' in MAIN

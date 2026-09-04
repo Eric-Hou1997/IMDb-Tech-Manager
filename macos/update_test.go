@@ -25,11 +25,11 @@ func TestCompareVersion(t *testing.T) {
 
 func TestSelectTechUpdateAssetsRequiresCanonicalName(t *testing.T) {
 	release := githubRelease{
-		TagName: "v4.0.2",
+		TagName: "v4.0.4",
 		Assets: []githubReleaseAsset{
-			{Name: "ITM-v4.0.2-MacOS-AArch64-APP.zip", BrowserDownloadURL: "archive"},
-			{Name: "ITM-v4.0.2-MacOS-AArch64-APP.zip.sig", BrowserDownloadURL: "signature"},
-			{Name: "ITM-v4.0.2-Windows-x64-EXE.zip", BrowserDownloadURL: "wrong-platform"},
+			{Name: "ITM-v4.0.4-MacOS-AArch64-APP.zip", BrowserDownloadURL: "archive"},
+			{Name: "ITM-v4.0.4-MacOS-AArch64-APP.zip.sig", BrowserDownloadURL: "signature"},
+			{Name: "ITM-v4.0.4-Windows-x64-EXE.zip", BrowserDownloadURL: "wrong-platform"},
 		},
 	}
 	archive, signature, err := selectTechUpdateAssets(release)
@@ -41,8 +41,8 @@ func TestSelectTechUpdateAssetsRequiresCanonicalName(t *testing.T) {
 	}
 
 	release.Assets = []githubReleaseAsset{
-		{Name: "IMDb-Tech-Manager-macOS-v4.0.2-AppleSilicon-App.zip"},
-		{Name: "IMDb-Tech-Manager-macOS-v4.0.2-AppleSilicon-App.zip.sig"},
+		{Name: "IMDb-Tech-Manager-macOS-v4.0.4-AppleSilicon-App.zip"},
+		{Name: "IMDb-Tech-Manager-macOS-v4.0.4-AppleSilicon-App.zip.sig"},
 	}
 	if _, _, err := selectTechUpdateAssets(release); err == nil {
 		t.Fatal("legacy or ambiguous archive names must not satisfy the OTA selector")

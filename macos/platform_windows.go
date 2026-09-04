@@ -237,6 +237,11 @@ func platformCleanupLegacy(w io.Writer) ([]string, error) {
 }
 
 func platformRunEngine(action, arg string, w io.Writer) error {
+	return platformRunEngineLanguage(action, arg, loadSettings().Language, w)
+}
+
+func platformRunEngineLanguage(action, arg, language string, w io.Writer) error {
+	_ = language
 	if _, err := os.Stat(enginePath()); err != nil {
 		return fmt.Errorf("Manager 引擎文件不存在，请重新启动应用或点击“安装 / 修复”")
 	}

@@ -652,11 +652,15 @@ func platformCleanupLegacy(w io.Writer) ([]string, error) {
 }
 
 func platformRunEngine(action, arg string, w io.Writer) error {
+	return platformRunEngineLanguage(action, arg, loadSettings().Language, w)
+}
+
+func platformRunEngineLanguage(action, arg, language string, w io.Writer) error {
 	py := python3()
 	if py == "" {
-		return fmt.Errorf("未找到 python3")
+		return fmt.Errorf("%s", localized(language, "未找到 python3", "python3 was not found"))
 	}
-	args := []string{enginePath()}
+	args := []string{enginePath(), "--output-language", normalizedLanguage(language)}
 	switch action {
 	case "auto":
 		args = append(args, "--auto")
@@ -799,20 +803,22 @@ func platformQuitApp() {
 }
 
 func platformInspectorJSON(args ...string) (json.RawMessage, error) {
-	if payload, err, handled := residentInspectorJSON(args...); handled {
+	language := normalizedLanguage(loadSettings().Language)
+	if payload, err, handled := residentInspectorJSON(language, args...); handled {
 		return payload, err
 	}
 	py := python3()
 	if py == "" {
-		payload, _ := json.Marshal(map[string]string{"error": "未找到 python3"})
-		return payload, errors.New("未找到 python3")
+		message := localized(language, "未找到 python3", "python3 was not found")
+		payload, _ := json.Marshal(map[string]string{"error": message})
+		return payload, errors.New(message)
 	}
-	commandArgs := append([]string{enginePath()}, args...)
+	commandArgs := append([]string{enginePath(), "--output-language", language}, args...)
 	cmd := exec.Command(py, commandArgs...)
 	out, runErr := cmd.CombinedOutput()
 	trimmed := strings.TrimSpace(string(out))
 	if !json.Valid([]byte(trimmed)) {
-		message := "Inspector Engine 返回了无效 JSON"
+		message := localized(language, "Inspector Engine 返回了无效 JSON", "Inspector Engine returned invalid JSON")
 		if trimmed != "" {
 			message += "：" + trimmed
 		}
@@ -839,11 +845,11 @@ func collectStatus() (Status, error) {
 			"system_webkit_fetch": strings.TrimSpace(os.Getenv("IMDB_TECH_WEBKIT_HELPER")) != "",
 		},
 		Notes: []string{
-			"第一阶段只准备 IMDb Technical Specs；后台 Agent 24h 运行，但绝不自动生成或删除 Tag。",
-			"第二阶段由用户选择本地规则或 AI 生成。AI 额度/网络失败不会影响 Spec Agent，也不会先删除旧 Tag。",
-			"Tag 更新只删除 IMDb Tech Manager 明确拥有的值；Legacy 严格模式优先使用原始 .imdbtech.bak 保护 TMM Tag。",
-			"资料库路径离线时保持配置并等待卷重新挂载，不把离线视为媒体删除。",
-			"主界面和 IMDb 动态页面回退使用 macOS 系统 WebKit；Chrome/Chromium 仅为可选兼容回退。",
+			localized(set.Language, "第一阶段只准备 IMDb Technical Specs；后台 Agent 24h 运行，但绝不自动生成或删除 Tag。", "Stage 1 prepares only IMDb Technical Specs. The background Agent may run continuously but never generates or deletes Tags automatically."),
+			localized(set.Language, "第二阶段由用户选择本地规则或 AI 生成。AI 额度/网络失败不会影响 Spec Agent，也不会先删除旧 Tag。", "In Stage 2, the user chooses Local Rules or AI generation. AI quota or network failures do not affect the Spec Agent or delete old Tags first."),
+			localized(set.Language, "Tag 更新只删除 IMDb Tech Manager 明确拥有的值；Legacy 严格模式优先使用原始 .imdbtech.bak 保护 TMM Tag。", "Tag updates remove only values authoritatively owned by IMDb Tech Manager. Legacy strict mode uses the original .imdbtech.bak first to protect TMM Tags."),
+			localized(set.Language, "资料库路径离线时保持配置并等待卷重新挂载，不把离线视为媒体删除。", "Offline library paths remain configured while the app waits for the volume to remount; offline media is not treated as deleted."),
+			localized(set.Language, "主界面和 IMDb 动态页面回退使用 macOS 系统 WebKit；Chrome/Chromium 仅为可选兼容回退。", "The main interface and dynamic IMDb fallback use system WebKit on macOS. Chrome or Chromium is an optional compatibility fallback only."),
 		},
 		Paths: map[string]string{
 			"config": macConfigPath(), "cache": macCacheDir(), "status": macStatusPath(),

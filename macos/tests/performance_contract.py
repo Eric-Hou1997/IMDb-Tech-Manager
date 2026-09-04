@@ -160,7 +160,7 @@ checks = {
     "go reload endpoint": "/api/inspector/reload" in main_go,
     "go reconcile action": 'case "reconcile-index":' in main_go and '--reconcile-index' in platform,
     "launch auto reconcile": "startJob(\"reconcile-index\", \"\")" in main_go,
-    "version 4.0.2": 'const appVersion = "4.0.2"' in main_go and "v4.0.2" in web,
+    "version 4.0.4": 'const appVersion = "4.0.4"' in main_go and "v4.0.4" in web,
 }
 failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():

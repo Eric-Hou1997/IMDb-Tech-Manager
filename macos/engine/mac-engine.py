@@ -393,11 +393,245 @@ LANGUAGE_OPTIONS = {
     "zh-CN": {"review_language": "zh-CN"},
     "en-US": {"review_language": "en-US"},
 }
+RUNTIME_OUTPUT_LANGUAGE = ""
 
 
 def normalized_output_language(value):
     value = clean(str(value or ""))
     return value if value in LANGUAGE_OPTIONS else "zh-CN"
+
+
+def _set_runtime_output_language(value):
+    global RUNTIME_OUTPUT_LANGUAGE
+    RUNTIME_OUTPUT_LANGUAGE = normalized_output_language(value)
+
+
+def _output_language():
+    if RUNTIME_OUTPUT_LANGUAGE:
+        return RUNTIME_OUTPUT_LANGUAGE
+    cfg = load_json(CFG, {}) or {}
+    return normalized_output_language(cfg.get("output_language") if isinstance(cfg, dict) else "")
+
+
+def _t(chinese, english):
+    return english if _output_language() == "en-US" else chinese
+
+
+_EN_RUNTIME_REPLACEMENTS = (
+    ("模型返回 JSON 缺少 tags 数组", "The model JSON response is missing the tags array"),
+    ("AI Tag Parser 尚未启用", "AI Tag Parser is not enabled"), ("AI Base URL 为空", "AI Base URL is empty"),
+    ("AI 模型名为空", "AI model name is empty"), ("AI 提示词为空", "AI prompt is empty"),
+    ("macOS Keychain 中没有 API Key", "No API Key is stored in macOS Keychain"),
+    ("请在设置中选择 OpenAI Chat Completions 或 Anthropic Messages API 格式", "Select the OpenAI Chat Completions or Anthropic Messages API format in Settings"),
+    ("OpenAI 响应缺少 choices[0].message.content", "The OpenAI response is missing choices[0].message.content"),
+    ("OpenAI 响应缺少 choices[0].message", "The OpenAI response is missing choices[0].message"),
+    ("AI 输出达到长度上限，返回内容被截断", "AI output reached the length limit and was truncated"),
+    ("AI 输出被内容过滤策略终止", "AI output was stopped by the content filter"),
+    ("AI 服务拒绝了本次请求", "The AI service refused this request"),
+    ("Anthropic Messages 服务拒绝了本次请求", "Anthropic Messages refused this request"),
+    ("输入超过模型上下文窗口", "The input exceeds the model context window"),
+    ("Anthropic Messages 返回了当前任务未请求的", "Anthropic Messages returned an unrequested stop reason:"),
+    ("Anthropic Messages 响应缺少 content 数组", "The Anthropic Messages response is missing the content array"),
+    ("Anthropic Messages 响应没有文本内容块", "The Anthropic Messages response has no text content block"),
+    ("AI 网络请求失败", "AI network request failed"), ("AI 请求失败", "AI request failed"),
+    ("AI 返回内容不是完整有效的 JSON", "The AI response is not complete valid JSON"),
+    ("AI JSON 不符合标签结构要求", "The AI JSON does not satisfy the Tag schema"),
+    ("tags 中存在非对象项", "The tags array contains a non-object item"),
+    ("非法 AI Tag", "Invalid AI Tag"), ("AI Tag 长度/换行异常", "AI Tag length or line breaks are invalid"),
+    ("AI Tag 缺少 source_indexes", "AI Tag is missing source_indexes"), ("AI Tag source_indexes 越界", "AI Tag source_indexes is out of range"),
+    ("额外请求参数 JSON 无效", "The extra request-parameter JSON is invalid"),
+    ("资料库对账完成", "Library reconciliation complete"), ("共发现", "Found"),
+    ("重新解析", "reparsed"), ("复用", "reused"),
+    ("未配置电影 / 电视剧资料库。请先运行 --configure。", "Movie and TV libraries are not configured. Run --configure first."),
+    ("当前没有已挂载且可访问的资料库", "No configured library is currently mounted and accessible"),
+    ("此问题涉及文件安全或资料库类型，不能忽略", "This issue concerns file safety or library type and cannot be ignored"),
+    ("问题已不存在，请刷新", "The issue no longer exists; refresh the item"),
+    ("无效的状态值", "Invalid status value"), ("资料库范围只能是 movies 或 tv", "Library scope must be movies or tv"),
+    ("生成方式必须是 ai 或 local-rules", "Generation method must be ai or local-rules"),
+    ("Scope 类型无效", "Invalid scope type"), ("当前 Scope 没有可处理的 NFO", "The current scope has no processable NFOs"),
+    ("标签位置已经变化，请刷新后重试", "The Tag position changed; refresh and try again"),
+    ("NFO 根节点结束标签缺失", "The NFO root closing tag is missing"), ("缺少 expected_source_hash", "expected_source_hash is required"),
+    ("该 NFO 不支持编辑", "This NFO cannot be edited"), ("标签不能为空；如需删除请使用删除按钮", "A Tag cannot be empty; use Delete to remove it"),
+    ("ownership manifest 缺失，拒绝接管标签", "The ownership manifest is missing; Tag takeover was rejected"),
+    ("外部标签确认：该标签不属于本软件，删除前需要确认", "External Tag confirmation is required because this app does not own the Tag"),
+    ("ownership manifest 缺失，拒绝调整标签", "The ownership manifest is missing; the Tag change was rejected"),
+    ("所有权必须是 external / ai / local-rules / manual", "Ownership must be external / ai / local-rules / manual"),
+    ("当前 NFO 尚无 Technical Specs 块，无法记录所有权；请先获取 Tech Spec", "This NFO has no Technical Specs block, so ownership cannot be recorded; fetch Specs first"),
+    ("当前 NFO 没有 ownership 信息", "This NFO has no ownership information"), ("当前 NFO 没有 AI 生成的标签", "This NFO has no AI-generated Tags"),
+    ("清除 AI 标签需要确认", "Confirmation is required to clear AI Tags"), ("Manual Tech Tag 不能为空", "A Manual Tech Tag cannot be empty"),
+    ("请先准备 Technical Specs，再添加 Manual Tech Tag", "Prepare Technical Specs before adding a Manual Tech Tag"),
+    ("根节点已经存在同名标签；不会反向取得 ownership", "The same Tag already exists at the root; ownership will not be claimed retroactively"),
+    ("当前 NFO 没有可编辑的 Technical Specs", "This NFO has no editable Technical Specs"), ("Technical Specs 字段无效", "Invalid Technical Specs field"),
+    ("新增规格值不能为空", "A new Spec value cannot be empty"), ("规格位置已经变化，请刷新后重试", "The Spec position changed; refresh and try again"),
+    ("不支持的 Inspector 编辑操作", "Unsupported Inspector edit operation"), ("没有可撤销的 Inspector 操作", "There is no Inspector operation to undo"),
+    ("撤销记录已过期", "The undo record has expired"), ("撤销记录无效", "The undo record is invalid"),
+    ("没有可继续的 AI 批量任务", "There is no AI batch task to resume"), ("AI 批量任务状态版本不兼容", "The AI batch-task state version is incompatible"),
+    ("AI 批量任务队列与状态不匹配", "The AI batch queue does not match its state"), ("AI 批量任务队列为空", "The AI batch queue is empty"),
+    ("上一个 AI 批量任务已经处理完毕", "The previous AI batch task is already complete"),
+    ("此 NFO 不在最近一次规则试写结果中", "This NFO is not in the latest Rules preview results"),
+    ("NFO 不可解析或缺少 Technical Specs", "The NFO cannot be parsed or has no Technical Specs"),
+    ("规则版本已变化，请重新试写", "The Rules version changed; run Preview again"), ("标签清理策略已变化，请重新试写", "The Tag cleanup policy changed; run Preview again"),
+    ("规则试写结果无效，请重新试写", "The Rules preview result is invalid; run Preview again"),
+    ("没有可生成标签的 Technical Specs", "There are no Technical Specs that can generate Tags"),
+    ("没有对应的预演结果；请先运行 AI 预演再批准写入", "No matching preview result exists; run AI Preview before approving the write"),
+    ("请选择至少一个 NFO", "Select at least one NFO"), ("reload 请求必须包含 paths 列表", "The reload request must contain a paths list"),
+    ("未知 serve 命令", "Unknown serve command"), ("serve 请求必须是 JSON 对象", "The serve request must be a JSON object"),
+    ("reload 请求必须是 JSON 对象", "The reload request must be a JSON object"), ("Inspector 请求必须是 JSON 对象", "The Inspector request must be a JSON object"),
+    ("Scope 请求必须是 JSON 对象", "The Scope request must be a JSON object"),
+    ("当前没有已挂载的电影 / 电视剧资料库，本轮跳过，稍后自动重试。", "No configured movie or TV library is currently mounted. This run was skipped and will retry later."),
+    ("当前索引没有 NFO；打开管理器或手动刷新会建立索引。", "The current index has no NFOs. Open the Manager or refresh manually to build the index."),
+    ("正在扫描电影 / 电视剧资料库中的 NFO", "Scanning movie and TV libraries for NFOs"),
+    ("只读取 NFO 已有的标题和 IMDb ID，不按片名重新匹配。", "Only existing NFO titles and IMDb IDs are read; titles are not rematched."),
+    ("检测到手动任务，后台本轮让位。", "A manual task was detected; the background run yielded."),
+    ("检测到手动任务，本任务让位（剩余项下次继续）。", "A manual task was detected; this task yielded and remaining items will continue next time."),
+    ("已取得写入锁", "Write lock acquired"), ("已取得抓取锁，开始测试。", "Fetch lock acquired; starting the test."),
+    ("后台任务会在当前影片完成后让位", "the background task will yield after the current title"),
+    ("后台 Agent 正在处理 IMDb/NFO，等待当前任务完成后再测试", "The background Agent is processing IMDb/NFO data; waiting for the current task before testing"),
+    ("IMDb ID 格式不正确，例如", "The IMDb ID format is invalid; for example"),
+    ("强制测试 IMDb Technical Specifications", "Force-testing IMDb Technical Specifications"),
+    ("不修改任何 NFO，不使用旧失败缓存，也不会覆盖正式 IMDb 缓存。", "No NFO will be modified. Old failure cache is ignored and the official IMDb cache will not be overwritten."),
+    ("先尝试普通 HTTP，再使用 App 内置的 macOS WebKit；若安装了 Chrome/Chromium，仅作为最后兼容回退。", "Plain HTTP is tried first, followed by the app's macOS WebKit. Chrome or Chromium is only a final compatibility fallback when installed."),
+    ("状态：", "Status: "), ("方式：", "Method: "), ("解析：", "Parser: "), ("尝试：", "Attempts: "),
+    ("IMDb 返回了有效的结构化标题数据，但该条目没有 Technical Specifications。", "IMDb returned valid structured title data, but this entry has no Technical Specifications."),
+    ("IMDb 页面获取失败；不会再把这种情况写成“无数据”。", "IMDb page retrieval failed; this will not be recorded as No Data."),
+    ("调试 HTML 已保存", "Debug HTML saved"), ("Chrome stderr 已保存", "Chrome stderr saved"),
+    ("NFO 没有 IMDb ID，跳过。", "NFO has no IMDb ID; skipped."), ("Spec 已准备", "Specs ready"),
+    ("IMDb 明确无 Technical Specifications，已记录 Ready", "IMDb explicitly has no Technical Specifications; Ready was recorded"),
+    ("IMDb 获取/解析失败；不会影响已有 Tag，稍后重试。", "IMDb retrieval or parsing failed; existing Tags are unchanged and the operation will retry later."),
+    ("Spec 已写入", "Specs written"), ("NFO 正在被其他程序修改，延后重试", "The NFO is being modified by another program; retry deferred"),
+    ("NFO 尚未稳定，延后重试", "The NFO is not stable yet; retry deferred"),
+    ("正在扫描数据流水线状态", "Scanning pipeline state"),
+    ("已请求暂停 AI 批量任务；当前 NFO 完成后停止取下一项。", "AI batch pause requested; no new item will start after the current NFO."),
+    ("无法继续 AI 批量任务", "Could not continue the AI batch task"), ("当前没有可重试的 AI 失败项。", "There are no retryable AI failures."),
+    ("没有有效的所选 NFO。", "No selected NFO is valid."), ("AI 标签指定 NFO 写入", "Write AI Tags to selected NFOs"),
+    ("AI 失败项重试", "Retry AI failures"), ("AI 批量任务继续", "Resume AI batch task"),
+    ("AI 批量任务已暂停", "AI batch task paused"), ("已知 AI 失败未变化，跳过请求", "Known AI failure is unchanged; request skipped"),
+    ("AI Runtime 已按预算暂停", "AI Runtime paused by budget"), ("AI Runtime 已暂停", "AI Runtime paused"),
+    ("本地 Tag 已写入", "Rules Tags written"), ("Tag 已写入", "Tags written"), ("AI 结果需复核，NFO 未改", "AI result needs review; NFO unchanged"),
+    ("无法安全确认旧 Tag 所有权，NFO 未改", "Ownership of old Tags could not be confirmed safely; NFO unchanged"),
+    ("本任务新增模型 Usage", "New model usage for this task"),
+    ("缓存命中结果历史 Usage（本次不重复扣费）", "Historical usage for cache hits (not charged again)"),
+    ("当前持久化 AI 失败队列", "Current persistent AI failure queue"),
+    ("HTTP请求", "HTTP requests"), ("估算新增费用", "estimated new cost"), ("历史估算费用", "historical estimated cost"),
+    ("AI Runtime 暂停状态已清除。建议先执行连接测试，再继续 AI 生成队列。", "AI Runtime pause was cleared. Run a connection test before continuing the AI generation queue."),
+    ("AI Tag Parser 连接测试", "AI Tag Parser connection test"), ("模型调用失败", "Model request failed"),
+    ("连接测试成功，已清除之前的 AI 额度/认证/网络暂停状态。", "Connection test succeeded; previous quota, authentication, and network pauses were cleared."),
+    ("模型返回有效 JSON。", "The model returned valid JSON."), ("AI Runtime 恢复测试", "AI Runtime recovery test"),
+    ("将向当前模型发起一次真实连接测试；成功后才解除 AI 暂停状态。", "A real request will test the current model; AI is resumed only after it succeeds."),
+    ("AI 标签迁移扫描", "AI Tag migration scan"), ("全部 NFO", "All NFOs"),
+    ("已有 technicalspecs", "NFOs with technicalspecs"), ("已有 AI/所有权清单", "NFOs with AI/ownership manifests"),
+    ("没有可供 AI Tag 预演的 Technical Specs", "No Technical Specs are available for AI Tag preview"),
+    ("严格模式跳过", "Skipped in strict mode"), ("模型结果需要复核；本次预演不会写 NFO，也不会删除任何旧 Tag。", "The model result needs review. This preview will not write the NFO or delete old Tags."),
+    ("AI 候选 Tag", "AI candidate Tags"), ("模型 warnings", "Model warnings"), ("待复核原因", "Review reasons"),
+    ("其中本次会替换/删除的旧值", "Old owned values that will be replaced or removed"), ("最终 AI Tag", "Final AI Tags"),
+    ("相对当前 NFO 新增", "Added relative to the current NFO"), ("没有找到可预演项目。", "No preview candidates were found."),
+    ("预演完成", "Preview complete"), ("预演结果已保存", "Preview results saved"),
+    ("规则试写跳过", "Rules preview skipped"), ("规则试写完成", "Rules preview complete"),
+    ("规则试写结果已保存", "Rules preview results saved"), ("没有可采纳的规则试写结果；请先点击试写。", "There are no Rules preview results to approve. Run Preview first."),
+    ("已采纳规则试写结果", "Rules preview result approved"), ("规则试写采纳完成", "Rules preview approval complete"),
+    ("已按预演结果写入", "Written from the preview result"), ("批准写入完成", "Approval write complete"),
+    ("指定 NFO 列表无效", "The selected NFO list is invalid"), ("指定预演 NFO 列表无效", "The selected preview NFO list is invalid"),
+    ("指定批准写入 NFO 列表无效", "The selected approval NFO list is invalid"), ("指定规则试写 NFO 列表无效", "The selected Rules preview NFO list is invalid"),
+    ("指定规则采纳 NFO 列表无效", "The selected Rules approval NFO list is invalid"), ("指定刷新 NFO 列表无效", "The selected refresh NFO list is invalid"),
+    ("指定写入 NFO 列表无效", "The selected write NFO list is invalid"),
+    ("识别到电影 / 电视剧数据源", "Movie and TV data sources detected"),
+    ("请输入电影 / 电视剧资料库根目录（一行一个，空行结束）", "Enter movie and TV library roots, one per line; submit an empty line to finish"),
+    ("不存在：", "Does not exist: "), ("配置完成。", "Configuration complete."),
+    ("Spec-only 安全检查失败：根级 <tag> 在第一阶段发生变化", "Spec-only safety check failed: root-level <tag> values changed during Stage 1"),
+    ("只允许读取或编辑 .nfo 文件", "Only .nfo files may be read or edited"),
+    ("NFO 路径不在已配置的资料库中", "The NFO path is outside the configured libraries"),
+    ("NFO 文件不存在或当前离线", "The NFO file does not exist or is currently offline"),
+    ("NFO 已变化，请刷新后重新确认问题", "The NFO changed; refresh before confirming the issue again"),
+    ("跳过无效或不在资料库配置中的 NFO", "Skipped an invalid NFO or one outside configured libraries"),
+    ("Scope 包含资料库外或已经不存在的 NFO", "The scope contains an NFO outside the library or one that no longer exists"),
+    ("NFO 已被其他程序修改，请刷新 Inspector 后重试", "The NFO was modified by another program; refresh Inspector and try again"),
+    ("写入前 NFO 再次发生变化，已安全取消", "The NFO changed again before writing; the operation was cancelled safely"),
+    ("NFO 已在编辑后发生变化，为避免覆盖外部修改，不能撤销", "The NFO changed after editing; undo is unavailable to avoid overwriting external changes"),
+    ("已等待 %d 秒；后台任务仍在运行。", "Waited %d seconds; the background task is still running."),
+    ("说明：只读取 NFO 已有的标题和 IMDb ID，不按片名重新匹配。", "Note: Only existing NFO titles and IMDb IDs are read; titles are not rematched."),
+    ("Spec 待准备", "Specs pending"), ("IMDb ID 缺失", "IMDb IDs missing"),
+    (" / 未生成 ", " / not generated "), (" / 过期 ", " / stale "), (" / 待复核 ", " / needs review "),
+    ("📊 进度 ", "📊 Progress "), ("（空数据 ", "(empty data "), ("，XML 错误：", ", XML errors: "),
+    (" / 本地 ", " / Rules "), ("⚠️ Legacy 中 ", "⚠️ In Legacy, "),
+    (" 个没有可信原始 TMM 基线，严格模式不会删除其旧标准 Tag。", " lack a trusted original TMM baseline; strict mode will not remove their old standard Tags."),
+    ("AI 标签指定 NFO 写入（%d 个）", "Write AI Tags to selected NFOs (%d items)"),
+    ("AI 失败项重试（%d 个）", "Retry AI failures (%d items)"), ("AI 批量任务继续：从 %d / %d 开始", "Resume AI batch task at %d / %d"),
+    ("AI 批量任务已暂停；下次继续将从 [%d/%d] 开始。", "AI batch task paused; the next run will resume at [%d/%d]."),
+    ("NFO 读取失败", "Failed to read NFO"),
+    ("AI 批量任务已暂停；已安全完成当前 NFO，下次从 [%d/%d] 继续。", "AI batch task paused after safely completing the current NFO; resume at [%d/%d]."),
+    ("当前持久化 AI 失败队列：%d 项", "Current persistent AI failure queue: %d items"),
+    ("旧格式且可用原始 TMM 备份保护", "Legacy NFOs protected by an original TMM backup"),
+    ("旧格式但没有可验证原始备份", "Legacy NFOs without a verifiable original backup"),
+    ("当前检测到旧工具 Tag 的 NFO", "NFOs currently containing old-tool Tags"),
+    ("严格模式会跳过没有可验证原始备份的旧 NFO，避免误删 TMM Tag。", "Strict mode skips old NFOs without a verifiable original backup to avoid deleting TMM Tags incorrectly."),
+    ("所有旧 NFO 都有可用于保护 TMM Tag 的基线或已存在所有权清单。", "Every old NFO has either a baseline that protects TMM Tags or an existing ownership manifest."),
+    ("识别为旧 IMDb Tech Manager Tag", "Recognized as old IMDb Tech Manager Tags"),
+    ("待复核原因", "Review reasons"), ("旧值若仍由 AI 生成，会保留为最终同值 Tag", "An old value still generated by AI is retained as the same final Tag"),
+    ("受 TMM 基线保护的原始 Tag", "Original Tags protected by the TMM baseline"),
+    ("跳过不在当前资料库配置中的 NFO", "Skipped an NFO outside the current library configuration"),
+    ("预演完成：%s（%d 个候选标签）", "Preview complete: %s (%d candidate Tags)"),
+    ("预演结果已保存：%d 成功，%d 跳过。可以在预演面板中审核并批准写入。", "Preview results saved: %d succeeded, %d skipped. Review and approve them in the preview panel."),
+    ("规则试写完成：%s（%d 个候选标签）", "Rules preview complete: %s (%d candidate Tags)"),
+    ("规则试写结果已保存：%d 成功，%d 跳过。", "Rules preview results saved: %d succeeded, %d skipped."),
+    ("NFO 在试写后发生变化，请重新试写", "The NFO changed after Preview; run Preview again"),
+    ("Technical Specs 在试写后发生变化，请重新试写", "Technical Specs changed after Preview; run Preview again"),
+    ("规则试写采纳完成：%d 成功，%d 失败。", "Rules preview approval complete: %d succeeded, %d failed."),
+    ("批准写入完成：%d 成功，%d 失败（未再次调用 AI）。", "Approval write complete: %d succeeded, %d failed (AI was not called again)."),
+    ("完成：", "Completed: "), ("⚠️ 待复核：", "⚠️ Needs review: "),
+    ("TMM baseline: 无", "TMM baseline: none"), ("  - 无（", "  - None ("), ("  - 无", "  - None"),
+    ("IMDb Technical Specs - Mac 诊断", "IMDb Technical Specs - Mac Diagnostics"),
+    ("系统 WebKit Helper", "System WebKit Helper"), ("可选 Chrome/Chromium 回退", "Optional Chrome/Chromium fallback"),
+    ("未找到（仅源码直接运行时允许；App 包必须包含）", "not found (allowed only when running source directly; the app bundle must include it)"),
+    ("未安装（不影响 App 与系统 WebKit 抓取）", "not installed (does not affect app or system WebKit retrieval)"),
+    ("配置文件", "Configuration file"), ("缓存目录", "Cache directory"), ("Manager 已配置资料库（后台只使用这些）", "Manager-configured libraries (the background Agent uses only these)"),
+    ("[在线]", "[online]"), ("[离线]", "[offline]"), ("(未配置)", "(not configured)"),
+    ("TMM 当前可发现候选（仅供参考，不会自动加入）", "Currently discoverable TMM suggestions (reference only; never added automatically)"),
+    ("IMDb 缓存条目", "IMDb cache entries"), ("运行锁", "Run lock"),
+    ("(无)", "(none)"),
+    ("引擎缺少函数", "The Engine is missing functions"),
+    ("__NEXT_DATA__ 解析自检失败", "__NEXT_DATA__ parser self-test failed"),
+    ("Camera 标签断句/共享 Series 展开自检失败", "Camera Tag segmentation and shared-Series expansion self-test failed"),
+    ("AI ownership manifest 与 TMM 根级 Tag 隔离自检失败", "AI ownership manifest and root-level TMM Tag isolation self-test failed"),
+    ("旧 NFO 的 TMM Tag 基线保护自检失败", "Legacy NFO TMM Tag baseline protection self-test failed"),
+    ("v2 Stage 1 Spec-only 写入自检失败", "v2 Stage 1 Spec-only write self-test failed"),
+    ("v2 Stage 1 错误修改了 TMM Tag 或 Spec 未 Ready", "v2 Stage 1 incorrectly changed a TMM Tag or Specs were not Ready"),
+    ("IMDb empty Spec Ready 状态自检失败", "IMDb empty-Spec Ready-state self-test failed"),
+    ("Sidecar ownership 恢复自检失败", "Sidecar ownership recovery self-test failed"),
+    ("Chrome stderr 诊断写入自检失败", "Chrome stderr diagnostic-write self-test failed"),
+    ("Mac Engine 自检通过：IMDb 解析、Camera、本地/TMM Tag 隔离、Spec-only、empty Ready、sidecar ownership、诊断写入正常。", "Mac Engine self-test passed: IMDb parsing, Camera, Local/TMM Tag isolation, Spec-only, empty Ready, sidecar ownership, and diagnostic writes are healthy."),
+)
+
+
+def _localized_runtime_text(value):
+    if _output_language() != "en-US":
+        return value
+    for source, target in sorted(_EN_RUNTIME_REPLACEMENTS, key=lambda item: len(item[0]), reverse=True):
+        value = value.replace(source, target)
+    value = re.sub(r"(Library reconciliation complete)[：:]共\s+", r"\1: ", value)
+    value = re.sub(r"(\d+)\s+个 NFO", r"\1 NFOs", value)
+    value = re.sub(r"Write lock acquired（等待了\s+(\d+)\s+秒）", r"Write lock acquired (waited \1 seconds)", value)
+    value = re.sub(r"（(\d+)\s+个候选标签）", r"(\1 candidate Tags)", value)
+    value = re.sub(r"（(\d+)\s+个）", r"(\1 items)", value)
+    value = re.sub(r"(\d+)\s+成功", r"\1 succeeded", value)
+    value = re.sub(r"(\d+)\s+失败", r"\1 failed", value)
+    value = re.sub(r"(\d+)\s+跳过", r"\1 skipped", value)
+    value = re.sub(r"(AI failure queue[^\d]*\d+)\s+项", r"\1 items", value)
+    value = re.sub(r"(NFOs)\(", r"\1 (", value)
+    return value.replace("，", ", ").replace("：", ": ").replace("；", "; ").replace("。", ".").replace("（", "(").replace("）", ")")
+
+
+class _LocalizedStream:
+    def __init__(self, wrapped):
+        self.wrapped = wrapped
+
+    def write(self, value):
+        return self.wrapped.write(_localized_runtime_text(value))
+
+    def flush(self):
+        return self.wrapped.flush()
+
+    def __getattr__(self, name):
+        return getattr(self.wrapped, name)
 
 
 LANGUAGE_BOUNDARY_PROMPT = """\
@@ -472,7 +706,7 @@ def ai_config():
         "run_request_limit": max(0, int(raw.get("run_request_limit", 0) or 0)),
         "run_token_limit": max(0, int(raw.get("run_token_limit", 0) or 0)),
         "run_cost_limit": max(0.0, float(raw.get("run_cost_limit", 0) or 0)),
-        "output_language": normalized_output_language(cfg.get("output_language")),
+        "output_language": normalized_output_language(RUNTIME_OUTPUT_LANGUAGE or cfg.get("output_language")),
     }
     return out
 
@@ -512,7 +746,7 @@ def ai_endpoint(base_url, protocol="openai"):
 
 class AIRequestError(RuntimeError):
     def __init__(self, kind, message, http_status=0, retry_after=0, finish_reason=""):
-        super().__init__(message)
+        super().__init__(_localized_runtime_text(message))
         self.kind = kind
         self.http_status = int(http_status or 0)
         self.retry_after = float(retry_after or 0)
@@ -1046,7 +1280,7 @@ def _ai_http_request(specs, cfg, with_json_mode=True, with_prompt_cache=False, e
             "anthropic-version": "2023-06-01",
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "IMDb-Tech-Manager/4.0.2",
+            "User-Agent": "IMDb-Tech-Manager/4.0.4",
         }
     else:
         body = _build_openai_request(specs, cfg, with_json_mode, with_prompt_cache, existing)
@@ -1054,7 +1288,7 @@ def _ai_http_request(specs, cfg, with_json_mode=True, with_prompt_cache=False, e
             "Authorization": "Bearer " + ai_api_key(),
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "IMDb-Tech-Manager/4.0.2",
+            "User-Agent": "IMDb-Tech-Manager/4.0.4",
         }
 
     req = urllib.request.Request(
@@ -1160,7 +1394,7 @@ def ai_generate_tags(specs, force=False, ignore_pause=False, existing=None):
     cfg = ai_config()
     ok, msg = ai_ready(require_enabled=False, allow_paused=ignore_pause)
     if not ok:
-        raise AIRequestError("paused" if "暂停" in msg else "config", msg)
+        raise AIRequestError("paused" if _load_ai_runtime().get("paused") else "config", msg)
     key = _ai_cache_key(specs, cfg, existing)
     cp = AI_CACHE / f"{key}.json"
     if not force:
@@ -4503,16 +4737,21 @@ def _inspector_base(path_value, nfo_stat=None):
     }
     issues = []
     if not iid:
-        issues.append({"kind": "missing-imdb", "message": "NFO 缺少 IMDb ID", "path": str(path)})
+        issues.append({"kind": "missing-imdb", "message": _t("NFO 缺少 IMDb ID", "The NFO has no IMDb ID"), "path": str(path)})
     if not obj:
         spec_status = "missing"
         tag_status_value = "none"
-        issues.append({"kind": "spec-missing", "message": "尚未准备 IMDb Technical Specs", "path": str(path)})
+        issues.append({"kind": "spec-missing", "message": _t("尚未准备 IMDb Technical Specs", "IMDb Technical Specs have not been prepared"), "path": str(path)})
     else:
         spec_status = "manual" if obj.get("modified") else ("empty" if obj.get("status") == "empty" else "ready")
         tag_status_value = tag_state(text, obj, path, static=True, root=root)
         if tag_status_value in ("stale", "tag-missing", "review"):
-            issues.append({"kind": tag_status_value, "message": {"stale": "技术标签尚未与当前规格同步", "tag-missing": "manifest 中的生成标签在根节点缺失", "review": "AI 结果等待人工复核"}[tag_status_value], "path": str(path)})
+            messages = {
+                "stale": _t("技术标签尚未与当前规格同步", "Technical Tags are not synchronized with the current specs"),
+                "tag-missing": _t("manifest 中的生成标签在根节点缺失", "A generated Tag in the manifest is missing from the root"),
+                "review": _t("AI 结果等待人工复核", "The AI result is awaiting manual review"),
+            }
+            issues.append({"kind": tag_status_value, "message": messages[tag_status_value], "path": str(path)})
     duplicates = []
     seen = set()
     for row in tags:
@@ -4521,7 +4760,7 @@ def _inspector_base(path_value, nfo_stat=None):
             duplicates.append(key)
         seen.add(key)
     if duplicates:
-        issues.append({"kind": "duplicate-tag", "message": "发现同值重复标签；为安全起见不会自动删除", "path": str(path)})
+        issues.append({"kind": "duplicate-tag", "message": _t("发现同值重复标签；为安全起见不会自动删除", "Duplicate Tags with the same value were found; they will not be deleted automatically"), "path": str(path)})
 
     rec = load_ownership_record(path, iid) if obj else None
     sidecar_match = _entry_matches_sidecar(obj, rec)
@@ -4538,10 +4777,10 @@ def _inspector_base(path_value, nfo_stat=None):
                 rec = load_ownership_record(path, iid)
                 sidecar_match = _entry_matches_sidecar(obj, rec)
     if sidecar_match is False:
-        issues.append({"kind": "ownership-mismatch", "message": "NFO manifest 与本地 ownership 镜像不一致", "path": str(path)})
+        issues.append({"kind": "ownership-mismatch", "message": _t("NFO manifest 与本地 ownership 镜像不一致", "The NFO manifest does not match the local ownership mirror"), "path": str(path)})
     detected_space = "movies" if info["media_type"] == "movie" else "tv"
     if assigned_space and assigned_space != detected_space:
-        issues.append({"kind": "library-type-mismatch", "message": "NFO 类型与所选资料库分类不一致；已停止生成操作", "path": str(path)})
+        issues.append({"kind": "library-type-mismatch", "message": _t("NFO 类型与所选资料库分类不一致；已停止生成操作", "The NFO type does not match the selected library category; generation has been stopped"), "path": str(path)})
     counts["issues"] = len(issues)
     nfo_mtime = nfo_stat.st_mtime if nfo_stat is not None else 0.0
     date_added_raw = child_text(root, "dateadded") or ""
@@ -4605,14 +4844,14 @@ def _apply_summary_overlay(item, dynamic=None):
             # only annotates (regeneration is still offered); the bucket
             # stays AI 完成. Spec edits downgrade via the base-layer stale.
             out["prompt_stale"] = True
-            issues.append({"kind": "prompt-stale", "message": "AI 提示词/模型已更新；建议重新生成（状态保持 AI 完成）", "path": path_str})
+            issues.append({"kind": "prompt-stale", "message": _t("AI 提示词/模型已更新；建议重新生成（状态保持 AI 完成）", "The AI prompt or model has changed; regeneration is recommended (status remains AI completed)"), "path": path_str})
 
     # Cached summaries already contain canonical paths. Resolving every item
     # here made a library read touch the NAS once per NFO.
     failure = (dynamic.get("failures") or {}).get(path_str)
     if failure:
         issues.append({
-            "kind": failure.get("kind") or "ai-failure", "message": failure.get("message") or "AI 处理失败",
+            "kind": failure.get("kind") or "ai-failure", "message": failure.get("message") or _t("AI 处理失败", "AI processing failed"),
             "time": failure.get("last_time") or failure.get("updated_at") or "", "task_id": failure.get("task_id") or "", "path": path_str,
         })
 
@@ -7804,6 +8043,7 @@ def _index_cache_invalidate(paths=None):
 
 def _serve_dispatch(cmd, req):
     req = req if isinstance(req, dict) else {}
+    _set_runtime_output_language(req.get("language"))
     payload = req.get("payload") if isinstance(req.get("payload"), dict) else {}
     if cmd == "ping":
         return {"pong": True, "schema": 1}
@@ -7891,6 +8131,7 @@ def main():
     APP.mkdir(parents=True, exist_ok=True)
 
     p = argparse.ArgumentParser()
+    p.add_argument("--output-language", choices=tuple(LANGUAGE_OPTIONS), default="")
     p.add_argument("--configure", action="store_true")
     p.add_argument("--watch-once", action="store_true")
     p.add_argument("--auto", action="store_true")
@@ -7939,6 +8180,10 @@ def main():
     p.add_argument("--local-preview-write-json", default="")
     p.add_argument("--local-approve-json", default="")
     a = p.parse_args()
+    _set_runtime_output_language(a.output_language or _output_language())
+    if _output_language() == "en-US":
+        sys.stdout = _LocalizedStream(sys.stdout)
+        sys.stderr = _LocalizedStream(sys.stderr)
 
     if a.discover_root_candidates:
         discover_root_candidates_cli()

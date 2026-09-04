@@ -8,9 +8,9 @@ MAIN = (ROOT / "main.go").read_text(encoding="utf-8")
 INFO = (ROOT.parent / "packaging" / "Info.plist").read_text(encoding="utf-8")
 BUILD = (ROOT.parent / "tools" / "build-release.sh").read_text(encoding="utf-8")
 
-assert 'const appVersion = "4.0.2"' in MAIN
-assert 'content="v4.0.2"' in WEB and "v4.0.2" in WEB
-assert "<key>CFBundleVersion</key><string>4.0.2</string>" in INFO
+assert 'const appVersion = "4.0.4"' in MAIN
+assert 'content="v4.0.4"' in WEB and "v4.0.4" in WEB
+assert "<key>CFBundleVersion</key><string>4.0.4</string>" in INFO
 assert "tools/test-source.sh" in BUILD and "packaging/Info.plist" in BUILD
 assert "ditto -c -k" in BUILD and "bare .app found" in BUILD
 

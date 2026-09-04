@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const appVersion = "4.0.2"
+const appVersion = "4.0.4"
 
 const (
 	uiLayoutSchema        = 1
@@ -436,19 +436,20 @@ func (m *jobManager) rememberLocked(st JobState) {
 }
 
 func (m *jobManager) begin(action string) (JobState, error) {
+	language := normalizedLanguage(loadSettings().Language)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.st.Running {
-		return JobState{}, fmt.Errorf("已有任务正在运行：%s", m.st.Action)
+		return JobState{}, fmt.Errorf("%s: %s", localized(language, "已有任务正在运行", "Another task is already running"), m.st.Action)
 	}
 	st := JobState{
 		ID:          nextJobID(),
 		Running:     true,
 		Action:      action,
 		StartedAt:   time.Now().Format(time.RFC3339Nano),
-		Message:     "运行中",
+		Message:     localized(language, "运行中", "Running"),
 		MessageCode: "job.running",
-		Language:    normalizedLanguage(loadSettings().Language),
+		Language:    language,
 	}
 	m.st = st
 	m.rememberLocked(st)
@@ -1480,13 +1481,13 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 			writeJSONStatus(w, 500, map[string]string{"error": err.Error()})
 			return
 		}
-		writeJSON(w, map[string]string{"ok": "true", "message": "已请求暂停；当前 NFO 完成后停止取下一项"})
+		writeJSON(w, map[string]string{"ok": "true", "message": currentLocalized("已请求暂停；当前 NFO 完成后停止取下一项", "Pause requested; no new item will start after the current NFO")})
 		return
 	}
 
 	if req.Action == "install" && runtime.GOOS == "windows" {
 		if err := requestElevatedAction("install"); err == nil {
-			writeJSON(w, map[string]string{"ok": "true", "message": "已请求管理员权限，请确认 UAC。"})
+			writeJSON(w, map[string]string{"ok": "true", "message": currentLocalized("已请求管理员权限，请确认 UAC。", "Administrator access was requested. Confirm the UAC prompt.")})
 			return
 		}
 	}
@@ -1532,7 +1533,7 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 
 func startJob(action, arg string) (string, error) {
 	if runtime.GOOS == "darwin" && actionNeedsLibrary(action) && !platformLibraryRootsConfirmed() {
-		return "", fmt.Errorf("请先在首次运行引导中确认电影和电视剧资料库")
+		return "", fmt.Errorf("%s", currentLocalized("请先在首次运行引导中确认电影和电视剧资料库", "Confirm the movie and TV libraries in First Run setup before starting this task"))
 	}
 	st, err := jobs.begin(action)
 	if err != nil {
@@ -1547,14 +1548,14 @@ func startJob(action, arg string) (string, error) {
 			return
 		}
 		defer f.Close()
-		fmt.Fprintf(f, "IMDb Tech Manager %s\nJob: %s\nAction: %s\nStarted: %s\n\n", appVersion, st.ID, action, st.StartedAt)
-		err = performActionWithWriter(action, arg, f)
+		fmt.Fprintf(f, localized(st.Language, "IMDb Tech Manager %s\n任务：%s\n操作：%s\n开始：%s\n\n", "IMDb Tech Manager %s\nJob: %s\nAction: %s\nStarted: %s\n\n"), appVersion, st.ID, action, st.StartedAt)
+		err = performActionWithWriterLanguage(action, arg, st.Language, f)
 		code := 0
-		msg := "完成"
+		msg := localized(st.Language, "完成", "Completed")
 		if err != nil {
 			code = 1
 			msg = err.Error()
-			fmt.Fprintf(f, "\nERROR: %v\n", err)
+			fmt.Fprintf(f, localized(st.Language, "\n错误：%v\n", "\nERROR: %v\n"), err)
 		}
 		_ = f.Sync()
 		finishJob(st.ID, action, code, msg)
@@ -1700,6 +1701,11 @@ func performImmediateAction(action, arg string) error {
 }
 
 func performActionWithWriter(action, arg string, w io.Writer) error {
+	return performActionWithWriterLanguage(action, arg, loadSettings().Language, w)
+}
+
+func performActionWithWriterLanguage(action, arg, language string, w io.Writer) error {
+	language = normalizedLanguage(language)
 	switch action {
 	case "install":
 		return platformInstall(w)
@@ -1711,15 +1717,15 @@ func performActionWithWriter(action, arg string, w io.Writer) error {
 		_, err := cleanupLegacyArtifacts(w)
 		return err
 	case "auto":
-		return platformRunEngine("auto", arg, w)
+		return platformRunEngineLanguage("auto", arg, language, w)
 	case "run":
-		return platformRunEngine("run", arg, w)
+		return platformRunEngineLanguage("run", arg, language, w)
 	case "reconcile-index":
-		return platformRunEngine("reconcile-index", arg, w)
+		return platformRunEngineLanguage("reconcile-index", arg, language, w)
 	case "backfill", "reconcile", "refresh", "test-imdb", "diagnose", "repair-web", "rebuild-index", "cache-maintain", "cache-clear", "ai-test", "ai-recover", "ai-scan", "ai-preview", "ai-preview-selected", "ai-preview-write-selected", "local-preview-write-selected", "ai-generate-selected", "ai-approve-selected", "local-generate-selected", "local-approve-selected", "refresh-selected", "ai-migrate", "pipeline-scan", "local-generate", "local-rebuild", "ai-generate", "ai-rebuild", "ai-resume", "ai-resume-task", "ai-retry-failed":
-		return platformRunEngine(action, arg, w)
+		return platformRunEngineLanguage(action, arg, language, w)
 	default:
-		return fmt.Errorf("未知操作：%s", action)
+		return fmt.Errorf("%s: %s", localized(language, "未知操作", "Unknown action"), action)
 	}
 }
 
@@ -1936,6 +1942,16 @@ func writeJSON(w http.ResponseWriter, v interface{}) {
 }
 
 func writeJSONStatus(w http.ResponseWriter, code int, v interface{}) {
+	if fields, ok := v.(map[string]string); ok {
+		copyFields := make(map[string]string, len(fields))
+		for key, value := range fields {
+			if key == "error" || key == "message" {
+				value = localizeBackendText(loadSettings().Language, value)
+			}
+			copyFields[key] = value
+		}
+		v = copyFields
+	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(code)

@@ -56,7 +56,7 @@ engine_source = ENGINE.read_text(encoding="utf-8")
 # Configured startup must return before optional candidate discovery.
 handler = re.search(r"func handleOnboarding\(.*?\n}\n", main, re.S).group(0)
 assert handler.index("platformLibraryRootsConfirmed()") < handler.index("platformDiscoverRootCandidates()")
-assert 'const appVersion = "4.0.2"' in main and "v4.0.2" in web
+assert 'const appVersion = "4.0.4"' in main and "v4.0.4" in web
 assert 'p.add_argument("--discover-root-candidates"' in engine_source
 assert "if a.discover_root_candidates:" in engine_source
 

@@ -8,8 +8,8 @@ engine = (ROOT / "macos/engine/mac-engine.py").read_text(encoding="utf-8")
 web = (ROOT / "macos/web/index.html").read_text(encoding="utf-8")
 
 checks = {
-    "manager version 4.0.2": 'const appVersion = "4.0.2"' in main,
-    "web version 4.0.2": "v4.0.2" in web,
+    "manager version 4.0.4": 'const appVersion = "4.0.4"' in main,
+    "web version 4.0.4": "v4.0.4" in web,
     "onboarding API": '"/api/onboarding"' in main and "handleOnboarding" in main,
     "persistent task history API": '"/api/task-history"' in main and "jobHistoryPath" in main,
     "confirmed library gate": "library_roots_confirmed" in platform and "library_roots_confirmed" in engine,

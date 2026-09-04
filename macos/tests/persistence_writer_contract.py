@@ -240,7 +240,7 @@ checks = {
     "progress patches rows only": "window.__patchRowLib" in web and "if(patched)renderLibrary()" not in web,
     "quit overlay": 'id="quitOverlay"' in web and 'id="quitApp"' in web,
     "preview gated on success": "if(job.exit_code)" in web,
-    "version 4.0.2": 'const appVersion = "4.0.2"' in main_go and "v4.0.2" in web,
+    "version 4.0.4": 'const appVersion = "4.0.4"' in main_go and "v4.0.4" in web,
     "engine prompt rule existing_tags": "existing_tags" in ENGINE.read_text(encoding="utf-8"),
     "prompt migration includes legacy prompt": "DEFAULT_AI_PROMPT_LEGACY_EXISTING_TAGS" in ENGINE.read_text(encoding="utf-8"),
 }

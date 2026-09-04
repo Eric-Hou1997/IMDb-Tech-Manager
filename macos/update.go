@@ -133,7 +133,7 @@ func handleTechUpdate(w http.ResponseWriter, r *http.Request) {
 			writeJSONStatus(w, http.StatusBadGateway, map[string]string{"error": err.Error()})
 			return
 		}
-		writeJSON(w, map[string]interface{}{"ok": true, "message": "新版已验证，应用即将退出并自动替换。"})
+		writeJSON(w, map[string]interface{}{"ok": true, "message": currentLocalized("新版已验证，应用即将退出并自动替换。", "The new version has been verified. The app will now quit and replace itself.")})
 		go func() {
 			time.Sleep(500 * time.Millisecond)
 			platformQuitApp()

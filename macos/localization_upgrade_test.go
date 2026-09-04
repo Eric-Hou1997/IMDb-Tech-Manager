@@ -270,9 +270,22 @@ func TestJobCapturesLanguageAtStart(t *testing.T) {
 	if job.Language != "en-US" || job.MessageCode != "job.running" {
 		t.Fatalf("job did not capture its presentation language: %#v", job)
 	}
-	job = manager.complete(job.ID, job.Action, 0, "完成", "log")
-	if job.Language != "en-US" || job.MessageCode != "job.completed" {
+	if err := saveSettings(Settings{IntervalSeconds: 60, Language: "zh-CN"}); err != nil {
+		t.Fatal(err)
+	}
+	job = manager.complete(job.ID, job.Action, 0, localized(job.Language, "完成", "Completed"), "log")
+	if job.Language != "en-US" || job.MessageCode != "job.completed" || job.Message != "Completed" {
 		t.Fatalf("completed job lost its presentation metadata: %#v", job)
+	}
+}
+
+func TestBackendErrorsFollowCurrentLanguageWithoutChangingIdentifiers(t *testing.T) {
+	message := localizeBackendText("en-US", "该正式发布缺少指定更新包 ITM-v4.0.4-MacOS-AArch64-APP.zip")
+	if strings.Contains(message, "缺少") || !strings.Contains(message, "ITM-v4.0.4-MacOS-AArch64-APP.zip") {
+		t.Fatalf("unexpected localized update error: %q", message)
+	}
+	if got := localizeBackendText("zh-CN", "NFO 路径为空"); got != "NFO 路径为空" {
+		t.Fatalf("Chinese backend text changed: %q", got)
 	}
 }
 

@@ -20,7 +20,7 @@
     // The default store is intentional: IMDb cookies survive helper launches
     // and are shared by this app identity instead of requiring Chrome state.
     configuration.websiteDataStore = WKWebsiteDataStore.defaultDataStore;
-    configuration.applicationNameForUserAgent = @"IMDbTechManagerFetcher/4.0.2";
+    configuration.applicationNameForUserAgent = @"IMDbTechManagerFetcher/4.0.4";
 
     self.webView = [[WKWebView alloc] initWithFrame:NSMakeRect(0, 0, 1280, 2200)
                                       configuration:configuration];
