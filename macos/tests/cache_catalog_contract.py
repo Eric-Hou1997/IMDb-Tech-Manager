@@ -39,7 +39,7 @@ def isolate(module, td, library):
 main = MAIN.read_text(encoding="utf-8")
 resident = RESIDENT.read_text(encoding="utf-8")
 web = WEB.read_text(encoding="utf-8")
-assert 'const appVersion = "4.0.4"' in main and "v4.0.4" in web
+assert 'const appVersion = "4.1.0"' in main and "v4.1.0" in web
 assert '"/api/library/changes"' in main and "handleLibraryChanges" in main
 assert 'case "--library-changes-since"' in resident and 'cmd = "library-changes"' in resident
 assert 'library-changes' in ENGINE.read_text(encoding="utf-8")

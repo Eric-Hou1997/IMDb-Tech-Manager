@@ -6,6 +6,7 @@
 static NSString * const IMDBHandshakePrefix = @"IMDB_TECH_MANAGER_UI_URL=";
 static NSString * const IMDBWindowFrameDefaultsKey = @"IMDBMainWindowFrameV1";
 static NSString * const IMDBLanguageDefaultsKey = @"IMDBLanguageV1";
+static NSString * const IMDBNativeStringsDefaultsPrefix = @"IMDBNativeStringsV1.";
 
 @interface IMDBAppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler>
 @property(nonatomic, strong) NSWindow *window;
@@ -19,22 +20,49 @@ static NSString * const IMDBLanguageDefaultsKey = @"IMDBLanguageV1";
 @property(nonatomic) BOOL loginStartup;
 @property(nonatomic) BOOL windowTransitioningFullScreen;
 @property(nonatomic) BOOL windowEverVisible;
+@property(nonatomic, copy) NSString *languageCode;
+@property(nonatomic, copy) NSDictionary<NSString *, NSString *> *nativeStrings;
 @end
 
 @implementation IMDBAppDelegate
 
-- (BOOL)usesEnglish {
-    return [[NSUserDefaults.standardUserDefaults stringForKey:IMDBLanguageDefaultsKey] isEqualToString:@"en-US"];
+- (NSString *)currentLanguageCode {
+    NSString *language = self.languageCode ?: [NSUserDefaults.standardUserDefaults stringForKey:IMDBLanguageDefaultsKey] ?: @"zh-CN";
+    if ([language isEqualToString:@"zh-TW"] || [language isEqualToString:@"zh-HK"] || [language isEqualToString:@"zh-MO"]) return @"zh-Hant";
+    NSSet *known = [NSSet setWithArray:@[@"zh-CN", @"zh-Hant", @"en-US", @"fr-FR", @"ru-RU", @"ja-JP", @"es-ES", @"th-TH"]];
+    return [known containsObject:language] ? language : @"zh-CN";
+}
+
+- (NSString *)traditionalChinese:(NSString *)value {
+    NSArray *pairs = @[@[@"简体中文",@"簡體中文"],@[@"语言",@"語言"],@[@"设置",@"設定"],@[@"当前",@"目前"],@[@"媒体库",@"媒體庫"],@[@"应用",@"應用程式"],@[@"启动",@"啟動"],@[@"关闭",@"關閉"],@[@"退出",@"結束"],@[@"失败",@"失敗"],@[@"确认",@"確認"],@[@"无法",@"無法"],@[@"返回",@"傳回"],@[@"本地",@"本機"]];
+    NSString *result = value;
+    for (NSArray *pair in pairs) result = [result stringByReplacingOccurrencesOfString:pair[0] withString:pair[1]];
+    return result;
 }
 
 - (NSString *)localizedChinese:(NSString *)chinese english:(NSString *)english {
-    return self.usesEnglish ? english : chinese;
+    NSString *language = self.currentLanguageCode;
+    if ([language isEqualToString:@"zh-CN"]) return chinese;
+    if ([language isEqualToString:@"zh-Hant"]) return [self traditionalChinese:chinese];
+    NSString *external = self.nativeStrings[english];
+    return external.length ? external : english;
+}
+
+- (NSString *)nativeStringsDefaultsKeyForLanguage:(NSString *)language {
+    return [IMDBNativeStringsDefaultsPrefix stringByAppendingString:language ?: @"zh-CN"];
+}
+
+- (NSDictionary<NSString *, NSString *> *)cachedNativeStringsForLanguage:(NSString *)language {
+    NSDictionary *stored = [NSUserDefaults.standardUserDefaults dictionaryForKey:[self nativeStringsDefaultsKeyForLanguage:language]];
+    return [stored isKindOfClass:NSDictionary.class] ? stored : @{};
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     (void)notification;
     self.stdoutBuffer = [NSMutableData data];
     self.loginStartup = [NSProcessInfo.processInfo.arguments containsObject:@"--login-startup"];
+    self.languageCode = self.currentLanguageCode;
+    self.nativeStrings = [self cachedNativeStringsForLanguage:self.languageCode];
     [self installMainMenu];
     [self startCore];
 }
@@ -246,7 +274,7 @@ static NSString * const IMDBLanguageDefaultsKey = @"IMDBLanguageV1";
     WKUserContentController *controller = [[WKUserContentController alloc] init];
     [controller addScriptMessageHandler:self name:@"clipboard"];
     [controller addScriptMessageHandler:self name:@"language"];
-    NSString *bridge = @"window.__imdbNativeCopy=function(value){window.webkit.messageHandlers.clipboard.postMessage(String(value==null?'':value));return Promise.resolve();};window.__imdbNativeSetLanguage=function(value){window.webkit.messageHandlers.language.postMessage(String(value==null?'':value));};";
+    NSString *bridge = @"window.__imdbNativeCopy=function(value){window.webkit.messageHandlers.clipboard.postMessage(String(value==null?'':value));return Promise.resolve();};window.__imdbNativeSetLanguage=function(value,strings){window.webkit.messageHandlers.language.postMessage({language:String(value==null?'':value),strings:strings&&typeof strings==='object'?strings:{}});};";
     [controller addUserScript:[[WKUserScript alloc] initWithSource:bridge
                                                    injectionTime:WKUserScriptInjectionTimeAtDocumentStart
                                                 forMainFrameOnly:NO]];
@@ -254,7 +282,7 @@ static NSString * const IMDBLanguageDefaultsKey = @"IMDBLanguageV1";
     WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
     configuration.websiteDataStore = WKWebsiteDataStore.defaultDataStore;
     configuration.userContentController = controller;
-    configuration.applicationNameForUserAgent = @"IMDbTechManager/4.0.4";
+    configuration.applicationNameForUserAgent = @"IMDbTechManager/4.1.0";
 
     WKWebView *web = [[WKWebView alloc] initWithFrame:NSZeroRect configuration:configuration];
     web.navigationDelegate = self;
@@ -355,8 +383,25 @@ static NSString * const IMDBLanguageDefaultsKey = @"IMDBLanguageV1";
       didReceiveScriptMessage:(WKScriptMessage *)message {
     (void)userContentController;
     if ([message.name isEqualToString:@"language"]) {
-        NSString *language = [message.body description];
-        if (![language isEqualToString:@"en-US"]) language = @"zh-CN";
+        NSDictionary *payload = [message.body isKindOfClass:NSDictionary.class] ? message.body : nil;
+        NSString *language = payload ? [payload[@"language"] description] : [message.body description];
+        NSSet *known = [NSSet setWithArray:@[@"zh-CN", @"zh-Hant", @"en-US", @"fr-FR", @"ru-RU", @"ja-JP", @"es-ES", @"th-TH"]];
+        if (![known containsObject:language]) language = @"zh-CN";
+        NSDictionary *strings = [payload[@"strings"] isKindOfClass:NSDictionary.class] ? payload[@"strings"] : @{};
+        NSSet *allowedPhrases = [NSSet setWithArray:@[@"About IMDb Tech Manager", @"Quit IMDb Tech Manager", @"IMDb Tech Manager Could Not Start", @"Quit", @"OK", @"Confirm", @"Cancel"]];
+        NSMutableDictionary *safeStrings = [NSMutableDictionary dictionary];
+        [strings enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL *stop) {
+            (void)stop;
+            if ([key isKindOfClass:NSString.class] && [value isKindOfClass:NSString.class] && [allowedPhrases containsObject:key] && [value length] <= 500) safeStrings[key] = value;
+        }];
+        self.languageCode = language;
+        BOOL external = ![language isEqualToString:@"zh-CN"] && ![language isEqualToString:@"zh-Hant"] && ![language isEqualToString:@"en-US"];
+        if (safeStrings.count) {
+            self.nativeStrings = safeStrings;
+            if (external) [NSUserDefaults.standardUserDefaults setObject:safeStrings forKey:[self nativeStringsDefaultsKeyForLanguage:language]];
+        } else {
+            self.nativeStrings = external ? [self cachedNativeStringsForLanguage:language] : @{};
+        }
         [NSUserDefaults.standardUserDefaults setObject:language forKey:IMDBLanguageDefaultsKey];
         [self installMainMenu];
         return;

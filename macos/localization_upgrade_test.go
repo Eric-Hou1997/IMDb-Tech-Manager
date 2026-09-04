@@ -37,15 +37,24 @@ func readJSONObjectForTest(t *testing.T, path string) map[string]interface{} {
 }
 
 func TestLanguageRegistryAndFallbackAreStable(t *testing.T) {
-	if normalizedLanguage("en-US") != "en-US" || normalizedLanguage("zh-CN") != "zh-CN" {
+	if normalizedLanguage("en-US") != "en-US" || normalizedLanguage("zh-CN") != "zh-CN" || normalizedLanguage("zh-Hant") != "zh-Hant" {
 		t.Fatal("registered languages were not preserved")
 	}
+	if normalizedLanguage("zh-TW") != "zh-Hant" || normalizedLanguage("zh-HK") != "zh-Hant" {
+		t.Fatal("legacy Traditional Chinese aliases were not normalized")
+	}
 	if normalizedLanguage("fr-FR") != defaultLanguage || normalizedLanguage("") != defaultLanguage {
-		t.Fatal("unknown languages must fall back to Simplified Chinese")
+		t.Fatal("uninstalled and unknown languages must fall back to Simplified Chinese")
+	}
+	if configuredLanguage("fr-FR") != "fr-FR" || configuredLanguage("ko-KR") != defaultLanguage {
+		t.Fatal("a registered downloaded-language preference must survive an app upgrade while unknown values fail closed")
 	}
 	options := supportedLanguages()
-	if len(options) != 2 || options[0].Code != "zh-CN" || options[1].Code != "en-US" {
+	if len(options) != 8 || options[0].Code != "zh-CN" || options[1].Code != "zh-Hant" || options[2].Code != "en-US" || options[3].Code != "fr-FR" {
 		t.Fatalf("unexpected language registry: %#v", options)
+	}
+	if !options[0].BuiltIn || !options[0].Installed || options[0].Flag != "cn" || options[3].Downloadable != languageCatalogActive() || options[3].Installed {
+		t.Fatalf("language availability metadata is wrong: %#v", options)
 	}
 	options[0].Code = "changed"
 	if supportedLanguages()[0].Code != "zh-CN" {
@@ -120,6 +129,29 @@ func TestManagerLanguageWinsAndPreservesEngineConfig(t *testing.T) {
 	settings := readJSONObjectForTest(t, settingsPath())
 	if settings["future_setting"] != float64(9) {
 		t.Fatalf("unknown Manager setting was discarded: %#v", settings)
+	}
+}
+
+func TestDownloadedLanguagePreferenceSurvivesCatalogUpgradeBeforePackRestore(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	languagePackRootOverride = t.TempDir()
+	t.Cleanup(func() { languagePackRootOverride = "" })
+	writeTestFile(t, settingsPath(), []byte(`{"interval_seconds":60,"language":"fr-FR","future_setting":9}`), 0644)
+	writeTestFile(t, macConfigPath(), []byte(`{"output_language":"en-US","future_engine":9}`), 0600)
+
+	if err := migrateLanguagePreference(); err != nil {
+		t.Fatal(err)
+	}
+	settings := readJSONObjectForTest(t, settingsPath())
+	if settings["language"] != "fr-FR" || settings["future_setting"] == nil {
+		t.Fatalf("downloaded-language preference was lost before automatic pack restore: %#v", settings)
+	}
+	engine := readJSONObjectForTest(t, macConfigPath())
+	if engine["output_language"] != "en-US" || engine["future_engine"] == nil {
+		t.Fatalf("external UI language changed model/review behavior: %#v", engine)
+	}
+	if status := currentLanguageSyncStatus(); status.Language != "fr-FR" || status.Source != "manager-settings" {
+		t.Fatalf("unexpected language sync state: %#v", status)
 	}
 }
 

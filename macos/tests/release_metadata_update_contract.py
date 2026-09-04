@@ -11,13 +11,13 @@ update = (ROOT / "update.go").read_text(encoding="utf-8")
 
 checks = {
     "formal version is synchronized": (
-        'const appVersion = "4.0.4"' in main
-        and 'content="v4.0.4"' in web
-        and "<key>CFBundleVersion</key><string>4.0.4</string>" in info
-        and "<key>CFBundleShortVersionString</key><string>4.0.4</string>" in info
+        'const appVersion = "4.1.0"' in main
+        and 'content="v4.1.0"' in web
+        and "<key>CFBundleVersion</key><string>4.1.0</string>" in info
+        and "<key>CFBundleShortVersionString</key><string>4.1.0</string>" in info
     ),
     "about metadata has a real release date": (
-        "v4.0.4　2026-09-04 发布　macOS · Apple Silicon" in web
+        "v4.1.0　2026-09-05 发布　macOS · Apple Silicon" in web
         and "正式发布时写入日期" not in web
     ),
     "every settings open starts an update check": (
@@ -39,6 +39,23 @@ checks = {
         and "if(techUpdateCheckInFlight)return" in web
         and "techUpdateCheckInFlight=false" in web
     ),
+    "update checks reuse a durable snapshot and classify blocked requests": all(
+        value in update for value in [
+            '"update-state.json"',
+            '"If-None-Match"',
+            '"github-primary-rate-limit"',
+            '"github-secondary-rate-limit"',
+            '"proxy-forbidden"',
+            '"github-forbidden"',
+            "discoverTechReleaseViaPage",
+            "techUpdates.snapshot(request.UpdateID)",
+        ]
+    ),
+    "install posts only the checked snapshot and can retry download": (
+        "JSON.stringify({update_id:techUpdateID})" in web
+        and "重试下载并安装" in web
+        and "?force=1" in web
+    ),
     "release filenames use the short canonical scheme": all(
         value in build for value in [
             'ARTIFACT_BASE="ITM-v${VERSION}-MacOS-AArch64-APP"',
@@ -46,6 +63,12 @@ checks = {
             'SIG_NAME="$MAC_ZIP_NAME.sig"',
             'SHA_NAME="${ARTIFACT_BASE}-SHA256SUMS.txt"',
         ]
+    ),
+    "new language assets share the release checksum manifest": (
+        "for language_asset in ITM-Language-*-r*.zip" in build
+        and 'set -- "$@" "$language_asset"' in build
+        and '--app-version "v$VERSION" --require-complete' in build
+        and build.index("--changed-only --output") < build.index("shasum -a 256")
     ),
     "OTA selects the exact versioned macOS package": (
         'ITM-v%s.%s.%s-MacOS-AArch64-APP.zip' in update
@@ -60,4 +83,4 @@ for name, ok in checks.items():
     print(("OK  " if ok else "FAIL ") + name)
 if failed:
     raise SystemExit("macOS release metadata/update contract failed: " + ", ".join(failed))
-print("OK IMDb Tech Manager v4.0.4 release metadata and settings update contract")
+print("OK IMDb Tech Manager v4.1.0 release metadata and settings update contract")

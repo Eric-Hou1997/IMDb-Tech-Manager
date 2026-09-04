@@ -1280,7 +1280,7 @@ def _ai_http_request(specs, cfg, with_json_mode=True, with_prompt_cache=False, e
             "anthropic-version": "2023-06-01",
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "IMDb-Tech-Manager/4.0.4",
+            "User-Agent": "IMDb-Tech-Manager/4.1.0",
         }
     else:
         body = _build_openai_request(specs, cfg, with_json_mode, with_prompt_cache, existing)
@@ -1288,7 +1288,7 @@ def _ai_http_request(specs, cfg, with_json_mode=True, with_prompt_cache=False, e
             "Authorization": "Bearer " + ai_api_key(),
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "User-Agent": "IMDb-Tech-Manager/4.0.4",
+            "User-Agent": "IMDb-Tech-Manager/4.1.0",
         }
 
     req = urllib.request.Request(

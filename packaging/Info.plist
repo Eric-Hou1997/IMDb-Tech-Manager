@@ -4,9 +4,9 @@
   <key>CFBundleName</key><string>IMDb Tech Manager</string>
   <key>CFBundleDisplayName</key><string>IMDb Tech Manager</string>
   <key>CFBundleIdentifier</key><string>local.imdb-tech-manager</string>
-  <key>CFBundleVersion</key><string>4.0.4</string>
-  <key>CFBundleShortVersionString</key><string>4.0.4</string>
-  <key>CFBundleGetInfoString</key><string>IMDb Tech Manager 4.0.4</string>
+  <key>CFBundleVersion</key><string>4.1.0</string>
+  <key>CFBundleShortVersionString</key><string>4.1.0</string>
+  <key>CFBundleGetInfoString</key><string>IMDb Tech Manager 4.1.0</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleExecutable</key><string>IMDbTechManagerLauncher</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>

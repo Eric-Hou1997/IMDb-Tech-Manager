@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Guard every current-version surface used by the 4.0.4 source candidate."""
+"""Guard every current-version surface used by the 4.1.0 source candidate."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = "4.0.4"
+VERSION = "4.1.0"
 
 files = {
     "core": ROOT / "macos" / "main.go",
@@ -55,5 +55,5 @@ failed = [name for name, ok in checks.items() if not ok]
 for name, ok in checks.items():
     print(("OK   " if ok else "FAIL ") + name)
 if failed:
-    raise SystemExit("4.0.4 closeout contract failed: " + ", ".join(failed))
-print("OK IMDb Tech Manager v4.0.4 current-version surfaces are synchronized")
+    raise SystemExit("4.1.0 closeout contract failed: " + ", ".join(failed))
+print("OK IMDb Tech Manager v4.1.0 current-version surfaces are synchronized")

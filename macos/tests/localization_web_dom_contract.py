@@ -114,8 +114,13 @@ with tempfile.TemporaryDirectory(prefix="imdb-tech-i18n-") as temp_dir:
     assert 'lang="en-US"' in dom and 'data-i18n-ready="true"' in dom, error_path.read_text(encoding="utf-8")[-2000:]
     assert 'data-i18n-state="ok"' in dom, "language switch lost selection, filters, modal, or unsaved form state"
     assert 'data-i18n-roundtrip="ok"' in dom, "zh-CN/en-US round trip changed state or failed to restore labels"
+    assert 'data-i18n-inspector-statuses="ok"' in dom, "Inspector protocol-derived status values were not fully localized"
+    assert 'data-i18n-protocol-registry="ok"' in dom, "one or more Inspector protocol values lack an English presentation label"
+    assert 'data-badge-typography="ok"' in dom, "status and ownership badges do not share the same readable font weight"
     assert 'data-i18n-locale="ok"' in dom, "English dates or numbers did not use en-US formatting"
-    assert 'data-i18n-semantics="ok"' in dom, "key English labels, menus, language names, or task logs are incorrect"
+    semantic_detail = re.search(r'data-i18n-semantics-detail="([^"]*)"', dom)
+    html_state = re.search(r"<html[^>]*>", dom)
+    assert 'data-i18n-semantics="ok"' in dom, "key English labels, menus, language names, or task logs are incorrect: " + (semantic_detail.group(1) if semantic_detail else (html_state.group(0) if html_state else "unknown"))
     assert 'data-localized-toolbar-responsive="ok"' in dom, "Chinese or English toolbar clipped, jumped rows, or wrapped before measured overflow"
     assert 'data-localized-region-responsive="ok"' in dom, "header or action region ignored its measured localized content width"
     assert 'data-future-locale-responsive="ok"' in dom, "future long Latin/CJK labels did not use the content-driven layout path"

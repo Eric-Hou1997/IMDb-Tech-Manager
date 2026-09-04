@@ -145,6 +145,7 @@ with tempfile.TemporaryDirectory(prefix="imdb-tech-ui-") as temp_dir:
         'data-movie-type-hidden="true"': "movie page hides redundant level filter",
         'data-tv-type-visible="true"': "TV page shows populated level filter",
         'data-tv-tree-hierarchy="ok"': "TV show, season, and episode rows keep distinct visual hierarchy with a usable disclosure control",
+        'data-season-selection="ok"': "season checkboxes select every episode in that season without collapsing the tree",
         'data-scope-selector-absent="true"': "legacy scope selector is absent",
         'data-selection-scope="ok"': "checked rows become the automatic scope",
         'data-current-scope="ok"': "focused NFO is the fallback automatic scope",
@@ -175,6 +176,7 @@ with tempfile.TemporaryDirectory(prefix="imdb-tech-ui-") as temp_dir:
         'data-toolbar-height="ok"': "movie and TV catalog headers keep the same vertical start",
         'data-catalog-control-parity="ok"': "movie and TV share the status-filter width at the same two-row catalog geometry",
         'data-text-selection-policy="ok"': "controls and structural headings cannot be selected while copyable information remains selectable",
+        'data-language-picker="ok"': "static preview renders every language option, the current flag, and one custom chevron",
         'data-layout-restore="ok"': "persisted split, task center, and per-space table preferences restore before first paint",
         "静态预览 · 未连接本地服务": "file preview reports missing backend",
     }
@@ -226,4 +228,4 @@ with tempfile.TemporaryDirectory(prefix="imdb-tech-ui-") as temp_dir:
     assert 'data-ui-ready="true"' in fallback_dom, corrupt_errors.read_text(encoding="utf-8")[-2000:]
     assert 'data-layout-fallback="ok"' in fallback_dom, "corrupt persisted layout did not fall back safely"
 
-print("OK v4.0.4 real DOM startup, persisted layout, fallback, alignment, and interaction contract")
+print("OK v4.1.0 real DOM startup, persisted layout, fallback, alignment, and interaction contract")

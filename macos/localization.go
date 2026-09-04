@@ -16,11 +16,25 @@ type LanguageOption struct {
 	NativeName     string `json:"native_name"`
 	EnglishName    string `json:"english_name"`
 	ReviewLanguage string `json:"review_language"`
+	Flag           string `json:"flag"`
+	BuiltIn        bool   `json:"built_in"`
+	Installed      bool   `json:"installed"`
+	Downloadable   bool   `json:"downloadable"`
+	State          string `json:"state"`
+	Revision       int    `json:"revision,omitempty"`
+	ReleasedWith   string `json:"released_with,omitempty"`
+	Error          string `json:"error,omitempty"`
 }
 
 var languageOptions = []LanguageOption{
-	{Code: "zh-CN", NativeName: "简体中文", EnglishName: "Simplified Chinese", ReviewLanguage: "zh-CN"},
-	{Code: "en-US", NativeName: "English (United States)", EnglishName: "English (United States)", ReviewLanguage: "en-US"},
+	{Code: "zh-CN", NativeName: "简体中文", EnglishName: "Simplified Chinese", ReviewLanguage: "zh-CN", Flag: "cn", BuiltIn: true, Installed: true, State: "built-in"},
+	{Code: "zh-Hant", NativeName: "繁體中文", EnglishName: "Traditional Chinese", ReviewLanguage: "zh-CN", Flag: "cn", BuiltIn: true, Installed: true, State: "built-in"},
+	{Code: "en-US", NativeName: "English (United States)", EnglishName: "English (United States)", ReviewLanguage: "en-US", Flag: "us", BuiltIn: true, Installed: true, State: "built-in"},
+	{Code: "fr-FR", NativeName: "Français", EnglishName: "French", ReviewLanguage: "en-US", Flag: "fr", Downloadable: true, State: "not-installed"},
+	{Code: "ru-RU", NativeName: "Русский", EnglishName: "Russian", ReviewLanguage: "en-US", Flag: "ru", Downloadable: true, State: "not-installed"},
+	{Code: "ja-JP", NativeName: "日本語", EnglishName: "Japanese", ReviewLanguage: "en-US", Flag: "jp", Downloadable: true, State: "not-installed"},
+	{Code: "es-ES", NativeName: "Español", EnglishName: "Spanish", ReviewLanguage: "en-US", Flag: "es", Downloadable: true, State: "not-installed"},
+	{Code: "th-TH", NativeName: "ไทย", EnglishName: "Thai", ReviewLanguage: "en-US", Flag: "th", Downloadable: true, State: "not-installed"},
 }
 
 var languageByCode = func() map[string]LanguageOption {
@@ -35,12 +49,29 @@ var readPlatformOutputLanguage = platformReadOutputLanguage
 var writePlatformOutputLanguage = platformSetOutputLanguage
 
 func supportedLanguage(language string) bool {
-	_, ok := languageByCode[language]
-	return ok
+	option, ok := languageByCode[strings.TrimSpace(language)]
+	return ok && (option.BuiltIn || (languageCatalogActive() && languagePackInstalled(option.Code)))
+}
+
+func normalizedLanguageAlias(language string) string {
+	language = strings.TrimSpace(language)
+	if language == "zh-TW" || language == "zh-HK" || language == "zh-MO" {
+		return "zh-Hant"
+	}
+	return language
 }
 
 func normalizedLanguage(language string) string {
+	language = configuredLanguage(language)
 	if supportedLanguage(language) {
+		return language
+	}
+	return defaultLanguage
+}
+
+func configuredLanguage(language string) string {
+	language = normalizedLanguageAlias(language)
+	if _, ok := languageByCode[language]; ok {
 		return language
 	}
 	return defaultLanguage
@@ -49,11 +80,22 @@ func normalizedLanguage(language string) string {
 func supportedLanguages() []LanguageOption {
 	result := make([]LanguageOption, len(languageOptions))
 	copy(result, languageOptions)
+	decorateLanguageOptions(result)
 	return result
 }
 
 func localized(language, chinese, english string) string {
-	if normalizedLanguage(language) == "en-US" {
+	language = normalizedLanguage(language)
+	if language == "en-US" {
+		return english
+	}
+	if language == "zh-Hant" {
+		return traditionalChinese(chinese)
+	}
+	if value, ok := languagePackMessage(language, "core", stableMessageID(english)); ok {
+		return value
+	}
+	if language != "zh-CN" {
 		return english
 	}
 	return chinese
@@ -64,12 +106,50 @@ func currentLocalized(chinese, english string) string {
 }
 
 var englishBackendPhrases = []struct{ zh, en string }{
+	{"语言包目录记录不完整", "The language-pack catalog entry is incomplete"},
+	{"语言包文件名无效", "The language-pack filename is invalid"},
+	{"该语言不需要下载", "This language does not need to be downloaded"},
+	{"当前版本没有为该语言指定语言包", "This app version does not specify a pack for that language"},
+	{"该语言包尚未随正式版本发布", "This language pack has not been published with a stable release"},
+	{"该语言包正在下载", "This language pack is already downloading"},
+	{"语言包下载失败", "Language-pack download failed"},
+	{"语言包下载重定向次数过多", "Too many language-pack download redirects"},
+	{"语言包下载重定向到非官方主机", "The language-pack download redirected to an unofficial host"},
+	{"语言包过大，已拒绝安装", "The language pack is too large and was rejected"},
+	{"语言包摘要验证失败", "The language-pack checksum verification failed"},
+	{"语言包 ZIP 无效", "The language-pack ZIP is invalid"},
+	{"语言包文件集合无效", "The language-pack file set is invalid"},
+	{"语言包包含不允许的文件", "The language pack contains a disallowed file"},
+	{"语言包内容过大", "The language-pack content is too large"},
+	{"语言包内容读取失败", "The language-pack content could not be read"},
+	{"语言包清单与当前应用目录不匹配", "The language-pack manifest does not match this app catalog"},
+	{"语言包目录无效", "The language-pack catalog is invalid"},
+	{"语言包目录不安全", "The language-pack directory is unsafe"},
+	{"语言包目录不属于当前应用版本", "The language-pack catalog does not belong to this app version"},
+	{"所选语言无效", "The selected language is invalid"},
+	{"所选语言尚未安装或不受当前版本支持", "The selected language is not installed or is unsupported by this app version"},
 	{"版本号必须为 vX.Y.Z", "The version must use the vX.Y.Z format"},
 	{"无法连接 GitHub", "Could not connect to GitHub"},
 	{"GitHub 尚未发布正式版本", "No official GitHub release is available"},
 	{"GitHub 更新检查失败", "GitHub update check failed"},
 	{"GitHub 更新信息无效", "The GitHub update response is invalid"},
 	{"GitHub 最新发布不是可用的正式 vX.Y.Z 版本", "The latest GitHub release is not a valid stable vX.Y.Z release"},
+	{"GitHub 更新重定向次数过多", "Too many GitHub update redirects"},
+	{"GitHub 更新重定向到非官方主机 %s，已拒绝", "The GitHub update redirected to the unofficial host %s and was rejected"},
+	{"GitHub 匿名 API 的出口 IP 额度已用完", "The GitHub anonymous API quota for this public IP has been exhausted"},
+	{"GitHub 触发了次级限流，请按提示时间后再检查", "GitHub applied a secondary rate limit; check again after the indicated time"},
+	{"代理或中间网络拒绝了更新请求", "A proxy or intermediary network rejected the update request"},
+	{"GitHub 拒绝了更新请求，但未标明为额度耗尽", "GitHub rejected the update request without identifying an exhausted quota"},
+	{"GitHub 更新服务暂时不可用", "The GitHub update service is temporarily unavailable"},
+	{"GitHub 更新请求失败（HTTP %d）", "The GitHub update request failed (HTTP %d)"},
+	{"无法连接代理服务器", "Could not connect to the proxy server"},
+	{"正式发布返回了非官方或不匹配的更新地址", "The official release returned an unofficial or mismatched update URL"},
+	{"GitHub 最新发布页面没有返回有效的正式版本", "The GitHub latest-release page did not return a valid stable version"},
+	{"GitHub 返回了无法使用的未修改状态", "GitHub returned an unusable not-modified response"},
+	{"已检查到更新，但无法保存更新状态", "The update was checked, but its state could not be saved"},
+	{"更新信息已失效，请重新检查一次", "The update information has expired; check once more"},
+	{"缓存的更新信息无效，已拒绝安装", "The cached update information is invalid; installation was rejected"},
+	{"更新安装请求无效，请重新检查一次", "The update installation request is invalid; check once more"},
 	{"当前已是最新版本", "The current version is already up to date"},
 	{"该正式发布缺少指定更新包", "The official release is missing the required update archive"},
 	{"该正式发布缺少签名文件", "The official release is missing the signature file"},
@@ -135,11 +215,25 @@ var englishBackendPhrases = []struct{ zh, en string }{
 }
 
 func localizeBackendText(language, value string) string {
-	if normalizedLanguage(language) != "en-US" {
+	language = normalizedLanguage(language)
+	if language == "zh-CN" {
 		return value
 	}
 	for _, phrase := range englishBackendPhrases {
-		value = strings.ReplaceAll(value, phrase.zh, phrase.en)
+		translated := phrase.en
+		if language == "zh-Hant" {
+			translated = traditionalChinese(phrase.zh)
+		} else if language != "en-US" {
+			if packed, ok := languagePackMessage(language, "core", stableMessageID(phrase.en)); ok {
+				translated = packed
+			} else if packed, ok := languagePackMessage(language, "engine", stableMessageID(phrase.en)); ok {
+				translated = packed
+			}
+		}
+		value = strings.ReplaceAll(value, phrase.zh, translated)
+		if language != "en-US" {
+			value = strings.ReplaceAll(value, phrase.en, translated)
+		}
 	}
 	return value
 }
@@ -158,7 +252,7 @@ var languageSyncState = struct {
 }{Status: LanguageSyncStatus{State: "unverified", Language: defaultLanguage}}
 
 func recordLanguageSync(status LanguageSyncStatus) {
-	status.Language = normalizedLanguage(status.Language)
+	status.Language = configuredLanguage(status.Language)
 	languageSyncState.Lock()
 	languageSyncState.Status = status
 	languageSyncState.Unlock()
@@ -196,8 +290,9 @@ func settingsForLanguageMigration() (Settings, bool, error) {
 	if value, ok := raw["language"]; ok {
 		_ = json.Unmarshal(value, &storedLanguage)
 	}
-	configured := supportedLanguage(storedLanguage)
-	set.Language = normalizedLanguage(storedLanguage)
+	storedLanguage = normalizedLanguageAlias(storedLanguage)
+	_, configured := languageByCode[storedLanguage]
+	set.Language = configuredLanguage(storedLanguage)
 	return set, configured, nil
 }
 
@@ -221,8 +316,9 @@ func migrateLanguagePreference() error {
 	case managerConfigured:
 		status.Language = set.Language
 		status.Source = "manager-settings"
-		if !engineConfigured || engineLanguage != set.Language {
-			if err := writePlatformOutputLanguage(set.Language); err != nil {
+		reviewLanguage := languageByCode[set.Language].ReviewLanguage
+		if !engineConfigured || engineLanguage != reviewLanguage {
+			if err := writePlatformOutputLanguage(reviewLanguage); err != nil {
 				status.State, status.Error = "failed", err.Error()
 				recordLanguageSync(status)
 				return err
@@ -266,7 +362,8 @@ func saveLanguagePreference(previous, next Settings, language string) error {
 	if err := saveSettings(next); err != nil {
 		return err
 	}
-	if err := writePlatformOutputLanguage(language); err != nil {
+	reviewLanguage := languageByCode[language].ReviewLanguage
+	if err := writePlatformOutputLanguage(reviewLanguage); err != nil {
 		rollbackErr := saveSettings(previous)
 		if rollbackErr != nil {
 			combined := fmt.Errorf("%v；应用语言回滚失败：%w", err, rollbackErr)

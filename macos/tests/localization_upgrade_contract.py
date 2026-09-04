@@ -50,10 +50,19 @@ for required in (
     assert required in WEB, required
 
 assert 'Space         string `json:"space,omitempty"`' in MAIN
-assert 'MessageCode string `json:"message_code,omitempty"`' in MAIN
-assert 'Language    string `json:"language,omitempty"`' in MAIN
+assert 'MessageCode          string `json:"message_code,omitempty"`' in MAIN
+assert 'Language             string `json:"language,omitempty"`' in MAIN
+assert 'LanguagePackRevision int    `json:"language_pack_revision,omitempty"`' in MAIN
+assert 'LanguageCatalogHash  string `json:"language_catalog_hash,omitempty"`' in MAIN
 assert "root?.space" in WEB and "librarySpace(x)==='movies'" in WEB
 assert "x.kind==='电影'" not in WEB and "x.kind==='电视剧'" not in WEB
 assert "state:'pending'" in WEB and "state:'待扫描'" not in WEB
+assert '{Code: "zh-CN", NativeName: "简体中文", EnglishName: "Simplified Chinese", ReviewLanguage: "zh-CN", Flag: "cn"' in LOCALIZATION
+assert '{Code: "zh-Hant", NativeName: "繁體中文", EnglishName: "Traditional Chinese", ReviewLanguage: "zh-CN", Flag: "cn"' in LOCALIZATION
+assert '{Code: "en-US", NativeName: "English (United States)", EnglishName: "English (United States)", ReviewLanguage: "en-US", Flag: "us"' in LOCALIZATION
+assert "const LANGUAGE_NAMES={" in WEB and "native=option.code===uiLanguage?'':option.native_name" in WEB
+assert "function languageFlag(code)" in WEB and "const star='<path" in WEB
+assert "function languageActionIcon(option)" in WEB and "M12 3v12" in WEB
+assert "🇨🇳" not in WEB and "🇺🇸" not in WEB
 
 print("OK upgrade-safe language registry, legacy issue adapter, and stable library spaces")

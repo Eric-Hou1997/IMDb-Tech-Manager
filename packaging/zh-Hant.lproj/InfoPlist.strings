@@ -1,0 +1,3 @@
+"NSDocumentsFolderUsageDescription" = "僅當媒體資料庫位於「文件」時，用於讀取和編輯對應的 NFO 檔案。";
+"NSNetworkVolumesUsageDescription" = "IMDb Tech Manager 需要讀取和編輯您明確選擇的網路媒體資料庫中的 NFO 檔案。";
+"NSRemovableVolumesUsageDescription" = "IMDb Tech Manager 需要讀取和編輯您明確選擇的外接媒體資料庫中的 NFO 檔案。";

@@ -55,23 +55,27 @@ with tempfile.TemporaryDirectory() as raw:
 
 for required in (
     'name:@"language"', "__imdbNativeSetLanguage", "IMDBLanguageDefaultsKey",
+    "IMDBNativeStringsV1.", "cachedNativeStringsForLanguage",
+    "[allowedPhrases containsObject:key]", "setObject:safeStrings forKey:",
     '@"About IMDb Tech Manager"', '@"Quit IMDb Tech Manager"',
     '@"Confirm"', '@"Cancel"', '@"OK"',
 ):
     assert required in NATIVE, required
 assert "window.__imdbNativeSetLanguage(uiLanguage)" in WEB
+assert "renderLanguageOptions();syncNativeLanguage()" in WEB, "downloaded native strings must refresh the macOS menu after async pack load"
 assert '"--output-language", normalizedLanguage(language)' in PLATFORM
 assert "performActionWithWriterLanguage(action, arg, st.Language, f)" in MAIN
 assert 'req["language"] = normalizedLanguage(language)' in RESIDENT
 assert 'data-fixed-language="true"' in WEB
 assert "job.language||'zh-CN'" in WEB, "legacy task history must be explicitly treated as Chinese"
+assert "taskLanguageDisplayName(language)" in WEB and "language_pack_revision" in WEB, "task history must identify the frozen locale and pack revision"
 assert "PRIVACY.en.md" in WEB and "TERMS.en.md" in WEB
 
-for relative in ("packaging/zh-Hans.lproj/InfoPlist.strings", "packaging/en.lproj/InfoPlist.strings"):
+for relative in ("packaging/zh-Hans.lproj/InfoPlist.strings", "packaging/zh-Hant.lproj/InfoPlist.strings", "packaging/en.lproj/InfoPlist.strings"):
     text = (REPO / relative).read_text(encoding="utf-8")
     for key in ("NSDocumentsFolderUsageDescription", "NSNetworkVolumesUsageDescription", "NSRemovableVolumesUsageDescription"):
         assert key in text, (relative, key)
-assert 'cp -R "$ROOT/packaging/zh-Hans.lproj" "$ROOT/packaging/en.lproj"' in BUILD
+assert 'cp -R "$ROOT/packaging/zh-Hans.lproj" "$ROOT/packaging/zh-Hant.lproj" "$ROOT/packaging/en.lproj"' in BUILD
 assert (REPO / "PRIVACY.en.md").is_file() and (REPO / "TERMS.en.md").is_file()
 assert "--- English ---" in (REPO / "packaging/README.txt").read_text(encoding="utf-8")
 assert "--- English ---" in (REPO / "packaging/CHANGELOG.txt").read_text(encoding="utf-8")

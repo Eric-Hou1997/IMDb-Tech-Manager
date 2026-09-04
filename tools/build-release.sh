@@ -5,7 +5,7 @@ set -eu
 # stable so Finder can replace the prior installation without manual renaming.
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 OUT="$ROOT/releases"
-VERSION="4.0.4"
+VERSION="4.1.0"
 ARTIFACT_BASE="ITM-v${VERSION}-MacOS-AArch64-APP"
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/imdb-tech-manager-${VERSION}.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT HUP INT TERM
@@ -26,6 +26,7 @@ for target in "$OUT/$MAC_ZIP_NAME" "$OUT/$SIG_NAME" "$OUT/$SHA_NAME" "$OUT/$READ
 done
 
 sh "$ROOT/tools/test-source.sh"
+python3 "$ROOT/tools/build-language-packs.py" --app-version "v$VERSION" --require-complete
 
 MAC_APP="$TMP/$MAC_APP_NAME"
 mkdir -p "$OUT" "$MAC_APP/Contents/MacOS" "$MAC_APP/Contents/Resources"
@@ -37,7 +38,7 @@ mkdir -p "$OUT" "$MAC_APP/Contents/MacOS" "$MAC_APP/Contents/Resources"
 clang -arch arm64 -fobjc-arc -fmodules -fmodules-cache-path="$CLANG_CACHE" -mmacosx-version-min=12.0 "$ROOT/macos/native/IMDbTechManagerLauncher.m" -framework Cocoa -framework WebKit -o "$MAC_APP/Contents/MacOS/IMDbTechManagerLauncher"
 clang -arch arm64 -fobjc-arc -fmodules -fmodules-cache-path="$CLANG_CACHE" -mmacosx-version-min=12.0 "$ROOT/macos/native/IMDbWebKitFetcher.m" -framework Cocoa -framework WebKit -o "$MAC_APP/Contents/MacOS/IMDbWebKitFetcher"
 cp "$ROOT/packaging/Info.plist" "$MAC_APP/Contents/Info.plist"
-cp -R "$ROOT/packaging/zh-Hans.lproj" "$ROOT/packaging/en.lproj" "$MAC_APP/Contents/Resources/"
+cp -R "$ROOT/packaging/zh-Hans.lproj" "$ROOT/packaging/zh-Hant.lproj" "$ROOT/packaging/en.lproj" "$MAC_APP/Contents/Resources/"
 cp "$ROOT/macos/assets/AppIcon.icns" "$MAC_APP/Contents/Resources/AppIcon.icns"
 chmod 755 "$MAC_APP/Contents/MacOS/IMDbTechManagerLauncher" "$MAC_APP/Contents/MacOS/IMDbTechManagerCore" "$MAC_APP/Contents/MacOS/IMDbWebKitFetcher"
 
@@ -51,9 +52,15 @@ if [ -z "${IMDB_TECH_UPDATE_PRIVATE_KEY:-}" ]; then
   exit 4
 fi
 IMDB_TECH_UPDATE_PRIVATE_KEY="$IMDB_TECH_UPDATE_PRIVATE_KEY" sh "$ROOT/packaging/sign-update.sh" "$OUT/$MAC_ZIP_NAME"
+python3 "$ROOT/tools/build-language-packs.py" --app-version "v$VERSION" --changed-only --output "$OUT"
 (
   cd "$OUT"
-  shasum -a 256 "$MAC_ZIP_NAME" "$SIG_NAME" > "$SHA_NAME"
+  set -- "$MAC_ZIP_NAME" "$SIG_NAME"
+  for language_asset in ITM-Language-*-r*.zip; do
+    [ -f "$language_asset" ] || continue
+    set -- "$@" "$language_asset"
+  done
+  shasum -a 256 "$@" > "$SHA_NAME"
   shasum -a 256 -c "$SHA_NAME"
 )
 cp "$ROOT/packaging/README.txt" "$OUT/$README_NAME"

@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const appVersion = "4.0.4"
+const appVersion = "4.1.0"
 
 const (
 	uiLayoutSchema        = 1
@@ -130,7 +130,7 @@ func knownStockAIPrompt(prompt string) bool {
 	return prompt == strings.TrimSpace(previous) // Go legacy / legacy stock prompt
 }
 
-//go:embed web/index.html engine/mac-engine.py assets/ITM_logo_letter_only.png assets/ITM_logo_tiny.png
+//go:embed web/index.html engine/mac-engine.py assets/ITM_logo_letter_only.png assets/ITM_logo_tiny.png language_catalog.json
 var assets embed.FS
 
 type Settings struct {
@@ -212,16 +212,18 @@ type RootCandidate struct {
 }
 
 type JobState struct {
-	ID          string `json:"job_id,omitempty"`
-	Running     bool   `json:"running"`
-	Action      string `json:"action,omitempty"`
-	StartedAt   string `json:"started_at,omitempty"`
-	EndedAt     string `json:"ended_at,omitempty"`
-	ExitCode    int    `json:"exit_code,omitempty"`
-	Message     string `json:"message,omitempty"`
-	MessageCode string `json:"message_code,omitempty"`
-	Language    string `json:"language,omitempty"`
-	Log         string `json:"log,omitempty"`
+	ID                   string `json:"job_id,omitempty"`
+	Running              bool   `json:"running"`
+	Action               string `json:"action,omitempty"`
+	StartedAt            string `json:"started_at,omitempty"`
+	EndedAt              string `json:"ended_at,omitempty"`
+	ExitCode             int    `json:"exit_code,omitempty"`
+	Message              string `json:"message,omitempty"`
+	MessageCode          string `json:"message_code,omitempty"`
+	Language             string `json:"language,omitempty"`
+	LanguagePackRevision int    `json:"language_pack_revision,omitempty"`
+	LanguageCatalogHash  string `json:"language_catalog_hash,omitempty"`
+	Log                  string `json:"log,omitempty"`
 }
 
 type AgentCycleState struct {
@@ -437,19 +439,22 @@ func (m *jobManager) rememberLocked(st JobState) {
 
 func (m *jobManager) begin(action string) (JobState, error) {
 	language := normalizedLanguage(loadSettings().Language)
+	packRevision, catalogHash := languagePackIdentity(language)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.st.Running {
 		return JobState{}, fmt.Errorf("%s: %s", localized(language, "已有任务正在运行", "Another task is already running"), m.st.Action)
 	}
 	st := JobState{
-		ID:          nextJobID(),
-		Running:     true,
-		Action:      action,
-		StartedAt:   time.Now().Format(time.RFC3339Nano),
-		Message:     localized(language, "运行中", "Running"),
-		MessageCode: "job.running",
-		Language:    language,
+		ID:                   nextJobID(),
+		Running:              true,
+		Action:               action,
+		StartedAt:            time.Now().Format(time.RFC3339Nano),
+		Message:              localized(language, "运行中", "Running"),
+		MessageCode:          "job.running",
+		Language:             language,
+		LanguagePackRevision: packRevision,
+		LanguageCatalogHash:  catalogHash,
 	}
 	m.st = st
 	m.rememberLocked(st)
@@ -608,6 +613,7 @@ func runUI(nativeHosted bool) {
 	mux.HandleFunc("/api/task-history", requireToken(handleTaskHistory))
 	mux.HandleFunc("/api/quit", requireToken(handleQuit))
 	mux.HandleFunc("/api/update", requireToken(handleTechUpdate))
+	mux.HandleFunc("/api/languages", requireToken(handleLanguagePacks))
 	mux.HandleFunc("/api/heartbeat", requireToken(func(w http.ResponseWriter, r *http.Request) {
 		lastHeartbeatUnix.Store(time.Now().Unix())
 		writeJSON(w, map[string]bool{"ok": true})
@@ -628,6 +634,7 @@ func runUI(nativeHosted bool) {
 			appendManagerLog("http: " + err.Error())
 		}
 	}()
+	go ensureConfiguredLanguagePack()
 	startConfiguredAutoMode()
 
 	// Background library reconcile once per launch so the catalog catches
@@ -1015,8 +1022,13 @@ func handleSettings(w http.ResponseWriter, r *http.Request) {
 
 	if v, ok := raw["language"]; ok {
 		var language string
-		if err := json.Unmarshal(v, &language); err != nil || !supportedLanguage(language) {
-			writeJSONStatus(w, 400, map[string]string{"error": "语言只能选择简体中文或 English (United States)"})
+		if err := json.Unmarshal(v, &language); err != nil {
+			writeJSONStatus(w, 400, map[string]string{"error": "所选语言无效"})
+			return
+		}
+		language = normalizedLanguageAlias(language)
+		if !supportedLanguage(language) {
+			writeJSONStatus(w, 400, map[string]string{"error": "所选语言尚未安装或不受当前版本支持"})
 			return
 		}
 		set.Language = language
@@ -1761,7 +1773,7 @@ func loadSettings() Settings {
 	if s.IntervalSeconds < 30 {
 		s.IntervalSeconds = 60
 	}
-	s.Language = normalizedLanguage(s.Language)
+	s.Language = configuredLanguage(s.Language)
 	return s
 }
 
@@ -1769,7 +1781,7 @@ func saveSettings(s Settings) error {
 	if s.IntervalSeconds < 30 {
 		s.IntervalSeconds = 60
 	}
-	s.Language = normalizedLanguage(s.Language)
+	s.Language = configuredLanguage(s.Language)
 	root := map[string]json.RawMessage{}
 	if existing, err := os.ReadFile(settingsPath()); err == nil {
 		if err := json.Unmarshal(existing, &root); err != nil || root == nil {
