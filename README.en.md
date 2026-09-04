@@ -2,7 +2,7 @@
 
 # IMDb Tech Manager
 
-[简体中文](./README.md) | **English**
+[简体中文](./README.md) | [繁體中文](./README.zh-Hant.md) | **English** | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
 
 <p align="center">
 
@@ -515,7 +515,7 @@ If Windows or other platforms are supported in the future, they will remain part
 
 Current public release:
 
-**IMDb Tech Manager v4.0.0**
+**IMDb Tech Manager v4.1.0**
 
 The Release provides the Apple Silicon `.app` as a ZIP package together with:
 
@@ -525,6 +525,8 @@ The Release provides the Apple Silicon `.app` as a ZIP package together with:
 * Installation instructions
 
 [**View Releases →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+
+Simplified Chinese, Traditional Chinese, and English (United States) are built in. French, Russian, Japanese, Spanish, and Thai are provided as verified language packs on the matching app Release. See [`docs/language-packs.md`](./docs/language-packs.md) for details.
 
 The project remains under active development, and its features, architecture, test coverage, and platform support will continue to evolve.
 
@@ -544,6 +546,11 @@ The project remains under active development, and its features, architecture, te
 * [x] Publish the first public source release, `v4.0.0`
 * [x] Establish the macOS Apple Silicon Release workflow
 * [x] Add Release integrity verification and OTA signing
+* [x] Release `v4.1.0` with built-in Simplified Chinese, Traditional Chinese, and English (United States)
+* [x] Publish separate French, Russian, Japanese, Spanish, and Thai language packs
+* [x] Share language state across the Web UI, Go Core, Python Engine, and native macOS menus
+* [x] Freeze task log and review language at task start while preserving historical logs, caches, and prompts
+* [x] Distinguish proxy/network, GitHub throttling, missing-asset, download, and signature-verification failures
 
 ### In Progress
 

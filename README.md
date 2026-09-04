@@ -2,7 +2,7 @@
 
 # IMDb Tech Manager
 
-**简体中文** | [English](./README.en.md)
+**简体中文** | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
 
 <p align="center">
 
@@ -516,7 +516,7 @@ Repository 按产品组织，而不是永久按照操作系统划分。
 
 当前公开版本：
 
-**IMDb Tech Manager v4.0.0**
+**IMDb Tech Manager v4.1.0**
 
 Release 已提供 Apple Silicon `.app` 的 ZIP 发布包，并同时提供：
 
@@ -526,6 +526,8 @@ Release 已提供 Apple Silicon `.app` 的 ZIP 发布包，并同时提供：
 * 安装说明
 
 [**查看 Releases →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+
+应用内置简体中文、繁體中文和 English (United States)。法语、俄语、日语、西班牙语与泰语通过对应应用版本的 GitHub Release 语言包提供，下载并验证后加载。详情见 [`docs/language-packs.md`](./docs/language-packs.md)。
 
 项目仍然处于持续开发阶段，功能、架构、测试覆盖和平台支持都会继续迭代。
 
@@ -545,6 +547,11 @@ Release 已提供 Apple Silicon `.app` 的 ZIP 发布包，并同时提供：
 * [x] 发布首个公开源码版本 `v4.0.0`
 * [x] 建立 macOS Apple Silicon 发布流程
 * [x] 加入 Release 完整性校验与 OTA 签名
+* [x] 发布 `v4.1.0`，内置简体中文、繁體中文与 English (United States)
+* [x] 发布法语、俄语、日语、西班牙语和泰语独立语言包
+* [x] 让 Web、Go Core、Python Engine 与 macOS 原生菜单共享语言状态
+* [x] 固定任务启动时的日志与复核语言，并保留旧日志、缓存和提示词
+* [x] 区分代理/网络、GitHub 限流、资产缺失、下载与签名验证错误
 
 ### 持续推进
 
