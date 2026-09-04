@@ -2,12 +2,12 @@
 
 # IMDb Tech Manager
 
-[简体中文](./README.md) | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.ja.md) | **Español** | [ไทย](./README.th.md)
+[简体中文](../../README.md) | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.ja.md) | **Español** | [ไทย](./README.th.md)
 
 [![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 
-<img src="./macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
+<img src="../../macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
 
 Gestión de especificaciones técnicas y metadatos para bibliotecas multimedia.
 
@@ -58,9 +58,9 @@ La Web UI, Go Core, Python Engine y los menús nativos de macOS comparten el idi
 
 ## Interfaz
 
-![Gestión de datos](./docs/images/data-management.png)
+![Gestión de datos](../images/data-management.png)
 
-![Gestión de etiquetas](./docs/images/tag-management.png)
+![Gestión de etiquetas](../images/tag-management.png)
 
 ## Hoja de ruta
 
@@ -70,6 +70,6 @@ En curso: normalización de Technical Specifications, más pruebas con bibliotec
 
 ## Desarrollo y licencia
 
-Lee [`AGENTS.md`](./AGENTS.md) antes de contribuir. El diseño de los paquetes está en [`docs/language-packs.md`](./docs/language-packs.md).
+Lee [`AGENTS.md`](../../AGENTS.md) antes de contribuir. El diseño de los paquetes está en [`docs/language-packs.md`](../language-packs.md).
 
-Proyecto bajo [Apache License 2.0](./LICENSE). IMDb, Emby y las demás marcas pertenecen a sus propietarios. Este proyecto no está afiliado, autorizado ni respaldado por IMDb.com, Inc. o Emby LLC.
+Proyecto bajo [Apache License 2.0](../../LICENSE). IMDb, Emby y las demás marcas pertenecen a sus propietarios. Este proyecto no está afiliado, autorizado ni respaldado por IMDb.com, Inc. o Emby LLC.

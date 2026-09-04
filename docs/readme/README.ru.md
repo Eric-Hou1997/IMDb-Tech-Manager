@@ -2,12 +2,12 @@
 
 # IMDb Tech Manager
 
-[简体中文](./README.md) | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | [Français](./README.fr.md) | **Русский** | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
+[简体中文](../../README.md) | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | [Français](./README.fr.md) | **Русский** | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
 
 [![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 
-<img src="./macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
+<img src="../../macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
 
 Управление техническими характеристиками фильмов и метаданными медиатеки.
 
@@ -58,9 +58,9 @@ Web UI, Go Core, Python Engine и нативные меню macOS использ
 
 ## Интерфейс
 
-![Управление данными](./docs/images/data-management.png)
+![Управление данными](../images/data-management.png)
 
-![Управление тегами](./docs/images/tag-management.png)
+![Управление тегами](../images/tag-management.png)
 
 ## Дорожная карта
 
@@ -70,6 +70,6 @@ Web UI, Go Core, Python Engine и нативные меню macOS использ
 
 ## Разработка и лицензия
 
-Перед разработкой прочитайте [`AGENTS.md`](./AGENTS.md). Архитектура языковых пакетов описана в [`docs/language-packs.md`](./docs/language-packs.md).
+Перед разработкой прочитайте [`AGENTS.md`](../../AGENTS.md). Архитектура языковых пакетов описана в [`docs/language-packs.md`](../language-packs.md).
 
-Проект распространяется по [Apache License 2.0](./LICENSE). IMDb, Emby и другие товарные знаки принадлежат их владельцам. Проект не связан, не авторизован и не одобрен IMDb.com, Inc. или Emby LLC.
+Проект распространяется по [Apache License 2.0](../../LICENSE). IMDb, Emby и другие товарные знаки принадлежат их владельцам. Проект не связан, не авторизован и не одобрен IMDb.com, Inc. или Emby LLC.

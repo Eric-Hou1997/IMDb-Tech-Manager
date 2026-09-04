@@ -2,12 +2,12 @@
 
 # IMDb Tech Manager
 
-[简体中文](./README.md) | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | **Français** | [Русский](./README.ru.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
+[简体中文](../../README.md) | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | **Français** | [Русский](./README.ru.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
 
 [![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 
-<img src="./macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
+<img src="../../macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
 
 Gestion des spécifications techniques et des métadonnées pour les médiathèques.
 
@@ -58,9 +58,9 @@ L’interface Web, le Core Go, le moteur Python et les menus macOS partagent la 
 
 ## Aperçu
 
-![Gestion des données](./docs/images/data-management.png)
+![Gestion des données](../images/data-management.png)
 
-![Gestion des tags](./docs/images/tag-management.png)
+![Gestion des tags](../images/tag-management.png)
 
 ## Feuille de route
 
@@ -70,6 +70,6 @@ En cours : normalisation des Technical Specifications, davantage de tests sur de
 
 ## Développement et licence
 
-Lisez [`AGENTS.md`](./AGENTS.md) avant de contribuer. L’architecture des packs est décrite dans [`docs/language-packs.md`](./docs/language-packs.md).
+Lisez [`AGENTS.md`](../../AGENTS.md) avant de contribuer. L’architecture des packs est décrite dans [`docs/language-packs.md`](../language-packs.md).
 
-Projet sous [Apache License 2.0](./LICENSE). IMDb, Emby et les autres marques appartiennent à leurs propriétaires respectifs. Ce projet n’est ni affilié, ni autorisé, ni approuvé par IMDb.com, Inc. ou Emby LLC.
+Projet sous [Apache License 2.0](../../LICENSE). IMDb, Emby et les autres marques appartiennent à leurs propriétaires respectifs. Ce projet n’est ni affilié, ni autorisé, ni approuvé par IMDb.com, Inc. ou Emby LLC.

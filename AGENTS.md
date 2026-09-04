@@ -66,6 +66,28 @@ These instructions are part of the public repository. Apply them to every change
 - Proactively audit normal, first-run, empty, slow, cancelled, minimized/restored, repeated-click, second-launch, upgrade, rollback, partial-failure, crash-recovery, offline, permission-denied, and exit paths.
 - Add behavioral and state-transition regression coverage for every defect and adjacent negative path. Source-string assertions alone are not sufficient proof.
 
+## Localization and upgrade compatibility
+
+- Keep Simplified Chinese (`zh-CN`), Traditional Chinese (`zh-Hant`), and English (`en-US`) built into the application. French, Russian, Japanese, Spanish, and Thai are external presentation-only language packs unless the maintainer changes the supported-language registry.
+- Ship external packs as assets of an application GitHub Release, not from a separate language repository. The application catalog must bind each app version to one exact descriptor for each locale. An unchanged pack may keep its earlier `released_with` asset; a changed pack is published with the current app release. Do not add a separate language-pack update workflow or probe releases one by one at runtime.
+- A language pack may translate only user-visible presentation text. It must not change Technical Specs keys, Tag or Ownership values, JSON/API schemas, NFO structure, cache keys, task protocols, or other machine-readable identifiers. Validate coverage, protected tokens, target scripts, and catalog/hash alignment before release.
+- Preserve existing user data across localization upgrades. Never rewrite caches, indexes, NFO files, ownership manifests, backups, custom prompts, or old log bytes merely because the locale system changed. Capture the effective locale when a task starts so all new logs, progress, errors, summaries, Inspector findings, dry-run warnings, and AI review explanations from that task use one language even if the UI language changes while it runs.
+- Keep the default system prompt's actual content in Chinese to preserve established AI cache and model behavior. Never translate or rewrite a user-customized prompt. Treat any future default-prompt translation as a separate model-behavior change.
+- Keep the Web UI and native macOS menu language synchronized. Native menus, launch-failure dialogs, confirmation/cancel buttons, permission descriptions, privacy/terms/About links, ARIA labels, empty states, and user-visible backend/engine/update errors belong to the same locale contract.
+- Localize Inspector presentation labels and values such as XML validity and Manifest/Sidecar state in every supported UI language, while preserving their underlying protocol fields and structured values unchanged.
+- The language picker uses fixed rectangular flag assets, never emoji; both Chinese variants use the People's Republic of China flag. It has no table header. Each row shows the language name in the current UI language on the left and its native name on the right, except that the active language is not duplicated. Uninstalled packs use a universally recognizable download icon rather than a text-only Download label.
+- Preserve hierarchy semantics in the TV table: expander, status indicator, checkbox, and title indent together; each season has a checkbox that selects or clears every episode in that season. Keep status badges, including AI-complete and generated-tag badges, at one readable font weight and visual style.
+- Keep update failures structurally distinct and locally actionable: offline/DNS/proxy failures, primary rate limiting, secondary throttling, unexplained HTTP 403 responses, missing or mismatched assets, download failures, and signature verification failures must not collapse into one generic error.
+
+## README stewardship and release documentation
+
+- Codex owns ongoing README maintenance and cross-language synchronization for this repository. Keep the authoritative default Simplified Chinese `README.md` at the repository root and keep every other localized README together under `docs/readme/`; do not scatter localized variants through the root.
+- Every README variant must start with the same language selector. The selector and localized README inventory must match the application's supported-language registry. Adding, removing, or renaming an app locale requires the corresponding README and selector change in every variant.
+- Before every formal release, audit the current source, packaging recipes, actual release asset names, supported platforms/locales, screenshots, installation and update behavior, security and compatibility notes, known limitations, and roadmap against every README. Remove or revise stale claims before publishing.
+- At release time, inspect changes to the root and all localized READMEs since the preceding release. A maintainer's manual edit to any language version is intentional source material: preserve it, determine its semantic effect, and propagate that effect to every other language rather than overwriting it from a presumed master copy. Locale-specific wording may differ, but product facts, links, version scope, and roadmap state must stay aligned.
+- Validate all README language-selector, image, document, license, and release links after moving or editing documentation. Publish release notes in both Chinese and English.
+- Update Core, Web, native User-Agent, Info.plist, build scripts, tests, release documents, and README version claims only during final release closeout, after the feature and regression scope is complete. Do not let unfinished intermediate source claim the target release version.
+
 ## Verification and release boundary
 
 - Keep Python 3.8-3.11 compatibility unless the product requirement explicitly changes.

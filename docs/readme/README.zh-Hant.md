@@ -2,12 +2,12 @@
 
 # IMDb Tech Manager
 
-[簡體中文](./README.md) | **繁體中文** | [English](./README.en.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
+[簡體中文](../../README.md) | **繁體中文** | [English](./README.en.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
 
 [![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 
-<img src="./macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
+<img src="../../macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
 
 影視技術規格與媒體庫中繼資料管理工具。
 
@@ -58,9 +58,9 @@ Web UI、Go Core、Python Engine 與 macOS 原生選單共用語言狀態。任�
 
 ## 介面預覽
 
-![資料管理](./docs/images/data-management.png)
+![資料管理](../images/data-management.png)
 
-![標籤管理](./docs/images/tag-management.png)
+![標籤管理](../images/tag-management.png)
 
 ## Roadmap
 
@@ -70,6 +70,6 @@ Web UI、Go Core、Python Engine 與 macOS 原生選單共用語言狀態。任�
 
 ## 開發與授權
 
-開發前請閱讀 [`AGENTS.md`](./AGENTS.md)。語言包設計見 [`docs/language-packs.md`](./docs/language-packs.md)。
+開發前請閱讀 [`AGENTS.md`](../../AGENTS.md)。語言包設計見 [`docs/language-packs.md`](../language-packs.md)。
 
-本專案採用 [Apache License 2.0](./LICENSE)。IMDb、Emby 及其他商標歸各自權利人所有；本專案與 IMDb.com, Inc. 或 Emby LLC 無從屬、授權或背書關係。
+本專案採用 [Apache License 2.0](../../LICENSE)。IMDb、Emby 及其他商標歸各自權利人所有；本專案與 IMDb.com, Inc. 或 Emby LLC 無從屬、授權或背書關係。

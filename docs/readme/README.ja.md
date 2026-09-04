@@ -2,12 +2,12 @@
 
 # IMDb Tech Manager
 
-[简体中文](./README.md) | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | **日本語** | [Español](./README.es.md) | [ไทย](./README.th.md)
+[简体中文](../../README.md) | [繁體中文](./README.zh-Hant.md) | [English](./README.en.md) | [Français](./README.fr.md) | [Русский](./README.ru.md) | **日本語** | [Español](./README.es.md) | [ไทย](./README.th.md)
 
 [![Release](https://img.shields.io/github/v/release/Eric-Hou1997/IMDb-Tech-Manager?label=release)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 [![Downloads](https://img.shields.io/github/downloads/Eric-Hou1997/IMDb-Tech-Manager/total?label=downloads)](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 
-<img src="./macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
+<img src="../../macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
 
 映像作品の技術仕様とメディアライブラリのメタデータを管理するツールです。
 
@@ -58,9 +58,9 @@ Web UI、Go Core、Python Engine、macOS ネイティブメニューは同じ言
 
 ## 画面
 
-![データ管理](./docs/images/data-management.png)
+![データ管理](../images/data-management.png)
 
-![タグ管理](./docs/images/tag-management.png)
+![タグ管理](../images/tag-management.png)
 
 ## ロードマップ
 
@@ -70,6 +70,6 @@ Web UI、Go Core、Python Engine、macOS ネイティブメニューは同じ言
 
 ## 開発とライセンス
 
-開発前に [`AGENTS.md`](./AGENTS.md) を確認してください。言語パックの設計は [`docs/language-packs.md`](./docs/language-packs.md) にあります。
+開発前に [`AGENTS.md`](../../AGENTS.md) を確認してください。言語パックの設計は [`docs/language-packs.md`](../language-packs.md) にあります。
 
-本プロジェクトは [Apache License 2.0](./LICENSE) で公開されています。IMDb、Emby などの商標は各所有者に帰属します。本プロジェクトは IMDb.com, Inc. または Emby LLC と提携、承認、推奨の関係にはありません。
+本プロジェクトは [Apache License 2.0](../../LICENSE) で公開されています。IMDb、Emby などの商標は各所有者に帰属します。本プロジェクトは IMDb.com, Inc. または Emby LLC と提携、承認、推奨の関係にはありません。

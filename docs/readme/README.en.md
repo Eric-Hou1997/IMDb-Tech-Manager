@@ -2,7 +2,7 @@
 
 # IMDb Tech Manager
 
-[简体中文](./README.md) | [繁體中文](./README.zh-Hant.md) | **English** | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
+[简体中文](../../README.md) | [繁體中文](./README.zh-Hant.md) | **English** | [Français](./README.fr.md) | [Русский](./README.ru.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [ไทย](./README.th.md)
 
 <p align="center">
 
@@ -13,7 +13,7 @@
 
 </p>
 
-<img src="./macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
+<img src="../../macos/assets/ITM_logo.png" alt="IMDb Tech Manager" width="220">
 
 Technical specifications and metadata management for film & media libraries.
 
@@ -25,7 +25,7 @@ Technical specifications and metadata management for film & media libraries.
 
 </p>
 
-<img src="./docs/images/poster.jpg" alt="IMDb Tech Manager Poster" width="700">
+<img src="../images/poster.jpg" alt="IMDb Tech Manager Poster" width="700">
 
 </div>
 
@@ -60,7 +60,7 @@ IMDb Tech Manager aims to bring this information into the personal media-library
 
 <div align="center">
 
-<img src="./docs/images/data-management.png" alt="IMDb Tech Manager Data Management" width="700">
+<img src="../images/data-management.png" alt="IMDb Tech Manager Data Management" width="700">
 
 </div>
 
@@ -72,7 +72,7 @@ The NFO data management interface is used for IMDb Technical Specifications acqu
 
 <div align="center">
 
-<img src="./docs/images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="700">
+<img src="../images/tag-management.png" alt="IMDb Tech Manager Tag Management" width="700">
 
 </div>
 
@@ -84,7 +84,7 @@ Tag management is used to inspect, preview, and modify technical metadata in the
 
 <div align="center">
 
-<img src="./docs/images/ai-runtime-management.png" alt="IMDb Tech Manager AI Runtime Management" width="700">
+<img src="../images/ai-runtime-management.png" alt="IMDb Tech Manager AI Runtime Management" width="700">
 
 </div>
 
@@ -96,7 +96,7 @@ The AI Runtime management interface is used to configure model endpoints, API Ba
 
 <div align="center">
 
-<img src="./docs/images/media-library-card.png" alt="IMDb Tech Manager Media Library Technical Specifications" width="900">
+<img src="../images/media-library-card.png" alt="IMDb Tech Manager Media Library Technical Specifications" width="900">
 
 </div>
 
@@ -402,7 +402,7 @@ The project aims to avoid reducing complex background work to a simple "success"
 
 The public IMDb Tech Manager repository includes:
 
-[**`AGENTS.md` →**](./AGENTS.md)
+[**`AGENTS.md` →**](../../AGENTS.md)
 
 It serves as an important context entry point for Coding Agents such as Codex when understanding and modifying the project.
 
@@ -526,7 +526,7 @@ The Release provides the Apple Silicon `.app` as a ZIP package together with:
 
 [**View Releases →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
 
-Simplified Chinese, Traditional Chinese, and English (United States) are built in. French, Russian, Japanese, Spanish, and Thai are provided as verified language packs on the matching app Release. See [`docs/language-packs.md`](./docs/language-packs.md) for details.
+Simplified Chinese, Traditional Chinese, and English (United States) are built in. French, Russian, Japanese, Spanish, and Thai are provided as verified language packs on the matching app Release. See [`docs/language-packs.md`](../language-packs.md) for details.
 
 The project remains under active development, and its features, architecture, test coverage, and platform support will continue to evolve.
 
@@ -623,7 +623,7 @@ IMDb Tech Manager is open source. Forks, research, modifications, and Pull Reque
 
 Before modifying the code, please read:
 
-[**`AGENTS.md` →**](./AGENTS.md)
+[**`AGENTS.md` →**](../../AGENTS.md)
 
 It documents important architecture rules, data-safety constraints, testing requirements, and Release boundaries.
 
@@ -663,11 +663,11 @@ IMDb Tech Manager is open source under the **Apache License 2.0**.
 
 See the full license:
 
-[**LICENSE →**](./LICENSE)
+[**LICENSE →**](../../LICENSE)
 
 The Repository also includes:
 
-[**NOTICE →**](./NOTICE)
+[**NOTICE →**](../../NOTICE)
 
 When using, modifying, or distributing the source code, please comply with the Apache License 2.0 and the relevant notices included in the Repository.
 
