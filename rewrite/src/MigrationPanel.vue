@@ -23,6 +23,7 @@ function displayConfig(value:unknown){return JSON.stringify(value,(key,v)=>key==
 <details><summary>文件清单</summary><ul><li v-for="file in plan.files" :key="file.relative">{{ file.relative }} · {{ file.bytes }} B</li></ul></details>
 <ul><li v-for="warning in plan.warnings" :key="warning">{{ warning }}</li></ul>
 <details v-if="plan.cache_entries.length"><summary>IMDb 缓存适配（{{plan.cache_entries.length}}）</summary><ul><li v-for="entry in plan.cache_entries" :key="entry.source">{{entry.source}} · {{entry.state}}<br>{{entry.detail}}</li></ul></details>
+<p v-if="props.product==='ITM'&&plan.files.some(f=>f.category==='ai-cache')">旧 AI 缓存会在生成时按完整输入、配置和语言匹配，并重新校验结果。命中不发送请求；历史用量和费用单独展示。导入文件数量不代表全部缓存都能复用。</p>
 <article v-for="adapter in plan.adapters" :key="adapter.target"><h4>{{adapter.source}} → {{adapter.target==='automatic'?'自动模式设置':adapter.target.startsWith('inspector:')?'问题确认与手动状态':'AI 设置'}}</h4><p>{{adapter.before_hash?'将替换当前配置；确认后生效。':'将导入为新的配置。'}}</p><pre>{{displayConfig(adapter.value)}}</pre><ul><li v-for="warning in adapter.warnings" :key="warning">{{warning}}</li></ul></article>
 <button :disabled="busy" @click="apply">确认导入这份快照和所列配置</button><button :disabled="busy" @click="plan=null">取消</button>
 </article>

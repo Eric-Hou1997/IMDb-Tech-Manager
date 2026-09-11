@@ -46,13 +46,14 @@ async function prepare(){const current=record.value;if(!current)return;await run
    <p v-if="record.engine==='local-rules'">AI 失败后按设置回退为规则候选，原请求费用及错误保留。</p>
    <p>本次实际尝试 {{ record.meter.attempts }} 次 · 输入 {{ record.meter.current.input }} / 输出 {{ record.meter.current.output }} tokens · 费用 {{ record.cost.toFixed(6) }}</p>
    <p v-if="record.cached">缓存来源历史 usage：{{ record.meter.historical_cache.total }} tokens · 历史费用 {{ record.historical_cost.toFixed(6) }}；不计入本次费用。</p>
+   <details v-if="record.legacy_cache"><summary>旧版缓存 · {{ record.legacy_cache.created_at }} · {{ record.legacy_cache.model }}</summary><p>{{ record.legacy_cache.source }} · 导入 {{ record.legacy_cache.import_id }}</p><pre>{{ JSON.stringify(record.legacy_cache.raw_usage,null,2) }}</pre></details>
    <pre v-if="record.error" role="alert">{{ record.error.code }}：{{ record.error.message }}</pre><p v-if="record.phase==='interrupted'||record.phase==='cancelled'">已发出的请求可能已被 Provider 计费；没有收到 usage 的部分无法估算，也不会自动重复发送。</p>
    <details v-for="attempt in record.attempts" :key="attempt.sequence"><summary>请求 {{ attempt.sequence }} · {{ attempt.phase }} · {{ attempt.error?.code||attempt.http_status||'等待响应' }}</summary><pre>{{ JSON.stringify(attempt.request,null,2) }}</pre><pre>{{ JSON.stringify(attempt.raw_usage,null,2) }}</pre></details>
    <pre v-if="record.result">{{ JSON.stringify(record.result,null,2) }}</pre>
    <div class="actions"><button v-if="record.phase==='review-ready'" :disabled="busy||blocked" @click="prepare">检查 AI 结果并预览写入</button><button :disabled="busy||blocked||!configured||!settings?.enabled" @click="generate(true)">强制重建 AI 候选</button><button v-if="record.error" :disabled="busy||blocked||!configured||!settings?.enabled" @click="generate(false,true)">明确重试失败项</button></div>
   </section>
   <details v-if="history.length"><summary>当前文件 AI 历史（{{ history.length }}）</summary><button v-for="row in history" :key="row.request.operation_id" :disabled="busy" @click="record=row">{{ row.started_at }} · {{ row.phase }}</button></details>
-  <p v-if="busy" role="status">正在处理标签请求…</p><pre v-if="error" role="alert">{{ error }}</pre>
+  <p v-if="busy" role="status">正在处理标签请求…</p><pre v-if="error" role="alert">{{ error }}</pre><button v-if="error.startsWith('legacy-ai-cache-invalid')" :disabled="busy||blocked||!configured||!settings?.enabled" @click="generate(true)">跳过损坏缓存并重新请求 AI</button>
  </section>
 </template>
 <style scoped>

@@ -71,3 +71,17 @@ for value in rule_cases:
     specs = {"Camera": [value], "Sound mix": ["DTS (DTS:X)", "Dolby Atmos (theatrical)"], "Aspect ratio": ["2.39 : 1 (theatrical)"], "Negative Format": ["35 mm"]}
     assert rust({"mode": "rules", "specs": specs}) == legacy.local_tag_entries(specs), value
     print("PASS local rules, provenance and order:", value)
+
+# Cache identity must match the actual old encoder, not just equivalent JSON.
+# In particular 0.0 != 0 and extra_body is an exact string in the Python hash.
+for protocol in ("openai", "anthropic"):
+    for temperature in (0.0, -0.0, 1.0, 0.7, 0.0001, 0.00001, 1e-7, 1.234567890123456e-12):
+        extra = '{ "stream": false, "nested": {"中文": [1, 2]} }'
+        cfg = {"protocol": protocol, "provider": "qwen", "base_url": "https://provider.example/v1", "model": "qwen-plus", "prompt": "  自定义提示词\n保留内容  ", "output_language": "zh-CN", "temperature": temperature, "top_p": 1.0, "max_tokens": 2000, "thinking_mode": "off", "prompt_cache_mode": "auto", "json_mode": True, "extra_body": json.loads(extra)}
+        old_cfg = {**cfg, "api_protocol": protocol, "extra_body": extra, "json_mode": "auto"}
+        specs = {"Camera": ["ARRI 中文"], "Runtime": ["999 min"]}
+        existing = [{"value": "原始标签", "source": "ai"}, {"value": "Rule tag", "source": "rules"}]
+        expected = legacy._ai_cache_key(specs, old_cfg, existing)
+        actual = rust({"mode": "legacy-ai-cache-key", "settings": {"config": cfg, "json_mode": "auto"}, "specs": specs, "existing": existing, "extra_body": extra})
+        assert actual == expected, (protocol, temperature, actual, expected)
+    print("PASS exact legacy AI cache key: protocol, Unicode, floats and raw extra_body:", protocol)

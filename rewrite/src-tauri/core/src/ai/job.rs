@@ -151,6 +151,8 @@ pub struct Record {
     pub fingerprint: String,
     pub phase: String,
     pub cached: bool,
+    #[serde(default)]
+    pub legacy_cache: Option<super::legacy_cache::Origin>,
     pub meter: Meter,
     pub cost: f64,
     pub historical_cost: f64,

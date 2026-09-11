@@ -30,6 +30,13 @@ fn main() {
             &serde_json::from_value(value["specs"].clone()).unwrap(),
         ))
         .unwrap(),
+        "legacy-ai-cache-key" => serde_json::json!(ai::legacy_cache::key(
+            &serde_json::from_value(value["settings"].clone()).unwrap(),
+            &serde_json::from_value(value["specs"].clone()).unwrap(),
+            value["existing"].as_array().unwrap(),
+            value["extra_body"].as_str().unwrap(),
+        )
+        .unwrap()),
         "next-data" => {
             serde_json::to_value(specs::parse_next_data(&value["data"]).unwrap()).unwrap()
         }

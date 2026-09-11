@@ -1,4 +1,5 @@
 mod inspector;
+mod legacy_ai_cache;
 use crate::{contracts::*, hash, library, paths};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::{
@@ -63,6 +64,7 @@ impl Store {
           CREATE INDEX IF NOT EXISTS items_root ON items(root_id);
           CREATE INDEX IF NOT EXISTS items_path ON items(root_id,json_extract(body,'$.path'));
           CREATE TABLE IF NOT EXISTS legacy_artifacts(import_id TEXT NOT NULL, path TEXT NOT NULL, category TEXT NOT NULL, sha256 TEXT NOT NULL, body BLOB NOT NULL, PRIMARY KEY(import_id,path));
+          CREATE INDEX IF NOT EXISTS legacy_artifact_category_path ON legacy_artifacts(category,path);
           CREATE TABLE IF NOT EXISTS preferences(key TEXT PRIMARY KEY, body TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS write_candidates(id TEXT PRIMARY KEY,root_id TEXT NOT NULL,body BLOB NOT NULL);
           CREATE TABLE IF NOT EXISTS imdb_cache(imdb TEXT PRIMARY KEY,parser_version INTEGER NOT NULL,body TEXT NOT NULL);

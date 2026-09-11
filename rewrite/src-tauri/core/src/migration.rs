@@ -310,6 +310,9 @@ pub fn prepare(
         }
     }
     warnings.push("Legacy running/paused jobs are retained as history and require a new preview before execution".into());
+    if files.iter().any(|f| f.category == "ai-cache") {
+        warnings.push("AI cache snapshots are reused only when the complete legacy request identity matches; results are revalidated and historical usage/cost never count as a new HTTP request".into());
+    }
     warnings.push(
         "Old update snapshots and process/lock files are not authorization to update or resume"
             .into(),

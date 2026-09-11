@@ -244,6 +244,7 @@ impl Store {
             fingerprint,
             phase: "requested".into(),
             cached: false,
+            legacy_cache: None,
             meter: Meter::default(),
             cost: 0.0,
             historical_cost: 0.0,
@@ -282,6 +283,9 @@ impl Store {
                     value.finished_at = Some(job::now());
                 }
             }
+        }
+        if !value.request.force && !value.cached {
+            super::legacy_ai_cache::reuse(&tx, &mut value)?;
         }
         if !value.cached && !value.request.retry_failed {
             if let Some(error) = tx
@@ -537,7 +541,13 @@ impl Store {
                 model: if value.engine == "local-rules" {
                     "4.0.0".into()
                 } else {
-                    value.settings.config.model
+                    value
+                        .legacy_cache
+                        .as_ref()
+                        .map(|c| &c.model)
+                        .filter(|m| !m.is_empty())
+                        .cloned()
+                        .unwrap_or(value.settings.config.model)
                 },
                 prompt_hash: if value.engine == "local-rules" {
                     String::new()

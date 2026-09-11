@@ -45,7 +45,7 @@
 - **写入事务在默认关闭的 `write-prototype` feature 内，桌面应用不编译它，也没有媒体写命令。** Windows 目录同步尚未验证时明确拒绝写入。非协作进程在最后 hash 检查与 rename 之间的竞争、目录描述符约束、Windows ACL、真实断电/网络盘恢复仍待处理；因此不能开放生产写入。
 - `ai.rs` 已迁移默认中文提示词、请求约束、OpenAI/Anthropic 请求构建、Qwen thinking/cache 规则、usage 先记账再校验、截断/JSON/schema/鉴权/额度/限流分类，以及改变输出上限和重复失败跳过策略。当前是纯策略模块；没有真实 HTTP、持久化金额账本、完整缓存和任务编排。
 - `rules.rs` 已实现六个派生字段、Camera 顶层分隔/Series 展开/跨品牌镜头拆分/场景注释清理、音轨和比例规则，以及大小写去重与来源索引。它只生成候选，不授权删除或写入任何标签。
-- `/usr/bin/python3 tools/rewrite/differential.py` 直接调用保留的旧 Python 纯函数，与 Rust 的真实 NFO、请求/默认提示词、结构化数据和 Camera/规则边界样例比较。AI 请求中的紧凑用户 JSON 按对象比较；序列化键顺序不同可能改变缓存字节，迁移缓存必须用新命名空间，不能无说明复用旧键。
+- `/usr/bin/python3 tools/rewrite/differential.py` 直接调用保留的旧 Python 纯函数，与 Rust 的真实 NFO、请求/默认提示词、结构化数据和 Camera/规则边界样例比较。AI 请求中的紧凑用户 JSON 按对象比较；新版请求缓存使用独立命名空间。旧缓存通过 `ai/legacy_cache.rs` 的明确兼容适配计算原版完整键，逐字节比较 Python 浮点/Unicode/附加参数序列化，并在复用前重新校验结果；不将新旧键视为天然相同。
 - Generated 手动转 Manual、外部标签显式删除、sidecar 原子次序、旧备份导入/撤销和全部规则写入流程仍未迁移完成。不能据此宣称 ITM 台账全部实现，也不能删除旧 Go/Python 引擎。
 
 - [维护者模拟 NFO 库：101 份样本验收](08-sample-library.md)

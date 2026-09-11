@@ -104,6 +104,29 @@ class WriterBaseline(unittest.TestCase):
         for path in paths.values():
             self.assertEqual([tag.text for tag in ET.fromstring(path.read_bytes()).findall('tag')],['外部标签'])
 
+    def test_ai_cache_reuses_exact_request_with_zero_current_and_separate_historical_cost(self):
+        cfg=eng.ai_config()
+        specs={'Camera':['Camera Model']}
+        tags=[{'value':'Camera Model','field':'Camera','source_indexes':[0],'confidence':'medium'}]
+        key=eng._ai_cache_key(specs,cfg,[])
+        eng.save_json(eng.AI_CACHE/(key+'.json'),{'cache_schema':2,'created_at':'2024-01-02T03:04:05+00:00','model':'resolved-model','prompt_hash':eng.hashlib.sha256(eng._effective_ai_prompt(cfg).encode()).hexdigest()[:16],'spec_hash':eng._specs_hash(specs),'output_language':cfg['output_language'],'usage':{'prompt_tokens':100,'completion_tokens':20,'total_tokens':120},'cost':0.25,'result':{'tags':tags,'warnings':[]}})
+        before=self.nfo.stat().st_mtime_ns
+        with patch.object(eng,'ai_config',return_value=cfg), patch.object(eng,'ai_ready',return_value=(True,'')), patch.object(eng,'_ai_request_with_retry',return_value={'tags':tags,'warnings':[]}) as network:
+            for current in (specs,dict(specs,Runtime=['900 min'])):
+                result=eng.ai_generate_tags(current)
+                self.assertTrue(result['cache_hit'])
+                self.assertEqual(result['usage'],{})
+                self.assertEqual(result['cost'],0.0)
+                self.assertEqual(result['cached_usage']['total_tokens'],120)
+                self.assertEqual(result['cached_cost'],0.25)
+                self.assertTrue(result['review_required'])
+                self.assertEqual(result['model'],'resolved-model')
+            network.assert_not_called()
+            eng.ai_generate_tags(specs,force=True)
+            network.assert_called_once()
+        self.assertEqual(self.nfo.read_bytes(),self.raw)
+        self.assertEqual(self.nfo.stat().st_mtime_ns,before)
+
     def test_parsed_cache_retains_positive_empty_and_failure_expiry(self):
         for age,status,hit in [(29*86400,'ok',True),(31*86400,'ok',False),(6*86400,'no-tech',True),(8*86400,'no-tech',False),(60,'timeout',True),(3601,'timeout',False)]:
             value=dict(self.obj,cache_version=8,parser_version=1,status=status,ok=status=='ok',fetched_at=(eng.dt.datetime.now(eng.dt.timezone.utc)-eng.dt.timedelta(seconds=age)).isoformat())

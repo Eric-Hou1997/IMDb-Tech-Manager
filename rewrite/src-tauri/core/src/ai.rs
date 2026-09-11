@@ -5,6 +5,7 @@ use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use ts_rs::TS;
 pub mod job;
+pub mod legacy_cache;
 pub const DEFAULT_PROMPT: &str = include_str!("../assets/default-ai-prompt.txt");
 pub const LANGUAGE_BOUNDARY: &str = include_str!("../assets/language-boundary.txt");
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
