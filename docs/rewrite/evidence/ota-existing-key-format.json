@@ -1,0 +1,14 @@
+{
+  "product": "ITM",
+  "target": "itm-darwin-aarch64-app",
+  "version": "4.1.0",
+  "artifact": "compatibility.txt",
+  "sha256": "62e78f2f5540c9bba23cb62dc1076d51c72fad5320a87531d477383c08263c24",
+  "raw_public_key": "UibeR9KwHBQM0x91qLxz64G0InjT2p0r99a83hLzwo0=",
+  "key_replaced": false,
+  "format": "minisign-ED-blake2b-existing-ed25519",
+  "existing_key_verified": true,
+  "modified_artifact_rejected": true,
+  "verification": "core/examples/verify_update.rs using minisign-verify 0.2.5",
+  "acceptance_scope": "signature format compatibility only; not complete upgrade acceptance"
+}

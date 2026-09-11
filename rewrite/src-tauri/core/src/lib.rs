@@ -1,5 +1,6 @@
 pub mod ai;
 pub mod contracts;
+pub mod install;
 pub mod library;
 pub mod migration;
 pub mod paths;
@@ -9,6 +10,7 @@ pub mod specs;
 pub mod store;
 #[cfg(feature = "write-prototype")]
 pub mod transaction;
+pub mod update;
 
 pub use contracts::*;
 pub(crate) fn ownership_key(value: &str) -> String {

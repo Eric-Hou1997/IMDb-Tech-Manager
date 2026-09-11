@@ -2,6 +2,7 @@
 mod credentials;
 mod desktop;
 mod migration;
+mod update;
 use product_core::services::CredentialStore;
 use serde_json::{json, Value};
 use std::{
@@ -40,6 +41,7 @@ fn report_event(event: &str) -> Result<(), String> {
 #[tauri::command]
 fn frontend_ready(app: tauri::AppHandle) -> Result<(), String> {
     report_event("frontend-mounted-ipc-roundtrip")?;
+    update::frontend_healthy(&app).map_err(|e| e.to_string())?;
     if std::env::var_os("REWRITE_PROBE_AUTOCLOSE").is_some() {
         std::thread::spawn(move || {
             std::thread::sleep(Duration::from_secs(2));
@@ -141,6 +143,7 @@ fn main() {
             }
         }))
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             runtime_probe,
             frontend_ready,
@@ -152,6 +155,11 @@ fn main() {
             migration::migration_plan,
             migration::migration_apply,
             migration::migration_result,
+            update::update_identity,
+            update::update_status,
+            update::update_check,
+            update::update_install,
+            update::update_cancel,
             desktop::configuration,
             desktop::operation_result,
             desktop::add_library_root,
@@ -165,6 +173,7 @@ fn main() {
         ])
         .setup(|app| {
             app.manage(desktop::Desktop::start(app.handle())?);
+            app.manage(update::Updates::default());
             let show = MenuItem::with_id(app, "show", "显示窗口 / Show", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "退出 / Quit", true, Some("CmdOrCtrl+Q"))?;
             // macOS menu bars require top-level submenus. A flat tray menu
@@ -199,4 +208,9 @@ fn main() {
             }
         }
     });
+}
+
+fn prepare_update_exit(app: &tauri::AppHandle) -> product_core::Result<()> {
+    app.state::<desktop::Desktop>().shutdown();
+    Ok(())
 }

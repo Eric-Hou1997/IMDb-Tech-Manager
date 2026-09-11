@@ -72,5 +72,13 @@
         ]
       }
     }
+  },
+  "plugins": {
+    "updater": {
+      "windows": {
+        "installMode": "quiet"
+      },
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IEV4aXN0aW5nIElUTSBFZDI1NTE5IHB1YmxpYyBrZXkKUldTMWhERHdaQ0JwaUZJbTNrZlNzQndVRE5NZmRhaThjK3VCdENKNDA5cWRLL2ZXdk40Uzg4S04K"
+    }
   }
 }
