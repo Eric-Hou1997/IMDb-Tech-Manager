@@ -11,3 +11,12 @@ runtime/
 build/
 dist/
 releases/
+
+node_modules/
+target/
+rewrite/src-tauri/gen/
+rewrite/.probe/
+!rewrite/src-tauri/icons/
+!rewrite/src-tauri/icons/icon.png
+!rewrite/src-tauri/icons/icon.icns
+!rewrite/src-tauri/icons/icon.ico

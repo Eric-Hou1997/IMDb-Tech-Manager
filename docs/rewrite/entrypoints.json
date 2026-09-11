@@ -1,0 +1,4456 @@
+{
+  "schema": 1,
+  "product": "ITM",
+  "source_hashes": {
+    "macos/engine/mac-engine.py": "98b778b1f20745ad5beea0f26d4c342f13c907cbc54a17ab877ee3bf97d2f346",
+    "macos/language_packs.go": "6ebda146ed338e5610139e3306d4901171ff6bd5dc7f2ab7ddda6a33fd4a1fd9",
+    "macos/localization.go": "5c12c3cbfd508abf73f65058d074fdb10d9e64245ce428eb59c056ce79c8ffae",
+    "macos/main.go": "5240d1efc484d32ff6ad71894882b3f3b2adb6584b335cb840c0ccc4a11b09e7",
+    "macos/native/IMDbTechManagerLauncher.m": "8d60636556132961f6c83627e9b6506bc565bb2c2aa1774d3ed8d5bc64b9dfc7",
+    "macos/native/IMDbWebKitFetcher.m": "b724eea680f9e952ea365bd82d63d19afaf3ad8994a86a40a0ce6b74daa51bf9",
+    "macos/platform_darwin.go": "225263b13e4d3d8133ad967bc40afca6c685d7b4c37ba391a39ec1f3ee8aab5b",
+    "macos/platform_windows.go": "badbbec882bdb95b3d1c3b17e66ca95eaba1e5d88846e73cf02d9a932fce4570",
+    "macos/resident_darwin.go": "d5230c27a05a22112b4579ee720c83bfe98a2af836c03f1023f19cb2fa1d1012",
+    "macos/update.go": "13b475b52935203060b769510577f570e223a541f535d612e8a443beacd0bb6a",
+    "macos/web/index.html": "2b0424e013f31d34778d3f5ca148bcf0cc152f597139f2052a522e8be96df8e8"
+  },
+  "entries": [
+    {
+      "id": "ITM-E-52d054bce73e",
+      "kind": "engine-operation",
+      "symbol": "restore",
+      "source": "macos/engine/mac-engine.py",
+      "line": 4902,
+      "feature": "ITM-INSPECTOR",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-60bf3605fc36",
+      "kind": "engine-operation",
+      "symbol": "edit-tag",
+      "source": "macos/engine/mac-engine.py",
+      "line": 5843,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7e40bee9d68a",
+      "kind": "engine-operation",
+      "symbol": "delete-tag",
+      "source": "macos/engine/mac-engine.py",
+      "line": 5878,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-016979d2a662",
+      "kind": "engine-operation",
+      "symbol": "set-tag-ownership",
+      "source": "macos/engine/mac-engine.py",
+      "line": 5901,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d86725419a1d",
+      "kind": "engine-operation",
+      "symbol": "clear-ai-tags",
+      "source": "macos/engine/mac-engine.py",
+      "line": 5939,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-34dcd1d25526",
+      "kind": "engine-operation",
+      "symbol": "add-manual-tag",
+      "source": "macos/engine/mac-engine.py",
+      "line": 5960,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-75720941a559",
+      "kind": "engine-operation",
+      "symbol": "restore-spec",
+      "source": "macos/engine/mac-engine.py",
+      "line": 5982,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9e7aa9eccda8",
+      "kind": "engine-operation",
+      "symbol": "ping",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8048,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-96afdd07f516",
+      "kind": "engine-operation",
+      "symbol": "metrics",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8050,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9dfda4044950",
+      "kind": "engine-operation",
+      "symbol": "library-index",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8052,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9092935791bf",
+      "kind": "engine-operation",
+      "symbol": "library-changes",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8057,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e1001bfbf83d",
+      "kind": "engine-operation",
+      "symbol": "inspector-detail",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8059,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a1443c469584",
+      "kind": "engine-operation",
+      "symbol": "inspector-edit",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8061,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-560f39e8a552",
+      "kind": "engine-operation",
+      "symbol": "inspector-undo",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8065,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-25e94a6e28a0",
+      "kind": "engine-operation",
+      "symbol": "inspector-issues",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8069,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f05498a270bd",
+      "kind": "engine-operation",
+      "symbol": "status-override",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8073,
+      "feature": "ITM-INSPECTOR",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ff65ee37385b",
+      "kind": "engine-operation",
+      "symbol": "scope-preflight",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8077,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d1de70f4169e",
+      "kind": "engine-operation",
+      "symbol": "preview-candidates",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8079,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-59dbaff41985",
+      "kind": "engine-operation",
+      "symbol": "reload",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8084,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ad167b612f6e",
+      "kind": "engine-operation",
+      "symbol": "invalidate",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8089,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1f7b12e0fa5c",
+      "kind": "engine-option",
+      "symbol": "--output-language",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8134,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4d9966d76c2b",
+      "kind": "engine-option",
+      "symbol": "--configure",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8135,
+      "feature": "ITM-DISPATCH",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-97d1645841fc",
+      "kind": "engine-option",
+      "symbol": "--watch-once",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8136,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-07a8e08c2867",
+      "kind": "engine-option",
+      "symbol": "--auto",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8137,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-07d9c68e0dc1",
+      "kind": "engine-option",
+      "symbol": "--backfill",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8138,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-94f3f3feaff0",
+      "kind": "engine-option",
+      "symbol": "--rebuild-all",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8139,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4be8e9eb994f",
+      "kind": "engine-option",
+      "symbol": "--refresh-all",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8140,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3adbdf0306a5",
+      "kind": "engine-option",
+      "symbol": "--refresh-paths-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8141,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f55fa3b5b5dc",
+      "kind": "engine-option",
+      "symbol": "--test-imdb",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8142,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f38edd1e2e79",
+      "kind": "engine-option",
+      "symbol": "--doctor",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8143,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-39a590f865af",
+      "kind": "engine-option",
+      "symbol": "--self-test",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8144,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-63ca8cdd3c84",
+      "kind": "engine-option",
+      "symbol": "--ai-test",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8145,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-088c2f8974f4",
+      "kind": "engine-option",
+      "symbol": "--ai-recover",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8146,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-04234b3b9905",
+      "kind": "engine-option",
+      "symbol": "--ai-scan",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8147,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7c5315b2413d",
+      "kind": "engine-option",
+      "symbol": "--ai-preview",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8148,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-bfed37926b1a",
+      "kind": "engine-option",
+      "symbol": "--list-ai-preview-candidates",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8149,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9e88cbefe716",
+      "kind": "engine-option",
+      "symbol": "--ai-preview-paths-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8150,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0b2db54872d1",
+      "kind": "engine-option",
+      "symbol": "--ai-generate-paths-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8151,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8609774cff07",
+      "kind": "engine-option",
+      "symbol": "--local-generate-paths-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8152,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-313926c406f1",
+      "kind": "engine-option",
+      "symbol": "--ai-migrate",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8153,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5b058b5f2feb",
+      "kind": "engine-option",
+      "symbol": "--pipeline-scan",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8154,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6c48af9b31c6",
+      "kind": "engine-option",
+      "symbol": "--local-generate",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8155,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1b10ad3873e4",
+      "kind": "engine-option",
+      "symbol": "--local-rebuild",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8156,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-61352a2cd265",
+      "kind": "engine-option",
+      "symbol": "--ai-generate",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8157,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e66b135f56df",
+      "kind": "engine-option",
+      "symbol": "--ai-rebuild",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8158,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3acec7b4fe5d",
+      "kind": "engine-option",
+      "symbol": "--ai-resume",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8159,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9d648a828ae6",
+      "kind": "engine-option",
+      "symbol": "--ai-pause-task",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8160,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9cc4acd9f4e3",
+      "kind": "engine-option",
+      "symbol": "--ai-resume-task",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8161,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b9b9ca456026",
+      "kind": "engine-option",
+      "symbol": "--ai-retry-failed",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8162,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0c893b9c4554",
+      "kind": "engine-option",
+      "symbol": "--discover-root-candidates",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8163,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-daa171017960",
+      "kind": "engine-option",
+      "symbol": "--library-index",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8164,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c7800ac00b33",
+      "kind": "engine-option",
+      "symbol": "--library-changes-since",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8165,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-01255915a51a",
+      "kind": "engine-option",
+      "symbol": "--inspector-path",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8166,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-131be0b78f0e",
+      "kind": "engine-option",
+      "symbol": "--inspector-edit-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8167,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d5a15b2f89af",
+      "kind": "engine-option",
+      "symbol": "--inspector-undo-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8168,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d6bc0a9f8922",
+      "kind": "engine-option",
+      "symbol": "--inspector-issues-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8169,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0e2d4ade1789",
+      "kind": "engine-option",
+      "symbol": "--inspector-reload-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8170,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4c01b0d96466",
+      "kind": "engine-option",
+      "symbol": "--status-override-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8171,
+      "feature": "ITM-INSPECTOR",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-bde469554698",
+      "kind": "engine-option",
+      "symbol": "--scope-preflight-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8172,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4aea03563434",
+      "kind": "engine-option",
+      "symbol": "--reconcile-index",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8173,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-da9b664e65fe",
+      "kind": "engine-option",
+      "symbol": "--reconcile-index-space",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8174,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-edc5dfdc5c75",
+      "kind": "engine-option",
+      "symbol": "--cache-maintain",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8175,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-870b520cb799",
+      "kind": "engine-option",
+      "symbol": "--cache-clear",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8176,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2f080da1b36d",
+      "kind": "engine-option",
+      "symbol": "--serve",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8177,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ebea02720c0e",
+      "kind": "engine-option",
+      "symbol": "--ai-preview-write-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8178,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-499406a89011",
+      "kind": "engine-option",
+      "symbol": "--ai-approve-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8179,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8e5bd91aca16",
+      "kind": "engine-option",
+      "symbol": "--local-preview-write-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8180,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-92ac5d43cdba",
+      "kind": "engine-option",
+      "symbol": "--local-approve-json",
+      "source": "macos/engine/mac-engine.py",
+      "line": 8181,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a293f5d5fd47",
+      "kind": "serialized-field",
+      "symbol": "asset",
+      "source": "macos/language_packs.go",
+      "line": 32,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6d0e56b8a9e1",
+      "kind": "serialized-field",
+      "symbol": "sha256",
+      "source": "macos/language_packs.go",
+      "line": 33,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b866428e8f1e",
+      "kind": "serialized-field",
+      "symbol": "app_version",
+      "source": "macos/language_packs.go",
+      "line": 41,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e506a0f908e0",
+      "kind": "serialized-field",
+      "symbol": "languages",
+      "source": "macos/language_packs.go",
+      "line": 42,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0111ec20bc19",
+      "kind": "serialized-field",
+      "symbol": "schema",
+      "source": "macos/language_packs.go",
+      "line": 46,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-17e236e62c9d",
+      "kind": "serialized-field",
+      "symbol": "product",
+      "source": "macos/language_packs.go",
+      "line": 47,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fe7ac6d693cd",
+      "kind": "serialized-field",
+      "symbol": "locale",
+      "source": "macos/language_packs.go",
+      "line": 48,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4cfd5d7f2483",
+      "kind": "serialized-field",
+      "symbol": "revision",
+      "source": "macos/language_packs.go",
+      "line": 49,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9a37c2b9dfd6",
+      "kind": "serialized-field",
+      "symbol": "released_with",
+      "source": "macos/language_packs.go",
+      "line": 50,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-eefae82edb6e",
+      "kind": "serialized-field",
+      "symbol": "catalog_schema",
+      "source": "macos/language_packs.go",
+      "line": 51,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-375e9c14e7fc",
+      "kind": "serialized-field",
+      "symbol": "message_set_hash",
+      "source": "macos/language_packs.go",
+      "line": 52,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4be99a97985f",
+      "kind": "serialized-field",
+      "symbol": "files",
+      "source": "macos/language_packs.go",
+      "line": 53,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f5ae913d5c8c",
+      "kind": "serialized-field",
+      "symbol": "language",
+      "source": "macos/language_packs.go",
+      "line": 514,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2410d2a40e47",
+      "kind": "serialized-field",
+      "symbol": "code",
+      "source": "macos/localization.go",
+      "line": 15,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9addfd488bb0",
+      "kind": "serialized-field",
+      "symbol": "native_name",
+      "source": "macos/localization.go",
+      "line": 16,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-79800463774a",
+      "kind": "serialized-field",
+      "symbol": "english_name",
+      "source": "macos/localization.go",
+      "line": 17,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-da3c008bbdd9",
+      "kind": "serialized-field",
+      "symbol": "review_language",
+      "source": "macos/localization.go",
+      "line": 18,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4933d133a9f8",
+      "kind": "serialized-field",
+      "symbol": "flag",
+      "source": "macos/localization.go",
+      "line": 19,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a624c96a0e00",
+      "kind": "serialized-field",
+      "symbol": "built_in",
+      "source": "macos/localization.go",
+      "line": 20,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-bf6bc50b5834",
+      "kind": "serialized-field",
+      "symbol": "installed",
+      "source": "macos/localization.go",
+      "line": 21,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e456b8845d03",
+      "kind": "serialized-field",
+      "symbol": "downloadable",
+      "source": "macos/localization.go",
+      "line": 22,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f9b736bb0353",
+      "kind": "serialized-field",
+      "symbol": "revision",
+      "source": "macos/localization.go",
+      "line": 24,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4005bfde0f64",
+      "kind": "serialized-field",
+      "symbol": "released_with",
+      "source": "macos/localization.go",
+      "line": 25,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e6e5b6983a19",
+      "kind": "serialized-field",
+      "symbol": "state",
+      "source": "macos/localization.go",
+      "line": 242,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5dcf43936c99",
+      "kind": "serialized-field",
+      "symbol": "language",
+      "source": "macos/localization.go",
+      "line": 243,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-80dc2e3658fa",
+      "kind": "serialized-field",
+      "symbol": "source",
+      "source": "macos/localization.go",
+      "line": 244,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7bd415d1c974",
+      "kind": "serialized-field",
+      "symbol": "migrated",
+      "source": "macos/localization.go",
+      "line": 245,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f500005678ad",
+      "kind": "serialized-field",
+      "symbol": "error",
+      "source": "macos/localization.go",
+      "line": 246,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9a3029bc649d",
+      "kind": "serialized-field",
+      "symbol": "schema_version",
+      "source": "macos/main.go",
+      "line": 40,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-934f51e96040",
+      "kind": "serialized-field",
+      "symbol": "revision",
+      "source": "macos/main.go",
+      "line": 41,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2581a7ea307c",
+      "kind": "serialized-field",
+      "symbol": "auto_start_configured",
+      "source": "macos/main.go",
+      "line": 141,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3d7bcd68bb54",
+      "kind": "serialized-field",
+      "symbol": "auto_mode_on_app_start_configured",
+      "source": "macos/main.go",
+      "line": 143,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c823ba51c3a2",
+      "kind": "serialized-field",
+      "symbol": "app_auto_start_configured",
+      "source": "macos/main.go",
+      "line": 145,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-528a394b86b8",
+      "kind": "serialized-field",
+      "symbol": "enabled",
+      "source": "macos/main.go",
+      "line": 150,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-84b1ca25a80c",
+      "kind": "serialized-field",
+      "symbol": "api_protocol",
+      "source": "macos/main.go",
+      "line": 151,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-552da4c28cda",
+      "kind": "serialized-field",
+      "symbol": "provider",
+      "source": "macos/main.go",
+      "line": 152,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5a2b91228992",
+      "kind": "serialized-field",
+      "symbol": "base_url",
+      "source": "macos/main.go",
+      "line": 153,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-54d370a6540b",
+      "kind": "serialized-field",
+      "symbol": "model",
+      "source": "macos/main.go",
+      "line": 154,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0df7061fec8d",
+      "kind": "serialized-field",
+      "symbol": "prompt",
+      "source": "macos/main.go",
+      "line": 155,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4a9669d9eda1",
+      "kind": "serialized-field",
+      "symbol": "temperature",
+      "source": "macos/main.go",
+      "line": 156,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-870e9f1f4d12",
+      "kind": "serialized-field",
+      "symbol": "top_p",
+      "source": "macos/main.go",
+      "line": 157,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a58a1ae0b7fe",
+      "kind": "serialized-field",
+      "symbol": "max_tokens",
+      "source": "macos/main.go",
+      "line": 158,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f536b825374b",
+      "kind": "serialized-field",
+      "symbol": "output_token_cap",
+      "source": "macos/main.go",
+      "line": 159,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b3fef396419a",
+      "kind": "serialized-field",
+      "symbol": "thinking_mode",
+      "source": "macos/main.go",
+      "line": 160,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b5075e8e9a0b",
+      "kind": "serialized-field",
+      "symbol": "prompt_cache_mode",
+      "source": "macos/main.go",
+      "line": 161,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-96d5d4e5718a",
+      "kind": "serialized-field",
+      "symbol": "timeout_seconds",
+      "source": "macos/main.go",
+      "line": 162,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2e8ab282c072",
+      "kind": "serialized-field",
+      "symbol": "json_mode",
+      "source": "macos/main.go",
+      "line": 163,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8bfc07ea5583",
+      "kind": "serialized-field",
+      "symbol": "extra_body",
+      "source": "macos/main.go",
+      "line": 164,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5e8d531742b8",
+      "kind": "serialized-field",
+      "symbol": "fallback_mode",
+      "source": "macos/main.go",
+      "line": 165,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-48da8786551d",
+      "kind": "serialized-field",
+      "symbol": "legacy_cleanup_mode",
+      "source": "macos/main.go",
+      "line": 166,
+      "feature": "ITM-LEGACY",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b6adabc59fc4",
+      "kind": "serialized-field",
+      "symbol": "warning_policy",
+      "source": "macos/main.go",
+      "line": 167,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0a866306435b",
+      "kind": "serialized-field",
+      "symbol": "retry_count",
+      "source": "macos/main.go",
+      "line": 168,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ab2d5652e39d",
+      "kind": "serialized-field",
+      "symbol": "input_price_per_million",
+      "source": "macos/main.go",
+      "line": 169,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4edb522ba90a",
+      "kind": "serialized-field",
+      "symbol": "output_price_per_million",
+      "source": "macos/main.go",
+      "line": 170,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0a757c1e3627",
+      "kind": "serialized-field",
+      "symbol": "run_request_limit",
+      "source": "macos/main.go",
+      "line": 171,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c209be706cd6",
+      "kind": "serialized-field",
+      "symbol": "run_token_limit",
+      "source": "macos/main.go",
+      "line": 172,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b270b1e3ee29",
+      "kind": "serialized-field",
+      "symbol": "run_cost_limit",
+      "source": "macos/main.go",
+      "line": 173,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-40d1c1cbb072",
+      "kind": "serialized-field",
+      "symbol": "has_api_key",
+      "source": "macos/main.go",
+      "line": 178,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-aac69c9dbbf5",
+      "kind": "serialized-field",
+      "symbol": "default_prompt",
+      "source": "macos/main.go",
+      "line": 179,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8060cc6f85bb",
+      "kind": "serialized-field",
+      "symbol": "api_key",
+      "source": "macos/main.go",
+      "line": 184,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c5ec1df44ab1",
+      "kind": "serialized-field",
+      "symbol": "clear_api_key",
+      "source": "macos/main.go",
+      "line": 185,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-597abb5536c8",
+      "kind": "serialized-field",
+      "symbol": "name",
+      "source": "macos/main.go",
+      "line": 189,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-47d7b1fd849f",
+      "kind": "serialized-field",
+      "symbol": "space",
+      "source": "macos/main.go",
+      "line": 191,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0254572fecca",
+      "kind": "serialized-field",
+      "symbol": "kind",
+      "source": "macos/main.go",
+      "line": 192,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-03e69c39e32a",
+      "kind": "serialized-field",
+      "symbol": "evidence",
+      "source": "macos/main.go",
+      "line": 195,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6b515c37f9e1",
+      "kind": "serialized-field",
+      "symbol": "access_error",
+      "source": "macos/main.go",
+      "line": 196,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2c3839e13977",
+      "kind": "serialized-field",
+      "symbol": "last_scan",
+      "source": "macos/main.go",
+      "line": 197,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6ff738ef680c",
+      "kind": "serialized-field",
+      "symbol": "mismatch_count",
+      "source": "macos/main.go",
+      "line": 198,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5a8086945f33",
+      "kind": "serialized-field",
+      "symbol": "nfo_count",
+      "source": "macos/main.go",
+      "line": 199,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-10a88815e7d4",
+      "kind": "serialized-field",
+      "symbol": "movies",
+      "source": "macos/main.go",
+      "line": 203,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1c88349de463",
+      "kind": "serialized-field",
+      "symbol": "tv",
+      "source": "macos/main.go",
+      "line": 204,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d5234b45933e",
+      "kind": "serialized-field",
+      "symbol": "suggested_space",
+      "source": "macos/main.go",
+      "line": 209,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-34347c213ddd",
+      "kind": "serialized-field",
+      "symbol": "source",
+      "source": "macos/main.go",
+      "line": 210,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-69c83090e4a7",
+      "kind": "serialized-field",
+      "symbol": "online",
+      "source": "macos/main.go",
+      "line": 211,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c5046c2f0470",
+      "kind": "serialized-field",
+      "symbol": "job_id",
+      "source": "macos/main.go",
+      "line": 215,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fe4038689f83",
+      "kind": "serialized-field",
+      "symbol": "exit_code",
+      "source": "macos/main.go",
+      "line": 220,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-002d97cf85e9",
+      "kind": "serialized-field",
+      "symbol": "message",
+      "source": "macos/main.go",
+      "line": 221,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-cb38a6cdb095",
+      "kind": "serialized-field",
+      "symbol": "message_code",
+      "source": "macos/main.go",
+      "line": 222,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c4ae5789446e",
+      "kind": "serialized-field",
+      "symbol": "language_pack_revision",
+      "source": "macos/main.go",
+      "line": 224,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3596e7aa4eef",
+      "kind": "serialized-field",
+      "symbol": "language_catalog_hash",
+      "source": "macos/main.go",
+      "line": 225,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4d79eeebe2c5",
+      "kind": "serialized-field",
+      "symbol": "log",
+      "source": "macos/main.go",
+      "line": 226,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-605839260092",
+      "kind": "serialized-field",
+      "symbol": "running",
+      "source": "macos/main.go",
+      "line": 230,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f60054bafaa0",
+      "kind": "serialized-field",
+      "symbol": "started_at",
+      "source": "macos/main.go",
+      "line": 231,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d7cde198c7d4",
+      "kind": "serialized-field",
+      "symbol": "ended_at",
+      "source": "macos/main.go",
+      "line": 232,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2215d1583b0b",
+      "kind": "serialized-field",
+      "symbol": "duration_ms",
+      "source": "macos/main.go",
+      "line": 233,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0527c3d5f2df",
+      "kind": "serialized-field",
+      "symbol": "stamp",
+      "source": "macos/main.go",
+      "line": 239,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9ddb13c368a2",
+      "kind": "serialized-field",
+      "symbol": "app_version",
+      "source": "macos/main.go",
+      "line": 244,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a35323b6952e",
+      "kind": "serialized-field",
+      "symbol": "platform",
+      "source": "macos/main.go",
+      "line": 245,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a31499ba0145",
+      "kind": "serialized-field",
+      "symbol": "platform_label",
+      "source": "macos/main.go",
+      "line": 246,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4b24154e16c3",
+      "kind": "serialized-field",
+      "symbol": "installed",
+      "source": "macos/main.go",
+      "line": 247,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-204ed695d049",
+      "kind": "serialized-field",
+      "symbol": "agent_running",
+      "source": "macos/main.go",
+      "line": 248,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-735412af9c33",
+      "kind": "serialized-field",
+      "symbol": "auto_mode_on_app_start",
+      "source": "macos/main.go",
+      "line": 249,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-396117509a4b",
+      "kind": "serialized-field",
+      "symbol": "app_auto_start",
+      "source": "macos/main.go",
+      "line": 252,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-73a20417e0e7",
+      "kind": "serialized-field",
+      "symbol": "language",
+      "source": "macos/main.go",
+      "line": 253,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-75ea71c101a9",
+      "kind": "serialized-field",
+      "symbol": "languages",
+      "source": "macos/main.go",
+      "line": 254,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-603eaaf63799",
+      "kind": "serialized-field",
+      "symbol": "language_sync",
+      "source": "macos/main.go",
+      "line": 255,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a83f3cbdf575",
+      "kind": "serialized-field",
+      "symbol": "agent_pid",
+      "source": "macos/main.go",
+      "line": 256,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-cfcf351a4ae0",
+      "kind": "serialized-field",
+      "symbol": "last_heartbeat",
+      "source": "macos/main.go",
+      "line": 257,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0117f1c6681d",
+      "kind": "serialized-field",
+      "symbol": "last_cycle",
+      "source": "macos/main.go",
+      "line": 258,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-40685558d22d",
+      "kind": "serialized-field",
+      "symbol": "engine_ready",
+      "source": "macos/main.go",
+      "line": 260,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5e70f1a14f0d",
+      "kind": "serialized-field",
+      "symbol": "python",
+      "source": "macos/main.go",
+      "line": 261,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e4e95b7481dc",
+      "kind": "serialized-field",
+      "symbol": "chrome",
+      "source": "macos/main.go",
+      "line": 262,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a0f1f19b9a98",
+      "kind": "serialized-field",
+      "symbol": "indexed_titles",
+      "source": "macos/main.go",
+      "line": 263,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4907c1141ff4",
+      "kind": "serialized-field",
+      "symbol": "nfo_total",
+      "source": "macos/main.go",
+      "line": 264,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3932af1d09b8",
+      "kind": "serialized-field",
+      "symbol": "cache_count",
+      "source": "macos/main.go",
+      "line": 265,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2308bc871058",
+      "kind": "serialized-field",
+      "symbol": "imdb_cache",
+      "source": "macos/main.go",
+      "line": 266,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6f824a29f8dd",
+      "kind": "serialized-field",
+      "symbol": "xml_errors",
+      "source": "macos/main.go",
+      "line": 267,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3ee8af07d360",
+      "kind": "serialized-field",
+      "symbol": "xml_error_details",
+      "source": "macos/main.go",
+      "line": 268,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-69afb5ae1247",
+      "kind": "serialized-field",
+      "symbol": "web_patch",
+      "source": "macos/main.go",
+      "line": 269,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e72ca9ed3afa",
+      "kind": "serialized-field",
+      "symbol": "web_version",
+      "source": "macos/main.go",
+      "line": 270,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-86b93edb3756",
+      "kind": "serialized-field",
+      "symbol": "libraries",
+      "source": "macos/main.go",
+      "line": 271,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7450e5348e80",
+      "kind": "serialized-field",
+      "symbol": "counts",
+      "source": "macos/main.go",
+      "line": 272,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-114d382ed25e",
+      "kind": "serialized-field",
+      "symbol": "job",
+      "source": "macos/main.go",
+      "line": 273,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-859e0b010a27",
+      "kind": "serialized-field",
+      "symbol": "capabilities",
+      "source": "macos/main.go",
+      "line": 274,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b1451906f9d5",
+      "kind": "serialized-field",
+      "symbol": "notes",
+      "source": "macos/main.go",
+      "line": 275,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b54e255abe6a",
+      "kind": "serialized-field",
+      "symbol": "cleanup_removed",
+      "source": "macos/main.go",
+      "line": 277,
+      "feature": "ITM-LEGACY",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8a8369dc2472",
+      "kind": "serialized-field",
+      "symbol": "extra",
+      "source": "macos/main.go",
+      "line": 278,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ea8138983d38",
+      "kind": "serialized-field",
+      "symbol": "state",
+      "source": "macos/main.go",
+      "line": 282,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-77da5cc79c9a",
+      "kind": "serialized-field",
+      "symbol": "limit_mb",
+      "source": "macos/main.go",
+      "line": 283,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f677f458894c",
+      "kind": "serialized-field",
+      "symbol": "limit_bytes",
+      "source": "macos/main.go",
+      "line": 284,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1268bebbf6c7",
+      "kind": "serialized-field",
+      "symbol": "used_bytes",
+      "source": "macos/main.go",
+      "line": 285,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0b1d042cabf8",
+      "kind": "serialized-field",
+      "symbol": "parsed_count",
+      "source": "macos/main.go",
+      "line": 286,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c0329a215d08",
+      "kind": "serialized-field",
+      "symbol": "raw_count",
+      "source": "macos/main.go",
+      "line": 287,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d10e5aa3a6c0",
+      "kind": "serialized-field",
+      "symbol": "entry_count",
+      "source": "macos/main.go",
+      "line": 288,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0bd4c2d2bb2e",
+      "kind": "serialized-field",
+      "symbol": "removed_count",
+      "source": "macos/main.go",
+      "line": 289,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7f091010ab0f",
+      "kind": "serialized-field",
+      "symbol": "last_cleanup",
+      "source": "macos/main.go",
+      "line": 290,
+      "feature": "ITM-LEGACY",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c6913e757244",
+      "kind": "serialized-field",
+      "symbol": "error",
+      "source": "macos/main.go",
+      "line": 291,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-43d9ef5424b3",
+      "kind": "serialized-field",
+      "symbol": "paths",
+      "source": "macos/main.go",
+      "line": 298,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-abd7610d83db",
+      "kind": "serialized-field",
+      "symbol": "year",
+      "source": "macos/main.go",
+      "line": 304,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a7d544b03404",
+      "kind": "serialized-field",
+      "symbol": "imdb",
+      "source": "macos/main.go",
+      "line": 305,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6cde25d5920d",
+      "kind": "serialized-field",
+      "symbol": "media_type",
+      "source": "macos/main.go",
+      "line": 306,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9059b2172e05",
+      "kind": "serialized-field",
+      "symbol": "tag_state",
+      "source": "macos/main.go",
+      "line": 307,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4818ae4b996c",
+      "kind": "serialized-field",
+      "symbol": "interval_seconds",
+      "source": "macos/main.go",
+      "line": 311,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2a9d298064bd",
+      "kind": "serialized-field",
+      "symbol": "auto_start",
+      "source": "macos/main.go",
+      "line": 312,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8f2cb995d8ba",
+      "kind": "serialized-field",
+      "symbol": "roots",
+      "source": "macos/main.go",
+      "line": 313,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d56c57eb180a",
+      "kind": "serialized-field",
+      "symbol": "-",
+      "source": "macos/main.go",
+      "line": 314,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3d0d64a52c73",
+      "kind": "command",
+      "symbol": "--version",
+      "source": "macos/main.go",
+      "line": 504,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2209df7ab2fb",
+      "kind": "command",
+      "symbol": "--self-check",
+      "source": "macos/main.go",
+      "line": 507,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-48aeda550065",
+      "kind": "command",
+      "symbol": "--agent",
+      "source": "macos/main.go",
+      "line": 514,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5e1b80f1bfa2",
+      "kind": "command",
+      "symbol": "--native-ui",
+      "source": "macos/main.go",
+      "line": 525,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b4cfbbe0cdd4",
+      "kind": "command",
+      "symbol": "--headless-action",
+      "source": "macos/main.go",
+      "line": 527,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e6325d8bb0ff",
+      "kind": "http-route",
+      "symbol": "/",
+      "source": "macos/main.go",
+      "line": 592,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-89b1fb8769a0",
+      "kind": "http-route",
+      "symbol": "/assets/ITM_logo_letter_only.png",
+      "source": "macos/main.go",
+      "line": 593,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ac7babcaa1e9",
+      "kind": "http-route",
+      "symbol": "/assets/ITM_logo_tiny.png",
+      "source": "macos/main.go",
+      "line": 594,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f78fa18f4097",
+      "kind": "http-route",
+      "symbol": "/api/status",
+      "source": "macos/main.go",
+      "line": 595,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-bdb225961887",
+      "kind": "http-route",
+      "symbol": "/api/onboarding",
+      "source": "macos/main.go",
+      "line": 596,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-77617a1d1d82",
+      "kind": "http-route",
+      "symbol": "/api/action",
+      "source": "macos/main.go",
+      "line": 597,
+      "feature": "ITM-DISPATCH",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-58f4916c2d7a",
+      "kind": "http-route",
+      "symbol": "/api/settings",
+      "source": "macos/main.go",
+      "line": 598,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-478cfae122a1",
+      "kind": "http-route",
+      "symbol": "/api/ui-layout",
+      "source": "macos/main.go",
+      "line": 599,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0c6778c04505",
+      "kind": "http-route",
+      "symbol": "/api/ai-config",
+      "source": "macos/main.go",
+      "line": 600,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-39db746531ab",
+      "kind": "http-route",
+      "symbol": "/api/preview-candidates",
+      "source": "macos/main.go",
+      "line": 601,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0ddc03508b2c",
+      "kind": "http-route",
+      "symbol": "/api/library",
+      "source": "macos/main.go",
+      "line": 602,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-083c0a20382f",
+      "kind": "http-route",
+      "symbol": "/api/library/changes",
+      "source": "macos/main.go",
+      "line": 603,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-91a07be79e1d",
+      "kind": "http-route",
+      "symbol": "/api/inspector",
+      "source": "macos/main.go",
+      "line": 604,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5c746e751b36",
+      "kind": "http-route",
+      "symbol": "/api/inspector/edit",
+      "source": "macos/main.go",
+      "line": 605,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-286cdcf29b7e",
+      "kind": "http-route",
+      "symbol": "/api/inspector/undo",
+      "source": "macos/main.go",
+      "line": 606,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1be899271796",
+      "kind": "http-route",
+      "symbol": "/api/inspector/issues",
+      "source": "macos/main.go",
+      "line": 607,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7bf808d0ff0b",
+      "kind": "http-route",
+      "symbol": "/api/inspector/status",
+      "source": "macos/main.go",
+      "line": 608,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-117ab139ced4",
+      "kind": "http-route",
+      "symbol": "/api/inspector/reload",
+      "source": "macos/main.go",
+      "line": 609,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-02fcfdf56118",
+      "kind": "http-route",
+      "symbol": "/api/scope/preflight",
+      "source": "macos/main.go",
+      "line": 610,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-51356820c5e1",
+      "kind": "http-route",
+      "symbol": "/api/preview/results",
+      "source": "macos/main.go",
+      "line": 611,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-635f1fcca5ba",
+      "kind": "http-route",
+      "symbol": "/api/job",
+      "source": "macos/main.go",
+      "line": 612,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f849c430a80d",
+      "kind": "http-route",
+      "symbol": "/api/task-history",
+      "source": "macos/main.go",
+      "line": 613,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9f7424017e40",
+      "kind": "http-route",
+      "symbol": "/api/quit",
+      "source": "macos/main.go",
+      "line": 614,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6371b0aeccbd",
+      "kind": "http-route",
+      "symbol": "/api/update",
+      "source": "macos/main.go",
+      "line": 615,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b35592eb0b85",
+      "kind": "http-route",
+      "symbol": "/api/languages",
+      "source": "macos/main.go",
+      "line": 616,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a0914847f21e",
+      "kind": "http-route",
+      "symbol": "/api/heartbeat",
+      "source": "macos/main.go",
+      "line": 617,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-64032e45157b",
+      "kind": "serialized-field",
+      "symbol": "removed",
+      "source": "macos/main.go",
+      "line": 857,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4028b2c18173",
+      "kind": "serialized-field",
+      "symbol": "schema",
+      "source": "macos/main.go",
+      "line": 866,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-73b3db42c81e",
+      "kind": "serialized-field",
+      "symbol": "action",
+      "source": "macos/main.go",
+      "line": 867,
+      "feature": "ITM-DISPATCH",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-09b1c5219277",
+      "kind": "serialized-field",
+      "symbol": "done",
+      "source": "macos/main.go",
+      "line": 868,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7a0974b53ba0",
+      "kind": "serialized-field",
+      "symbol": "total",
+      "source": "macos/main.go",
+      "line": 869,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c89435923910",
+      "kind": "serialized-field",
+      "symbol": "current",
+      "source": "macos/main.go",
+      "line": 870,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-790dc1399273",
+      "kind": "serialized-field",
+      "symbol": "updated_at",
+      "source": "macos/main.go",
+      "line": 871,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5205015ba18b",
+      "kind": "serialized-field",
+      "symbol": "results",
+      "source": "macos/main.go",
+      "line": 872,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9c5e627aaaf6",
+      "kind": "serialized-field",
+      "symbol": "path",
+      "source": "macos/main.go",
+      "line": 876,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-23a027e5360f",
+      "kind": "serialized-field",
+      "symbol": "title",
+      "source": "macos/main.go",
+      "line": 877,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-784717fa469f",
+      "kind": "serialized-field",
+      "symbol": "status",
+      "source": "macos/main.go",
+      "line": 878,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-eac925674641",
+      "kind": "serialized-field",
+      "symbol": "tag_status",
+      "source": "macos/main.go",
+      "line": 879,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0e7d70f202a3",
+      "kind": "command",
+      "symbol": "choose-library-folder",
+      "source": "macos/main.go",
+      "line": 1414,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3e79c3f59953",
+      "kind": "command",
+      "symbol": "test-library-root",
+      "source": "macos/main.go",
+      "line": 1428,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2e14bba9f320",
+      "kind": "command",
+      "symbol": "open-data",
+      "source": "macos/main.go",
+      "line": 1444,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f1b2c6306952",
+      "kind": "command",
+      "symbol": "open-logs",
+      "source": "macos/main.go",
+      "line": 1451,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-59b4c76cf728",
+      "kind": "command",
+      "symbol": "open-path",
+      "source": "macos/main.go",
+      "line": 1459,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4405453725f2",
+      "kind": "command",
+      "symbol": "export-diagnostics",
+      "source": "macos/main.go",
+      "line": 1476,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3dcc9043448f",
+      "kind": "command",
+      "symbol": "reconcile-run",
+      "source": "macos/main.go",
+      "line": 1586,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-82d42386c887",
+      "kind": "command",
+      "symbol": "install",
+      "source": "macos/main.go",
+      "line": 1722,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f9205e1a68eb",
+      "kind": "command",
+      "symbol": "start",
+      "source": "macos/main.go",
+      "line": 1724,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-790438cb8731",
+      "kind": "command",
+      "symbol": "stop",
+      "source": "macos/main.go",
+      "line": 1726,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d31903650a75",
+      "kind": "command",
+      "symbol": "cleanup-legacy",
+      "source": "macos/main.go",
+      "line": 1728,
+      "feature": "ITM-LEGACY",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-90802decedbe",
+      "kind": "command",
+      "symbol": "auto",
+      "source": "macos/main.go",
+      "line": 1731,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a6aece073dad",
+      "kind": "command",
+      "symbol": "run",
+      "source": "macos/main.go",
+      "line": 1733,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-32e60a269188",
+      "kind": "command",
+      "symbol": "reconcile-index",
+      "source": "macos/main.go",
+      "line": 1735,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9da46df2c2d8",
+      "kind": "command",
+      "symbol": "ai-approve-selected",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-54e94ce31ccf",
+      "kind": "command",
+      "symbol": "ai-generate",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-55c8a0a0a19f",
+      "kind": "command",
+      "symbol": "ai-generate-selected",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b67d53de13bf",
+      "kind": "command",
+      "symbol": "ai-migrate",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e627eff8fbe8",
+      "kind": "command",
+      "symbol": "ai-preview",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ad069e42ba11",
+      "kind": "command",
+      "symbol": "ai-preview-selected",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c3068c8d8874",
+      "kind": "command",
+      "symbol": "ai-preview-write-selected",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-78c58ecde949",
+      "kind": "command",
+      "symbol": "ai-rebuild",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e429a3768c50",
+      "kind": "command",
+      "symbol": "ai-recover",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5acfe9bff845",
+      "kind": "command",
+      "symbol": "ai-resume",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-441cf05b0d18",
+      "kind": "command",
+      "symbol": "ai-resume-task",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-98fea0768a68",
+      "kind": "command",
+      "symbol": "ai-retry-failed",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4fe106c08cbb",
+      "kind": "command",
+      "symbol": "ai-scan",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1cb606848487",
+      "kind": "command",
+      "symbol": "ai-test",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4223bbc40993",
+      "kind": "command",
+      "symbol": "backfill",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-37c569f1891e",
+      "kind": "command",
+      "symbol": "cache-clear",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-648650042a9e",
+      "kind": "command",
+      "symbol": "cache-maintain",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b53e859a2192",
+      "kind": "command",
+      "symbol": "diagnose",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3e3080261afd",
+      "kind": "command",
+      "symbol": "local-approve-selected",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d37caaf52d77",
+      "kind": "command",
+      "symbol": "local-generate",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-835d7b565835",
+      "kind": "command",
+      "symbol": "local-generate-selected",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-64ef7c97f94e",
+      "kind": "command",
+      "symbol": "local-preview-write-selected",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d371bf708dd2",
+      "kind": "command",
+      "symbol": "local-rebuild",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-432aac91e86a",
+      "kind": "command",
+      "symbol": "pipeline-scan",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0b405d389d5c",
+      "kind": "command",
+      "symbol": "rebuild-index",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9f5582e7ea5c",
+      "kind": "command",
+      "symbol": "reconcile",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a6967fae743f",
+      "kind": "command",
+      "symbol": "refresh",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-677de7685d54",
+      "kind": "command",
+      "symbol": "refresh-selected",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a52072817524",
+      "kind": "command",
+      "symbol": "repair-web",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b0d3a901796f",
+      "kind": "command",
+      "symbol": "test-imdb",
+      "source": "macos/main.go",
+      "line": 1737,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b5805a5ba116",
+      "kind": "native-action",
+      "symbol": "orderFrontStandardAboutPanel:",
+      "source": "macos/native/IMDbTechManagerLauncher.m",
+      "line": 131,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d8e3b88d1c31",
+      "kind": "native-action",
+      "symbol": "terminate:",
+      "source": "macos/native/IMDbTechManagerLauncher.m",
+      "line": 133,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3a7b8b4297eb",
+      "kind": "serialized-field",
+      "symbol": "imdb_cache_max_mb",
+      "source": "macos/platform_darwin.go",
+      "line": 197,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4ed34fa66f35",
+      "kind": "serialized-field",
+      "symbol": "library_roots_confirmed",
+      "source": "macos/platform_darwin.go",
+      "line": 509,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5aa8acc586b2",
+      "kind": "serialized-field",
+      "symbol": "candidates",
+      "source": "macos/platform_darwin.go",
+      "line": 532,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-36e7dbd320df",
+      "kind": "command",
+      "symbol": "auto",
+      "source": "macos/platform_darwin.go",
+      "line": 665,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f0d010531766",
+      "kind": "command",
+      "symbol": "run",
+      "source": "macos/platform_darwin.go",
+      "line": 667,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f56cb913aeac",
+      "kind": "command",
+      "symbol": "backfill",
+      "source": "macos/platform_darwin.go",
+      "line": 669,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-39c9006ebc26",
+      "kind": "command",
+      "symbol": "reconcile",
+      "source": "macos/platform_darwin.go",
+      "line": 671,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6017ed98225f",
+      "kind": "command",
+      "symbol": "refresh",
+      "source": "macos/platform_darwin.go",
+      "line": 673,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4175ace0563c",
+      "kind": "command",
+      "symbol": "test-imdb",
+      "source": "macos/platform_darwin.go",
+      "line": 675,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-70b9ffb8e784",
+      "kind": "command",
+      "symbol": "diagnose",
+      "source": "macos/platform_darwin.go",
+      "line": 680,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e1cc43dc1df4",
+      "kind": "command",
+      "symbol": "self-test",
+      "source": "macos/platform_darwin.go",
+      "line": 682,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-56032517efe3",
+      "kind": "command",
+      "symbol": "ai-test",
+      "source": "macos/platform_darwin.go",
+      "line": 684,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6459d3415bac",
+      "kind": "command",
+      "symbol": "ai-recover",
+      "source": "macos/platform_darwin.go",
+      "line": 686,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-38ec5e1e8324",
+      "kind": "command",
+      "symbol": "ai-scan",
+      "source": "macos/platform_darwin.go",
+      "line": 688,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f2c4b52e66c4",
+      "kind": "command",
+      "symbol": "ai-preview",
+      "source": "macos/platform_darwin.go",
+      "line": 690,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6aae7e60bfaf",
+      "kind": "command",
+      "symbol": "ai-preview-selected",
+      "source": "macos/platform_darwin.go",
+      "line": 692,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a5770014ede6",
+      "kind": "command",
+      "symbol": "reconcile-index",
+      "source": "macos/platform_darwin.go",
+      "line": 697,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-aa5f8880d887",
+      "kind": "command",
+      "symbol": "cache-maintain",
+      "source": "macos/platform_darwin.go",
+      "line": 702,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9d3758f6e909",
+      "kind": "command",
+      "symbol": "cache-clear",
+      "source": "macos/platform_darwin.go",
+      "line": 704,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a45297768c1c",
+      "kind": "command",
+      "symbol": "ai-preview-write-selected",
+      "source": "macos/platform_darwin.go",
+      "line": 706,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-51fc5ccf5b54",
+      "kind": "command",
+      "symbol": "ai-approve-selected",
+      "source": "macos/platform_darwin.go",
+      "line": 711,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6dce4d34e5b4",
+      "kind": "command",
+      "symbol": "local-preview-write-selected",
+      "source": "macos/platform_darwin.go",
+      "line": 716,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0411d20cd46b",
+      "kind": "command",
+      "symbol": "local-approve-selected",
+      "source": "macos/platform_darwin.go",
+      "line": 721,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c1bcf62fd8e2",
+      "kind": "command",
+      "symbol": "refresh-selected",
+      "source": "macos/platform_darwin.go",
+      "line": 726,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-84df724ba352",
+      "kind": "command",
+      "symbol": "ai-generate-selected",
+      "source": "macos/platform_darwin.go",
+      "line": 731,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1d11c24c8585",
+      "kind": "command",
+      "symbol": "local-generate-selected",
+      "source": "macos/platform_darwin.go",
+      "line": 736,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5a2e1776fff2",
+      "kind": "command",
+      "symbol": "ai-migrate",
+      "source": "macos/platform_darwin.go",
+      "line": 741,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7ba9636f7fb0",
+      "kind": "command",
+      "symbol": "pipeline-scan",
+      "source": "macos/platform_darwin.go",
+      "line": 743,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-867615afd496",
+      "kind": "command",
+      "symbol": "local-generate",
+      "source": "macos/platform_darwin.go",
+      "line": 745,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0b5de05c5701",
+      "kind": "command",
+      "symbol": "local-rebuild",
+      "source": "macos/platform_darwin.go",
+      "line": 747,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-50e23771b3c1",
+      "kind": "command",
+      "symbol": "ai-generate",
+      "source": "macos/platform_darwin.go",
+      "line": 749,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-78cf3d932947",
+      "kind": "command",
+      "symbol": "ai-rebuild",
+      "source": "macos/platform_darwin.go",
+      "line": 751,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-181b23e0e4f2",
+      "kind": "command",
+      "symbol": "ai-resume",
+      "source": "macos/platform_darwin.go",
+      "line": 753,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3a11a91eae75",
+      "kind": "command",
+      "symbol": "ai-resume-task",
+      "source": "macos/platform_darwin.go",
+      "line": 755,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f575ff614773",
+      "kind": "command",
+      "symbol": "ai-retry-failed",
+      "source": "macos/platform_darwin.go",
+      "line": 757,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-16531fcecd96",
+      "kind": "serialized-field",
+      "symbol": "items",
+      "source": "macos/platform_darwin.go",
+      "line": 776,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e3daf6742c48",
+      "kind": "serialized-field",
+      "symbol": "error",
+      "source": "macos/platform_darwin.go",
+      "line": 777,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e7fc93aef8d1",
+      "kind": "serialized-field",
+      "symbol": "roots",
+      "source": "macos/platform_darwin.go",
+      "line": 878,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f6389257cbec",
+      "kind": "serialized-field",
+      "symbol": "library_roots",
+      "source": "macos/platform_darwin.go",
+      "line": 879,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-56e100447667",
+      "kind": "serialized-field",
+      "symbol": "last_scan",
+      "source": "macos/platform_darwin.go",
+      "line": 905,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-55868306f040",
+      "kind": "serialized-field",
+      "symbol": "mismatch_count",
+      "source": "macos/platform_darwin.go",
+      "line": 906,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a2b9e3bd1db8",
+      "kind": "serialized-field",
+      "symbol": "nfo_count",
+      "source": "macos/platform_darwin.go",
+      "line": 907,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3bd8401aa90a",
+      "kind": "serialized-field",
+      "symbol": "updated_at",
+      "source": "macos/platform_darwin.go",
+      "line": 919,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1ff3617e9540",
+      "kind": "serialized-field",
+      "symbol": "mode",
+      "source": "macos/platform_darwin.go",
+      "line": 920,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3912aff28f93",
+      "kind": "serialized-field",
+      "symbol": "nfo_total",
+      "source": "macos/platform_darwin.go",
+      "line": 921,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-bcc9ad3d8774",
+      "kind": "serialized-field",
+      "symbol": "counts",
+      "source": "macos/platform_darwin.go",
+      "line": 922,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-bb5c86249272",
+      "kind": "serialized-field",
+      "symbol": "active_roots",
+      "source": "macos/platform_darwin.go",
+      "line": 923,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e64c6800b8fb",
+      "kind": "command",
+      "symbol": "auto",
+      "source": "macos/platform_windows.go",
+      "line": 250,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-09ab911034ef",
+      "kind": "command",
+      "symbol": "repair-web",
+      "source": "macos/platform_windows.go",
+      "line": 250,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-26d614e5fd38",
+      "kind": "command",
+      "symbol": "run",
+      "source": "macos/platform_windows.go",
+      "line": 250,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-cf267442e240",
+      "kind": "command",
+      "symbol": "diagnose",
+      "source": "macos/platform_windows.go",
+      "line": 256,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b466295dd431",
+      "kind": "command",
+      "symbol": "rebuild-index",
+      "source": "macos/platform_windows.go",
+      "line": 262,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7545a824a721",
+      "kind": "serialized-field",
+      "symbol": "indexedTitles",
+      "source": "macos/platform_windows.go",
+      "line": 307,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8d08a4026225",
+      "kind": "serialized-field",
+      "symbol": "libraries",
+      "source": "macos/platform_windows.go",
+      "line": 311,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-57cbd8efd04a",
+      "kind": "serialized-field",
+      "symbol": "onlineRootsScanned",
+      "source": "macos/platform_windows.go",
+      "line": 313,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d99080bffd7b",
+      "kind": "serialized-field",
+      "symbol": "nfoSeen",
+      "source": "macos/platform_windows.go",
+      "line": 314,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7d4ad27de4b0",
+      "kind": "serialized-field",
+      "symbol": "nfoReparsed",
+      "source": "macos/platform_windows.go",
+      "line": 315,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4bd76b6800a6",
+      "kind": "serialized-field",
+      "symbol": "technicalSpecsFound",
+      "source": "macos/platform_windows.go",
+      "line": 316,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6ce386d5eecc",
+      "kind": "serialized-field",
+      "symbol": "xmlReadErrors",
+      "source": "macos/platform_windows.go",
+      "line": 317,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-dd5e4e3bf6d1",
+      "kind": "serialized-field",
+      "symbol": "scanStats",
+      "source": "macos/platform_windows.go",
+      "line": 318,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f65332494a60",
+      "kind": "serialized-field",
+      "symbol": "generatedAt",
+      "source": "macos/platform_windows.go",
+      "line": 342,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-281cd99a752e",
+      "kind": "serialized-field",
+      "symbol": "count",
+      "source": "macos/platform_windows.go",
+      "line": 343,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7b023f13b490",
+      "kind": "serialized-field",
+      "symbol": "errors",
+      "source": "macos/platform_windows.go",
+      "line": 344,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-632c61a0e618",
+      "kind": "command",
+      "symbol": "--library-index",
+      "source": "macos/resident_darwin.go",
+      "line": 31,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-af74feda54ea",
+      "kind": "command",
+      "symbol": "--library-changes-since",
+      "source": "macos/resident_darwin.go",
+      "line": 34,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-eccd922f3de7",
+      "kind": "command",
+      "symbol": "--inspector-path",
+      "source": "macos/resident_darwin.go",
+      "line": 40,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-036bd0062b55",
+      "kind": "command",
+      "symbol": "--status-override-json",
+      "source": "macos/resident_darwin.go",
+      "line": 46,
+      "feature": "ITM-INSPECTOR",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fd380a3c6d46",
+      "kind": "command",
+      "symbol": "--inspector-edit-json",
+      "source": "macos/resident_darwin.go",
+      "line": 56,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d6c7d535b78f",
+      "kind": "command",
+      "symbol": "--inspector-undo-json",
+      "source": "macos/resident_darwin.go",
+      "line": 58,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c06420dd0dc1",
+      "kind": "command",
+      "symbol": "--inspector-issues-json",
+      "source": "macos/resident_darwin.go",
+      "line": 60,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5ceaa411a170",
+      "kind": "command",
+      "symbol": "--inspector-reload-json",
+      "source": "macos/resident_darwin.go",
+      "line": 62,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c07606689458",
+      "kind": "command",
+      "symbol": "--scope-preflight-json",
+      "source": "macos/resident_darwin.go",
+      "line": 64,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-eb4412538915",
+      "kind": "serialized-field",
+      "symbol": "id",
+      "source": "macos/resident_darwin.go",
+      "line": 93,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f79d94606ab9",
+      "kind": "serialized-field",
+      "symbol": "ok",
+      "source": "macos/resident_darwin.go",
+      "line": 94,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-16a584a97d20",
+      "kind": "serialized-field",
+      "symbol": "result",
+      "source": "macos/resident_darwin.go",
+      "line": 95,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5cc35bbb55de",
+      "kind": "serialized-field",
+      "symbol": "error",
+      "source": "macos/resident_darwin.go",
+      "line": 96,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-88ad23d5bfb8",
+      "kind": "serialized-field",
+      "symbol": "kind",
+      "source": "macos/resident_darwin.go",
+      "line": 97,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-da134fe9731a",
+      "kind": "serialized-field",
+      "symbol": "name",
+      "source": "macos/update.go",
+      "line": 35,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7a8f842c97ea",
+      "kind": "serialized-field",
+      "symbol": "browser_download_url",
+      "source": "macos/update.go",
+      "line": 36,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4d790af45930",
+      "kind": "serialized-field",
+      "symbol": "tag_name",
+      "source": "macos/update.go",
+      "line": 40,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f9e93d943d41",
+      "kind": "serialized-field",
+      "symbol": "html_url",
+      "source": "macos/update.go",
+      "line": 41,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d76d2f08354e",
+      "kind": "serialized-field",
+      "symbol": "draft",
+      "source": "macos/update.go",
+      "line": 42,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-09e375c93673",
+      "kind": "serialized-field",
+      "symbol": "prerelease",
+      "source": "macos/update.go",
+      "line": 43,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-101e6be56ac9",
+      "kind": "serialized-field",
+      "symbol": "published_at",
+      "source": "macos/update.go",
+      "line": 44,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b8746cd92213",
+      "kind": "serialized-field",
+      "symbol": "assets",
+      "source": "macos/update.go",
+      "line": 45,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-60b573e205c1",
+      "kind": "serialized-field",
+      "symbol": "schema_version",
+      "source": "macos/update.go",
+      "line": 49,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-54d437320fcb",
+      "kind": "serialized-field",
+      "symbol": "snapshot_id",
+      "source": "macos/update.go",
+      "line": 50,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-74e8d709e129",
+      "kind": "serialized-field",
+      "symbol": "etag",
+      "source": "macos/update.go",
+      "line": 51,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-768ed92a2e2e",
+      "kind": "serialized-field",
+      "symbol": "checked_at",
+      "source": "macos/update.go",
+      "line": 52,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9b40e99ba6f1",
+      "kind": "serialized-field",
+      "symbol": "release",
+      "source": "macos/update.go",
+      "line": 53,
+      "feature": "ITM-PROTOCOL",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a8521ed8fb73",
+      "kind": "serialized-field",
+      "symbol": "update_id",
+      "source": "macos/update.go",
+      "line": 548,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3f69dea4567f",
+      "kind": "control",
+      "symbol": "openSettings",
+      "source": "macos/web/index.html",
+      "line": 60,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-41c315a2bf1f",
+      "kind": "control",
+      "symbol": "refreshLibrary",
+      "source": "macos/web/index.html",
+      "line": 60,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-dede213883ad",
+      "kind": "control",
+      "symbol": "filter",
+      "source": "macos/web/index.html",
+      "line": 66,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9dec2fbf2ede",
+      "kind": "control",
+      "symbol": "search",
+      "source": "macos/web/index.html",
+      "line": 66,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e468dc7cb80a",
+      "kind": "control",
+      "symbol": "selAll",
+      "source": "macos/web/index.html",
+      "line": 67,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-235a8fa1a884",
+      "kind": "control",
+      "symbol": "selClear",
+      "source": "macos/web/index.html",
+      "line": 67,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ed2bb9986f07",
+      "kind": "control",
+      "symbol": "selInvert",
+      "source": "macos/web/index.html",
+      "line": 67,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5a1041822d05",
+      "kind": "control",
+      "symbol": "typeFilter",
+      "source": "macos/web/index.html",
+      "line": 67,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-673aa3761362",
+      "kind": "control",
+      "symbol": "fetchSpec",
+      "source": "macos/web/index.html",
+      "line": 80,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2439b4845940",
+      "kind": "control",
+      "symbol": "generateEngine",
+      "source": "macos/web/index.html",
+      "line": 80,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f22dbfccf717",
+      "kind": "control",
+      "symbol": "generateNow",
+      "source": "macos/web/index.html",
+      "line": 80,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7622bf67efcb",
+      "kind": "control",
+      "symbol": "previewScope",
+      "source": "macos/web/index.html",
+      "line": 80,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5b86fbc35f01",
+      "kind": "control",
+      "symbol": "rescanCurrent",
+      "source": "macos/web/index.html",
+      "line": 80,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-73a26999f596",
+      "kind": "control",
+      "symbol": "currentTaskTab",
+      "source": "macos/web/index.html",
+      "line": 81,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-248daaaeb2d7",
+      "kind": "control",
+      "symbol": "historyTaskTab",
+      "source": "macos/web/index.html",
+      "line": 81,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-40480a02035d",
+      "kind": "control",
+      "symbol": "pauseTask",
+      "source": "macos/web/index.html",
+      "line": 81,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b98bc7dbb706",
+      "kind": "control",
+      "symbol": "recoverAI",
+      "source": "macos/web/index.html",
+      "line": 81,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-cdc748a70620",
+      "kind": "control",
+      "symbol": "resumeTask",
+      "source": "macos/web/index.html",
+      "line": 81,
+      "feature": "ITM-TASK",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b745fe577d5a",
+      "kind": "control",
+      "symbol": "retryFailed",
+      "source": "macos/web/index.html",
+      "line": 81,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-77e6d5e57c63",
+      "kind": "control",
+      "symbol": "closeSettings",
+      "source": "macos/web/index.html",
+      "line": 84,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f659d1448681",
+      "kind": "control",
+      "symbol": "appAutoStart",
+      "source": "macos/web/index.html",
+      "line": 85,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5bb2d8eed792",
+      "kind": "control",
+      "symbol": "language",
+      "source": "macos/web/index.html",
+      "line": 85,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7d87b2eaaed1",
+      "kind": "control",
+      "symbol": "languageCurrent",
+      "source": "macos/web/index.html",
+      "line": 85,
+      "feature": "ITM-LOCALE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-12da23cfe8d9",
+      "kind": "control",
+      "symbol": "autoStart",
+      "source": "macos/web/index.html",
+      "line": 86,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-aa29c53c149a",
+      "kind": "control",
+      "symbol": "clearIMDbCache",
+      "source": "macos/web/index.html",
+      "line": 86,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-dd81a55e1fb6",
+      "kind": "control",
+      "symbol": "imdbCacheLimit",
+      "source": "macos/web/index.html",
+      "line": 86,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-db39bce179b6",
+      "kind": "control",
+      "symbol": "movieRootInput",
+      "source": "macos/web/index.html",
+      "line": 86,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5d8bc617de39",
+      "kind": "control",
+      "symbol": "saveIMDbCache",
+      "source": "macos/web/index.html",
+      "line": 86,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e533f029260e",
+      "kind": "control",
+      "symbol": "saveRoots",
+      "source": "macos/web/index.html",
+      "line": 86,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5f0312d25ec8",
+      "kind": "control",
+      "symbol": "toggleAgent",
+      "source": "macos/web/index.html",
+      "line": 86,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6f543c2d7293",
+      "kind": "control",
+      "symbol": "tvRootInput",
+      "source": "macos/web/index.html",
+      "line": 86,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-dd3f2aab583c",
+      "kind": "control",
+      "symbol": "aiBase",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-36197ba9f9be",
+      "kind": "control",
+      "symbol": "aiCostBudget",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0d8167922eb9",
+      "kind": "control",
+      "symbol": "aiEnabled",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-642f3a4f29dd",
+      "kind": "control",
+      "symbol": "aiJSONMode",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-11b5134510d4",
+      "kind": "control",
+      "symbol": "aiKey",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e90d6e5b56db",
+      "kind": "control",
+      "symbol": "aiModel",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-00a49ea39278",
+      "kind": "control",
+      "symbol": "aiPrompt",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-305ab6f009a6",
+      "kind": "control",
+      "symbol": "aiPromptCache",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-95ad828b75bd",
+      "kind": "control",
+      "symbol": "aiProtocol",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d9b269e44040",
+      "kind": "control",
+      "symbol": "aiRequestBudget",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2fc2ac1d09a0",
+      "kind": "control",
+      "symbol": "aiRetries",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c37cc5ebc9bc",
+      "kind": "control",
+      "symbol": "aiTemperature",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9ab85ac73d5d",
+      "kind": "control",
+      "symbol": "aiThinking",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c29034b2556a",
+      "kind": "control",
+      "symbol": "aiTimeout",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7b9c779e92ad",
+      "kind": "control",
+      "symbol": "aiTokenBudget",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6bab3e6d170d",
+      "kind": "control",
+      "symbol": "aiTokenCap",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ee6193f90f8d",
+      "kind": "control",
+      "symbol": "aiTokens",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-34c73fa7ccf8",
+      "kind": "control",
+      "symbol": "aiTopP",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4d09da03aa3e",
+      "kind": "control",
+      "symbol": "saveAI",
+      "source": "macos/web/index.html",
+      "line": 87,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4ba947c707a5",
+      "kind": "control",
+      "symbol": "quitApp",
+      "source": "macos/web/index.html",
+      "line": 88,
+      "feature": "ITM-LIFECYCLE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-06ad42e1f743",
+      "kind": "control",
+      "symbol": "cancelTechInstall",
+      "source": "macos/web/index.html",
+      "line": 89,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-4423b3105496",
+      "kind": "control",
+      "symbol": "checkTechUpdate",
+      "source": "macos/web/index.html",
+      "line": 89,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8ca0b6638d42",
+      "kind": "control",
+      "symbol": "confirmTechInstall",
+      "source": "macos/web/index.html",
+      "line": 89,
+      "feature": "ITM-UPDATE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7f40e51daf65",
+      "kind": "control",
+      "symbol": "onboardingMovieInput",
+      "source": "macos/web/index.html",
+      "line": 92,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6eb3f554e44f",
+      "kind": "control",
+      "symbol": "onboardingSave",
+      "source": "macos/web/index.html",
+      "line": 92,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-da42411e07d9",
+      "kind": "control",
+      "symbol": "onboardingSkip",
+      "source": "macos/web/index.html",
+      "line": 92,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2f4930c02027",
+      "kind": "control",
+      "symbol": "onboardingTVInput",
+      "source": "macos/web/index.html",
+      "line": 92,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-f9fda99d25ac",
+      "kind": "control",
+      "symbol": "previewApprove",
+      "source": "macos/web/index.html",
+      "line": 93,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fdb7f8318327",
+      "kind": "control",
+      "symbol": "previewClose",
+      "source": "macos/web/index.html",
+      "line": 93,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0517ff10c72f",
+      "kind": "control",
+      "symbol": "undoBtn",
+      "source": "macos/web/index.html",
+      "line": 95,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2aba7c28cc5f",
+      "kind": "control",
+      "symbol": "columnWrench",
+      "source": "macos/web/index.html",
+      "line": 270,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ee956a75d75b",
+      "kind": "delegated-control",
+      "symbol": "data-reorderable",
+      "source": "macos/web/index.html",
+      "line": 270,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-51db090f68b6",
+      "kind": "control",
+      "symbol": "resetColumns",
+      "source": "macos/web/index.html",
+      "line": 270,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-7123608fd735",
+      "kind": "delegated-control",
+      "symbol": "data-season-paths",
+      "source": "macos/web/index.html",
+      "line": 278,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8b9740973a32",
+      "kind": "control",
+      "symbol": "statusOverrideClear",
+      "source": "macos/web/index.html",
+      "line": 303,
+      "feature": "ITM-INSPECTOR",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-dbb90065d95f",
+      "kind": "control",
+      "symbol": "statusOverrideSel",
+      "source": "macos/web/index.html",
+      "line": 303,
+      "feature": "ITM-INSPECTOR",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-18c880d2f6e8",
+      "kind": "control",
+      "symbol": "clearAiTags",
+      "source": "macos/web/index.html",
+      "line": 305,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-11d18f8ec7c1",
+      "kind": "delegated-control",
+      "symbol": "data-add-manual",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-abbbbd4b24ac",
+      "kind": "delegated-control",
+      "symbol": "data-add-spec",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-d2c7150ecd34",
+      "kind": "delegated-control",
+      "symbol": "data-copy",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fc73ef5875df",
+      "kind": "delegated-control",
+      "symbol": "data-delete-spec",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-336a3df3c8c3",
+      "kind": "delegated-control",
+      "symbol": "data-delete-tag",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-5bdbbaa5c590",
+      "kind": "delegated-control",
+      "symbol": "data-edit-spec",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-12e9649c11a5",
+      "kind": "delegated-control",
+      "symbol": "data-edit-tag",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-3f6c300f1bfb",
+      "kind": "delegated-control",
+      "symbol": "data-ignore-kind",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-INSPECTOR",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a26058701698",
+      "kind": "delegated-control",
+      "symbol": "data-open-path",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b9926b5b03fc",
+      "kind": "delegated-control",
+      "symbol": "data-restore-issues",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-INSPECTOR",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fe7085c8bed4",
+      "kind": "delegated-control",
+      "symbol": "data-restore-spec",
+      "source": "macos/web/index.html",
+      "line": 307,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c0f0a9ab1018",
+      "kind": "delegated-control",
+      "symbol": "data-own-choice",
+      "source": "macos/web/index.html",
+      "line": 312,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b2ea0994edb6",
+      "kind": "delegated-control",
+      "symbol": "data-remove-index",
+      "source": "macos/web/index.html",
+      "line": 322,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fe179713ff0b",
+      "kind": "delegated-control",
+      "symbol": "data-onboard-index",
+      "source": "macos/web/index.html",
+      "line": 332,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-615269e7876e",
+      "kind": "frontend-action",
+      "symbol": "ai-generate-selected",
+      "source": "macos/web/index.html",
+      "line": 340,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-af0bc01a6797",
+      "kind": "frontend-action",
+      "symbol": "ai-preview-write-selected",
+      "source": "macos/web/index.html",
+      "line": 340,
+      "feature": "ITM-TRANSACTION",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-6da68ef07bc6",
+      "kind": "frontend-action",
+      "symbol": "local-generate-selected",
+      "source": "macos/web/index.html",
+      "line": 340,
+      "feature": "ITM-PREVIEW",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-eac88648ec7e",
+      "kind": "frontend-action",
+      "symbol": "open-path",
+      "source": "macos/web/index.html",
+      "line": 340,
+      "feature": "ITM-DIAGNOSTICS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-418d2374c94d",
+      "kind": "delegated-control",
+      "symbol": "data-resize-field",
+      "source": "macos/web/index.html",
+      "line": 348,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0cd1f5151a4a",
+      "kind": "delegated-control",
+      "symbol": "data-compact-view",
+      "source": "macos/web/index.html",
+      "line": 352,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2c516258c97d",
+      "kind": "delegated-control",
+      "symbol": "data-season-check",
+      "source": "macos/web/index.html",
+      "line": 353,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fded56574295",
+      "kind": "delegated-control",
+      "symbol": "data-tree",
+      "source": "macos/web/index.html",
+      "line": 353,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-fdceeca63ba4",
+      "kind": "frontend-action",
+      "symbol": "refresh-selected",
+      "source": "macos/web/index.html",
+      "line": 354,
+      "feature": "ITM-SPECS",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-63a269f98827",
+      "kind": "frontend-action",
+      "symbol": "ai-recover",
+      "source": "macos/web/index.html",
+      "line": 355,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9b36bf81dde7",
+      "kind": "frontend-action",
+      "symbol": "ai-resume-task",
+      "source": "macos/web/index.html",
+      "line": 355,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-e1200127ab7e",
+      "kind": "frontend-action",
+      "symbol": "ai-retry-failed",
+      "source": "macos/web/index.html",
+      "line": 355,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a0f7c55ee06f",
+      "kind": "frontend-action",
+      "symbol": "ai-task-pause",
+      "source": "macos/web/index.html",
+      "line": 355,
+      "feature": "ITM-AI",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-c04a8c6598c3",
+      "kind": "frontend-action",
+      "symbol": "reconcile-index",
+      "source": "macos/web/index.html",
+      "line": 355,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-98220c4797a0",
+      "kind": "delegated-control",
+      "symbol": "data-add-root",
+      "source": "macos/web/index.html",
+      "line": 357,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-ecef7c3ef0d6",
+      "kind": "delegated-control",
+      "symbol": "data-choose-root",
+      "source": "macos/web/index.html",
+      "line": 357,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-0ee124e68e0c",
+      "kind": "delegated-control",
+      "symbol": "data-remove-space",
+      "source": "macos/web/index.html",
+      "line": 357,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-8cff2b33aa0d",
+      "kind": "delegated-control",
+      "symbol": "data-test-root",
+      "source": "macos/web/index.html",
+      "line": 357,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-2fcdd952171e",
+      "kind": "delegated-control",
+      "symbol": "data-onboard-add",
+      "source": "macos/web/index.html",
+      "line": 358,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1c85e98aa657",
+      "kind": "delegated-control",
+      "symbol": "data-onboard-choose",
+      "source": "macos/web/index.html",
+      "line": 358,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a5c55176dcb2",
+      "kind": "delegated-control",
+      "symbol": "data-onboard-remove",
+      "source": "macos/web/index.html",
+      "line": 358,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-b4455a345309",
+      "kind": "delegated-control",
+      "symbol": "data-own-badge",
+      "source": "macos/web/index.html",
+      "line": 359,
+      "feature": "ITM-OWNERSHIP",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-1c217e153ec2",
+      "kind": "delegated-control",
+      "symbol": "data-check",
+      "source": "macos/web/index.html",
+      "line": 367,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-23a20985b2a7",
+      "kind": "delegated-control",
+      "symbol": "data-sort-field",
+      "source": "macos/web/index.html",
+      "line": 369,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-089757ffae85",
+      "kind": "delegated-control",
+      "symbol": "data-space",
+      "source": "macos/web/index.html",
+      "line": 380,
+      "feature": "ITM-SCOPE",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-a418db6c970d",
+      "kind": "delegated-control",
+      "symbol": "data-tab",
+      "source": "macos/web/index.html",
+      "line": 408,
+      "feature": "ITM-LAYOUT",
+      "mapping_status": "source-mapped-runtime-unverified"
+    },
+    {
+      "id": "ITM-E-9296011946af",
+      "kind": "frontend-action",
+      "symbol": "cache-clear",
+      "source": "macos/web/index.html",
+      "line": 415,
+      "feature": "ITM-CATALOG",
+      "mapping_status": "source-mapped-runtime-unverified"
+    }
+  ]
+}

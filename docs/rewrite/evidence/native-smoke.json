@@ -1,0 +1,55 @@
+{
+  "product": "ITM",
+  "timestamp": "2026-09-10T08:35:42.625885+00:00",
+  "host": {
+    "macos": "26.6.2",
+    "arch": "arm64"
+  },
+  "artifact": {
+    "path": "rewrite/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/ITM Validation_4.1.0_aarch64.dmg",
+    "sha256": "9627701b7cadd3b663e2887153aafc20d144f39d86749bf4a1641b0e0f27103c",
+    "bytes": 9638670
+  },
+  "source_sha256": {
+    "rewrite/src-tauri/src/main.rs": "5955cc6c70dcf2268cfbb2d24274dd6269548d98721c4b94a1a21609659869f5",
+    "rewrite/src/App.vue": "d404bc7fbde11cedcd80bd02bb2673f6646fab3b03624ddd3f90f81449a52cef",
+    "rewrite/src-tauri/Cargo.lock": "6f052556bd67e6d4bec4579605990136a23cc8e3818722403a795bc75a3d1007",
+    "rewrite/package-lock.json": "cd581047ec956a0ff028a56eca07cb9bb7c19f12b7a0390e3006852b6d92611c",
+    "rewrite/src-tauri/tauri.conf.json": "d8c683d5c284db97b1eaf809558e6e6c1bd32751a6d73859fe9489f21f61bcd1",
+    "rewrite/src-tauri/icons/icon.png": "d85814c2bcfd0caa218b0540736407841c25407c216a503c3425387022df3884",
+    "rewrite/src-tauri/icons/icon.icns": "923b2899e94e93db9394a89374fd6db9bcc71ababff22d5593e2c40f0b7800fe",
+    "rewrite/src-tauri/icons/icon.ico": "20fb49636d2c1e85064ad10f8576ba09a4ad724e82bcbdc69ad6656499d5d645"
+  },
+  "app_architecture": "arm64",
+  "license_notice": "byte-identical-to-repository",
+  "install": "copied-from-readonly-DMG-to-isolated-directory",
+  "events": [
+    {
+      "arch": "aarch64",
+      "event": "native-setup-complete",
+      "os": "macos",
+      "product": "ITM"
+    },
+    {
+      "arch": "aarch64",
+      "event": "frontend-mounted-ipc-roundtrip",
+      "os": "macos",
+      "product": "ITM"
+    },
+    {
+      "arch": "aarch64",
+      "event": "process-exit",
+      "os": "macos",
+      "product": "ITM"
+    }
+  ],
+  "exit_code": 0,
+  "remaining_app_processes": 0,
+  "limitations": [
+    "No Gatekeeper/notarization acceptance",
+    "No update or data migration exercised",
+    "Visual appearance requires separate native UI inspection",
+    "Removal of isolated app only; not production uninstaller validation"
+  ],
+  "isolated_install_removal": "passed"
+}

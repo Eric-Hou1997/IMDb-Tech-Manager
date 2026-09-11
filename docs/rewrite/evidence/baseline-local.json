@@ -1,0 +1,554 @@
+{
+  "schema": 1,
+  "product": "ITM",
+  "timestamp": "2026-09-10T08:05:24.977953+00:00",
+  "host": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "python": "3.9.6"
+  },
+  "baseline_commit": "d9fc83034304a1222c5550d2cefcbf56f291b841",
+  "checks": [
+    {
+      "name": "approval_ui_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/approval_ui_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "name": "batch_control_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/batch_control_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.13
+    },
+    {
+      "name": "cache_budget_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/cache_budget_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "cache_catalog_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/cache_catalog_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "cache_ui_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/cache_ui_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.02
+    },
+    {
+      "name": "failure_fingerprint_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/failure_fingerprint_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "name": "focused_regression_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/focused_regression_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "inspector_edit_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/inspector_edit_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.12
+    },
+    {
+      "name": "language_pack_release_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/language_pack_release_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.25
+    },
+    {
+      "name": "language_refresh_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/language_refresh_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "library_ui_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/library_ui_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.02
+    },
+    {
+      "name": "localization_upgrade_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/localization_upgrade_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "name": "native_packaging_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/native_packaging_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.02
+    },
+    {
+      "name": "onboarding_safety_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/onboarding_safety_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.02
+    },
+    {
+      "name": "ownership_lifecycle_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/ownership_lifecycle_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.24
+    },
+    {
+      "name": "pacific_rim_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/pacific_rim_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.09
+    },
+    {
+      "name": "performance_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/performance_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "persistence_writer_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/persistence_writer_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.18
+    },
+    {
+      "name": "preview_regression",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/preview_regression.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "name": "preview_write_cache_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/preview_write_cache_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "name": "python_compat_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/python_compat_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.04
+    },
+    {
+      "name": "real_007_fixture_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/real_007_fixture_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "name": "release_410_closeout_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/release_410_closeout_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.02
+    },
+    {
+      "name": "release_metadata_update_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/release_metadata_update_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.03
+    },
+    {
+      "name": "schema21_ownership_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/schema21_ownership_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "scope_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/scope_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "selected_write_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/selected_write_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "stability_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/stability_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.03
+    },
+    {
+      "name": "startup_catalog_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/startup_catalog_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.51
+    },
+    {
+      "name": "webkit_fallback_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/webkit_fallback_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "name": "webkit_ui_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/webkit_ui_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.02
+    },
+    {
+      "name": "engine-self-test",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/engine/mac-engine.py",
+        "--self-test"
+      ],
+      "kind": "engine-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.1
+    },
+    {
+      "name": "writer-fault-injection",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/tools/rewrite/itm_behavior.py"
+      ],
+      "kind": "original-engine-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.19
+    },
+    {
+      "name": "go-vet",
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "kind": "native-go-vet",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 3.72
+    },
+    {
+      "name": "go-build",
+      "command": [
+        "go",
+        "build",
+        "-o",
+        "${TEMP}/core",
+        "."
+      ],
+      "kind": "native-go-build",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.46
+    },
+    {
+      "name": "IMDbTechManagerLauncher.m",
+      "command": [
+        "clang",
+        "-fobjc-arc",
+        "-fmodules",
+        "-fmodules-cache-path=${TEMP}/clang",
+        "-mmacosx-version-min=12.0",
+        "-fsyntax-only",
+        "${REPO}/macos/native/IMDbTechManagerLauncher.m"
+      ],
+      "kind": "native-syntax-only",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 2.11
+    },
+    {
+      "name": "IMDbWebKitFetcher.m",
+      "command": [
+        "clang",
+        "-fobjc-arc",
+        "-fmodules",
+        "-fmodules-cache-path=${TEMP}/clang",
+        "-mmacosx-version-min=12.0",
+        "-fsyntax-only",
+        "${REPO}/macos/native/IMDbWebKitFetcher.m"
+      ],
+      "kind": "native-syntax-only",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.05
+    },
+    {
+      "name": "ai_protocol_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/ai_protocol_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 1.65
+    },
+    {
+      "name": "ai_recovery_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/ai_recovery_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.63
+    },
+    {
+      "name": "backend_native_localization_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/backend_native_localization_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "http_meter_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/http_meter_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.61
+    },
+    {
+      "name": "library_issue_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/library_issue_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11
+    },
+    {
+      "name": "localization_web_dom_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/localization_web_dom_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 10.15
+    },
+    {
+      "name": "qwen_token_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/qwen_token_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.62
+    },
+    {
+      "name": "web_ui_dom_contract",
+      "command": [
+        "/Library/Developer/CommandLineTools/usr/bin/python3",
+        "${REPO}/macos/tests/web_ui_dom_contract.py"
+      ],
+      "kind": "legacy-contract-mixed-static-and-behavior",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 20.21
+    },
+    {
+      "name": "go-test",
+      "command": [
+        "go",
+        "test",
+        "./..."
+      ],
+      "kind": "native-go-test",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 4.69
+    },
+    {
+      "name": "go-race",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./..."
+      ],
+      "kind": "native-go-race",
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 8.95
+    }
+  ],
+  "legacy_runtime_unchanged": true,
+  "limitations": [
+    "No new Rust business core exists yet; differential new/old parity is pending.",
+    "A passed mixed contract may include source assertions. See each test; it is not full desktop acceptance.",
+    "TCM Windows PowerShell, Emby and service integration require the Windows gate."
+  ]
+}

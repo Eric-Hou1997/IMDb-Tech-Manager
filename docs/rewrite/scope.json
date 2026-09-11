@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "product": "ITM",
+  "branch": "v5.0.0-rewrite",
+  "baseline_tag": "v4.1.0",
+  "baseline_commit": "d9fc83034304a1222c5550d2cefcbf56f291b841",
+  "starting_commit": "6d4069a805ba99215d4aa63185c5705be0f4270d",
+  "status": "scope-frozen-not-platform-certified",
+  "architectures_excluded": [
+    "macos-x64",
+    "armv7",
+    "windows-x86"
+  ],
+  "targets": [
+    {
+      "id": "macos-arm64",
+      "rust_target": "aarch64-apple-darwin",
+      "bundles": [
+        "dmg"
+      ],
+      "acceptance_systems": "macOS 12+（最低版本及当前系统分别验收）",
+      "status": "unverified"
+    },
+    {
+      "id": "windows-x64",
+      "rust_target": "x86_64-pc-windows-msvc",
+      "bundles": [
+        "nsis"
+      ],
+      "acceptance_systems": "Windows 11 24H2 x64",
+      "status": "unverified"
+    },
+    {
+      "id": "windows-arm64",
+      "rust_target": "aarch64-pc-windows-msvc",
+      "bundles": [
+        "nsis"
+      ],
+      "acceptance_systems": "Windows 11 24H2 ARM64",
+      "status": "unverified"
+    },
+    {
+      "id": "linux-x64",
+      "rust_target": "x86_64-unknown-linux-gnu",
+      "bundles": [
+        "appimage",
+        "deb",
+        "rpm"
+      ],
+      "acceptance_systems": "Ubuntu 22.04/24.04 LTS、Debian 12/13、Fedora 43/44",
+      "status": "unverified"
+    },
+    {
+      "id": "linux-arm64",
+      "rust_target": "aarch64-unknown-linux-gnu",
+      "bundles": [
+        "appimage",
+        "deb",
+        "rpm"
+      ],
+      "acceptance_systems": "Ubuntu 22.04/24.04 LTS、Debian 12/13、Fedora 43/44",
+      "status": "unverified"
+    }
+  ],
+  "package_count": 9,
+  "stack": [
+    "Rust",
+    "Tauri 2",
+    "TypeScript",
+    "Vue 3",
+    "Vite"
+  ],
+  "frontend_decision": "Vue 3 + Vite adopted for this authorized feasibility implementation",
+  "linux_build_baseline": "Ubuntu 22.04, native x64/ARM64; RPM runtime dependency names verified on Fedora before support certification",
+  "minimum_system_policy": "Targets for acceptance, not a claim of currently supported systems; OS versions may be extended without deleting required architectures or formats."
+}

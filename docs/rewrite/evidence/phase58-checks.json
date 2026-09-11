@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "product": "ITM",
+  "timestamp": "2026-09-10T10:34:55.869191+00:00",
+  "branch": "v5.0.0-rewrite",
+  "status": "partial-implementation-not-step-5-to-8-acceptance",
+  "host": {
+    "macos": "26.6.2",
+    "arch": "arm64"
+  },
+  "source_sha256": {
+    ".github/workflows/rewrite-validation.yml": "1df5005467464460a7432e6218a8b266b49db960483e1c1071db855dd3babb44",
+    "rewrite/package-lock.json": "cd581047ec956a0ff028a56eca07cb9bb7c19f12b7a0390e3006852b6d92611c",
+    "rewrite/src/App.vue": "260141b2566b4cfcb0d4bdd64728bdbc1c8d1420c494370525fbb78e5f373ac8",
+    "rewrite/src/LibraryPanel.vue": "2aef3aaa5f93bb118a73d0c51e7835dd216d5a5cf305bf31c36b2c63aa2574e1",
+    "rewrite/src/contracts.ts": "9d05a7dc95931cc271fbdcd10d7f38af599f7c51a36637536482c65c429b10d1",
+    "rewrite/src/main.ts": "fc77d6694de55892ab09e6957b93c62c0c1b1e0d99803099f4d16755f2540810",
+    "rewrite/src-tauri/Cargo.lock": "dad67e2074bc7ad87ee84f95abb2ef81f32dd00b8739ace0fce9530971171bca",
+    "rewrite/src-tauri/Cargo.toml": "9796e727d2b9bfbc0c37b4f69960c5b5bf0f9d27ba98aa88c9933df4704bd1a4",
+    "rewrite/src-tauri/core/Cargo.toml": "6f1bcdeaeeaebd2f2c6a829d77e04059b684d2c3805cbf598f8f6f2745596799",
+    "rewrite/src-tauri/core/assets/ai-output-schema.json": "db04aad435942bca959d67a247cb033eb7f299d944c868faa2b6e700f67730e1",
+    "rewrite/src-tauri/core/assets/default-ai-prompt.txt": "6549a78834aaed05b64e3f9e57f9d7b70db10aa1f179c1cd906abd9c79935797",
+    "rewrite/src-tauri/core/assets/language-boundary.txt": "136b73ba4e806d5cf7341a0aa14a199d5b8d2878181d966e175ff709664fc40c",
+    "rewrite/src-tauri/core/examples/characterize.rs": "a213c452db3870429194b6172e4707cd7fea3bc1176607d207a40b1546a16ef1",
+    "rewrite/src-tauri/core/examples/export_types.rs": "ee00d7ce8c1660a9adfa43d6b5fc9172aafe1af7b0b58622f25f799ba0af88d7",
+    "rewrite/src-tauri/core/src/ai.rs": "998a5481e3d6f1e76c3cedf6600226960c11e91801140271df32ccbd7b92b5e5",
+    "rewrite/src-tauri/core/src/contracts.rs": "b3a2749bf74cd3d5813c960b40a1c481ff32952f77bb9e94039a4c22cb9b9647",
+    "rewrite/src-tauri/core/src/lib.rs": "b63e3f79987f3a785422383773f25c27e2c321e8d1d7c7e8ad0ecf8e3f5f69b5",
+    "rewrite/src-tauri/core/src/library.rs": "d7fe7a21eba8a5a433bf924baaebe4fbcaa82ea8186af68e0318cef5161926ff",
+    "rewrite/src-tauri/core/src/paths.rs": "cc23ae3f89bac7b456b2f1c698e5a446b1f679ce3ac8a1c74d7982454261b988",
+    "rewrite/src-tauri/core/src/rules.rs": "9c2f108c2db7be9ce5aaf84d471d677e656e55cf49a7faf76e8ffd9154fe8b05",
+    "rewrite/src-tauri/core/src/services.rs": "8cf797eae791ee496f87492f8597b1054a0ead08a8b1530e266fe2afe7bbfcca",
+    "rewrite/src-tauri/core/src/specs.rs": "2b75651bc124b2f27e90465eed519fdb733951871b74ea5b2d9bb4e538ed09ce",
+    "rewrite/src-tauri/core/src/store.rs": "8264775f70d889e936a519d9fbc45a98b5964f1c45ca5303b10cf38f6d2ce06d",
+    "rewrite/src-tauri/core/src/transaction.rs": "697ec4eb6835612551d8083ab3add89fbe1532ed414fc16031979fb08717928f",
+    "rewrite/src-tauri/core/tests/ai_policy.rs": "2fc7eaed0b8d8b4579251b4155ad5948cb023d6cabc1075fa61f1ed3647df4ba",
+    "rewrite/src-tauri/core/tests/compatibility.rs": "98cd5ccc6c91cc22298737bca91827b6463e6a2eb39211c42fb36caaf3828576",
+    "rewrite/src-tauri/core/tests/reading.rs": "273abad13c540199cb0961241433892daad2274df43d52377184629440fd44a2",
+    "rewrite/src-tauri/core/tests/rules.rs": "b566891476f1d5b2573ab0fabeb60b988578be30f62741a19743dbf968694699",
+    "rewrite/src-tauri/core/tests/writing.rs": "66670c469ea541df6dcc0574c2edd6c68b67f64214884b19facdf4f65a1a4f0a",
+    "rewrite/src-tauri/src/credentials.rs": "619cb5feacc03db76062cb5ef1315a6c2af863d0bab23cd1f44caf06f79fa47a",
+    "rewrite/src-tauri/src/desktop.rs": "1c8f9d79d5f5d23ef57c136795c420d8bae100a9e658f1bbe213f106b3a19ec0",
+    "rewrite/src-tauri/src/main.rs": "52cc87ece7544d63789695e8726245b273f49a6dfed413f79bba312dbd80da38",
+    "rewrite/src-tauri/tauri.conf.json": "d8c683d5c284db97b1eaf809558e6e6c1bd32751a6d73859fe9489f21f61bcd1"
+  },
+  "checks": [
+    {
+      "kind": "executed-core-behavior",
+      "command": "cargo test --locked -p itm-core --features write-prototype",
+      "passed": 38,
+      "failed": 0,
+      "test_names": [
+        "cached_usage_never_charges_current_run",
+        "anthropic_usage_includes_cache_tokens_before_validation",
+        "provider_extensions_do_not_leak_and_custom_prompt_is_preserved",
+        "truncated_output_is_classified_before_content_and_usage_is_kept",
+        "provider_http_failures_remain_distinct",
+        "transport_error_counts_attempt_but_not_success",
+        "qwen_default_request_is_compact_non_thinking_and_keeps_prompt",
+        "malformed_json_schema_and_provider_response_are_distinct",
+        "invalid_source_index_is_not_writable",
+        "explicit_retry_or_changed_configuration_bypasses_failure_skip",
+        "provenance_coverage_is_recorded_before_deduplication",
+        "unicode_ownership_and_repeated_specs_match_legacy_python_semantics",
+        "future_database_is_not_downgraded",
+        "database_has_one_live_owner",
+        "invalid_scope_and_optimistic_configuration_revision",
+        "operation_replay_and_changed_input_conflict",
+        "shutdown_is_recoverable_and_history_persists",
+        "symlink_is_rejected_instead_of_scanning_external_root",
+        "operation_results_are_queryable_and_ids_cannot_cross_operation_kinds",
+        "malformed_and_dtd_never_repair_source",
+        "resumed_scan_removes_files_deleted_while_paused",
+        "offline_root_preserves_index_and_failure_is_locatable",
+        "pause_resume_and_replayed_pause_do_not_pause_again",
+        "cancel_during_progress_is_not_overwritten_by_worker",
+        "long_unicode_paths_and_incremental_content_change",
+        "readonly_nfo_identity_scope_and_ownership",
+        "only_derived_sections_emit_tags_and_duplicate_keeps_first_provenance",
+        "camera_series_expansion_preserves_brand_and_source_fact",
+        "ambiguous_and_stays_intact_and_notes_do_not_split",
+        "structured_imdb_keeps_separate_bullets",
+        "ownership_mutation_is_rejected",
+        "candidate_preserves_protected_bytes_and_marks_stale",
+        "stale_hash_and_invalid_candidate_do_not_write",
+        "mutation_outside_specs_is_rejected",
+        "concurrent_external_edit_is_never_replaced",
+        "cancelled_before_replace_preserves_source",
+        "commit_retry_undo_preserve_bytes_and_permissions",
+        "interruption_after_replace_is_recovered_by_hash"
+      ]
+    },
+    {
+      "kind": "lint",
+      "command": "cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
+      "status": "passed"
+    },
+    {
+      "kind": "format",
+      "command": "cargo fmt --all --check",
+      "status": "passed"
+    },
+    {
+      "kind": "generated-types",
+      "command": "cargo run --locked -q -p itm-core --example export_types -- --check ../src/contracts.ts",
+      "status": "passed"
+    },
+    {
+      "kind": "frontend",
+      "command": "npm run build",
+      "status": "passed",
+      "scope": "vue-tsc and Vite, also run by Tauri beforeBuildCommand"
+    },
+    {
+      "kind": "native-package",
+      "command": "npm run tauri build -- --target aarch64-apple-darwin --bundles dmg -- --locked",
+      "status": "passed",
+      "evidence": "phase58-native-smoke.json"
+    },
+    {
+      "kind": "legacy-rust-differential",
+      "command": "cargo build --locked -p itm-core --example characterize && /usr/bin/python3 ../../tools/rewrite/differential.py",
+      "passed_groups": 14,
+      "groups": [
+        "PASS NFO identity and effective specs: casino-royale-1967-real.nfo",
+        "PASS NFO identity and effective specs: casino-royale-legacy-minimal.nfo",
+        "PASS request, default prompt and thinking/cache policy: openai",
+        "PASS request, default prompt and thinking/cache policy: anthropic",
+        "PASS structured IMDb parser: ten fields and separate bullets",
+        "PASS local rules, provenance and order: Panavision B- and C-Series Lenses",
+        "PASS local rules, provenance and order: Panavision C-, D-, E- and H-Series Lenses, Sony Venice (aerial shots)",
+        "PASS local rules, provenance and order: Zeiss Ultra Prime and Angenieux Optimo Lenses",
+        "PASS local rules, provenance and order: ARRI ALEXA (IMAX, scenes), Canon C300 (underwater shots)",
+        "PASS local rules, provenance and order: Bell and Howell 2709, Sony F65",
+        "PASS local rules, provenance and order: Arri Alexa Mini, Panavision Primo, Retro C-, E-, G- and T-Series Lenses",
+        "PASS local rules, provenance and order: Arri Alexa XT Plus, Panavision Primo, Retro C-, E-, G- T-Series, ATZ and AWZ2 Lenses",
+        "PASS local rules, provenance and order: 中文品牌 [镜头, 备注]; Sony &amp; Canon Lenses",
+        "PASS local rules, provenance and order: STRASSE, Straße, ARRI&nbsp;Alexa"
+      ],
+      "scope": "pure functions only, no real HTTP; nested request JSON compared semantically"
+    }
+  ],
+  "native_ui": {
+    "status": "observed-on-earlier-build-in-this-turn",
+    "fixture_scope": "isolated repository NFO copies only, not a real user library",
+    "checks": [
+      "native root picker",
+      "explicit root checkbox before scan",
+      "duplicate IMDb kept as separate media entries",
+      "malformed XML located and scan failed with 3 items / 1 error",
+      "application exit",
+      "Inspector specs and root ownership",
+      "Chinese path search",
+      "Movie/TV switch restores search state",
+      "native credential probe roundtrip and deletion"
+    ],
+    "limitations": [
+      "Final parser-cache revision rebuild has automated lifecycle smoke only",
+      "No all-files pre-GUI nanosecond mtime capture",
+      "No real media library acceptance"
+    ]
+  },
+  "target_status": {
+    "macos-arm64": "partial-local-evidence",
+    "windows-x64": "unverified",
+    "windows-arm64": "unverified",
+    "linux-x64": "unverified",
+    "linux-arm64": "unverified"
+  },
+  "limitations": [
+    "Not all legacy behavior migrated",
+    "Old production runtime retained",
+    "No Windows/Linux real execution or package acceptance",
+    "No GitHub Actions execution",
+    "No OTA, signing, notarization or production deployment",
+    "No end-to-end AI requests or durable monetary ledger"
+  ],
+  "write_boundary": "default-disabled write-prototype; absent from desktop command API; isolated Unix fault tests only"
+}

@@ -76,7 +76,7 @@ for relative in ("packaging/zh-Hans.lproj/InfoPlist.strings", "packaging/zh-Hant
     for key in ("NSDocumentsFolderUsageDescription", "NSNetworkVolumesUsageDescription", "NSRemovableVolumesUsageDescription"):
         assert key in text, (relative, key)
 assert 'cp -R "$ROOT/packaging/zh-Hans.lproj" "$ROOT/packaging/zh-Hant.lproj" "$ROOT/packaging/en.lproj"' in BUILD
-assert (REPO / "PRIVACY.en.md").is_file() and (REPO / "TERMS.en.md").is_file()
+assert (REPO / "docs/legal/PRIVACY.en.md").is_file() and (REPO / "docs/legal/TERMS.en.md").is_file()
 assert "--- English ---" in (REPO / "packaging/README.txt").read_text(encoding="utf-8")
 assert "--- English ---" in (REPO / "packaging/CHANGELOG.txt").read_text(encoding="utf-8")
 

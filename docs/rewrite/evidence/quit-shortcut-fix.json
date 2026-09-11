@@ -1,0 +1,80 @@
+{
+  "product": "ITM",
+  "timestamp": "2026-09-10T10:59:56.286518+00:00",
+  "host": {
+    "macos": "26.6.2",
+    "arch": "arm64"
+  },
+  "artifact": {
+    "path": "rewrite/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/ITM Validation_4.1.0_aarch64.dmg",
+    "sha256": "3fcb880757554f8791943418b802c4964f287b8361812152492978407b5bb349",
+    "bytes": 11352567
+  },
+  "source_sha256": {
+    "rewrite/package-lock.json": "cd581047ec956a0ff028a56eca07cb9bb7c19f12b7a0390e3006852b6d92611c",
+    "rewrite/src-tauri/Cargo.lock": "dad67e2074bc7ad87ee84f95abb2ef81f32dd00b8739ace0fce9530971171bca",
+    "rewrite/src-tauri/Cargo.toml": "9796e727d2b9bfbc0c37b4f69960c5b5bf0f9d27ba98aa88c9933df4704bd1a4",
+    "rewrite/src-tauri/core/Cargo.toml": "6f1bcdeaeeaebd2f2c6a829d77e04059b684d2c3805cbf598f8f6f2745596799",
+    "rewrite/src-tauri/core/assets/ai-output-schema.json": "db04aad435942bca959d67a247cb033eb7f299d944c868faa2b6e700f67730e1",
+    "rewrite/src-tauri/core/assets/default-ai-prompt.txt": "6549a78834aaed05b64e3f9e57f9d7b70db10aa1f179c1cd906abd9c79935797",
+    "rewrite/src-tauri/core/assets/language-boundary.txt": "136b73ba4e806d5cf7341a0aa14a199d5b8d2878181d966e175ff709664fc40c",
+    "rewrite/src-tauri/core/src/ai.rs": "998a5481e3d6f1e76c3cedf6600226960c11e91801140271df32ccbd7b92b5e5",
+    "rewrite/src-tauri/core/src/contracts.rs": "b3a2749bf74cd3d5813c960b40a1c481ff32952f77bb9e94039a4c22cb9b9647",
+    "rewrite/src-tauri/core/src/lib.rs": "b63e3f79987f3a785422383773f25c27e2c321e8d1d7c7e8ad0ecf8e3f5f69b5",
+    "rewrite/src-tauri/core/src/library.rs": "d7fe7a21eba8a5a433bf924baaebe4fbcaa82ea8186af68e0318cef5161926ff",
+    "rewrite/src-tauri/core/src/paths.rs": "cc23ae3f89bac7b456b2f1c698e5a446b1f679ce3ac8a1c74d7982454261b988",
+    "rewrite/src-tauri/core/src/rules.rs": "9c2f108c2db7be9ce5aaf84d471d677e656e55cf49a7faf76e8ffd9154fe8b05",
+    "rewrite/src-tauri/core/src/services.rs": "8cf797eae791ee496f87492f8597b1054a0ead08a8b1530e266fe2afe7bbfcca",
+    "rewrite/src-tauri/core/src/specs.rs": "2b75651bc124b2f27e90465eed519fdb733951871b74ea5b2d9bb4e538ed09ce",
+    "rewrite/src-tauri/core/src/store.rs": "8264775f70d889e936a519d9fbc45a98b5964f1c45ca5303b10cf38f6d2ce06d",
+    "rewrite/src-tauri/core/src/transaction.rs": "697ec4eb6835612551d8083ab3add89fbe1532ed414fc16031979fb08717928f",
+    "rewrite/src-tauri/icons/icon.icns": "923b2899e94e93db9394a89374fd6db9bcc71ababff22d5593e2c40f0b7800fe",
+    "rewrite/src-tauri/icons/icon.ico": "20fb49636d2c1e85064ad10f8576ba09a4ad724e82bcbdc69ad6656499d5d645",
+    "rewrite/src-tauri/icons/icon.png": "d85814c2bcfd0caa218b0540736407841c25407c216a503c3425387022df3884",
+    "rewrite/src-tauri/src/credentials.rs": "619cb5feacc03db76062cb5ef1315a6c2af863d0bab23cd1f44caf06f79fa47a",
+    "rewrite/src-tauri/src/desktop.rs": "1c8f9d79d5f5d23ef57c136795c420d8bae100a9e658f1bbe213f106b3a19ec0",
+    "rewrite/src-tauri/src/main.rs": "1c3a37ba48ca36286efa91d42efa66803e3c800f9d13519162a02e2b4f6d9d59",
+    "rewrite/src-tauri/tauri.conf.json": "d8c683d5c284db97b1eaf809558e6e6c1bd32751a6d73859fe9489f21f61bcd1",
+    "rewrite/src/App.vue": "260141b2566b4cfcb0d4bdd64728bdbc1c8d1420c494370525fbb78e5f373ac8",
+    "rewrite/src/LibraryPanel.vue": "2aef3aaa5f93bb118a73d0c51e7835dd216d5a5cf305bf31c36b2c63aa2574e1",
+    "rewrite/src/contracts.ts": "9d05a7dc95931cc271fbdcd10d7f38af599f7c51a36637536482c65c429b10d1",
+    "tools/rewrite/macos_smoke.py": "fcc9fb250b2783094e03407a5e550f3f2cc7e87bde620496a94267c7039788db"
+  },
+  "app_architecture": "arm64",
+  "license_notice": "byte-identical-to-repository",
+  "install": "copied-from-readonly-DMG-to-isolated-directory",
+  "events": [
+    {
+      "arch": "aarch64",
+      "event": "native-setup-complete",
+      "os": "macos",
+      "product": "ITM"
+    },
+    {
+      "arch": "aarch64",
+      "event": "frontend-mounted-ipc-roundtrip",
+      "os": "macos",
+      "product": "ITM"
+    },
+    {
+      "arch": "aarch64",
+      "event": "process-exit",
+      "os": "macos",
+      "product": "ITM"
+    }
+  ],
+  "exit_code": 0,
+  "exit_trigger": "external-native-action-no-autoclose",
+  "worker_shutdown": "process-exit event occurs after synchronous Desktop.shutdown",
+  "remaining_app_processes": 0,
+  "limitations": [
+    "No Gatekeeper/notarization acceptance",
+    "No update or data migration exercised",
+    "Visual appearance requires separate native UI inspection",
+    "Removal of isolated app only; not production uninstaller validation"
+  ],
+  "isolated_install_removal": "passed",
+  "issue": "REWRITE-UI-CMD-Q",
+  "status": "fixed-and-native-verified",
+  "observed_input": "CUA: focus library search field, press super+q; no in-app exit button or automatic quit"
+}

@@ -1,0 +1,1110 @@
+{
+  "schema": 1,
+  "targets": [
+    "macos-arm64",
+    "windows-x64",
+    "windows-arm64",
+    "linux-x64",
+    "linux-arm64"
+  ],
+  "status": "partial-migration-steps-5-to-8-real-platform-and-semantic-acceptance-pending",
+  "features": [
+    {
+      "id": "ITM-OWNERSHIP",
+      "title": "标签归属和手动编辑",
+      "contract": "权威 manifest 区分 External/Generated/Manual；编辑 Generated 转 Manual，External 编辑仍为 External；明确确认后才能删除外部标签。",
+      "negative_paths": "归属未知/冲突 unsafe-skip；不得凭文字认领；嵌入先写、sidecar 后同步。",
+      "planned_destination": "domain/ownership / inspector",
+      "entrypoints": [
+        "ITM-E-60bf3605fc36",
+        "ITM-E-7e40bee9d68a",
+        "ITM-E-016979d2a662",
+        "ITM-E-d86725419a1d",
+        "ITM-E-34dcd1d25526",
+        "ITM-E-18c880d2f6e8",
+        "ITM-E-11d18f8ec7c1",
+        "ITM-E-336a3df3c8c3",
+        "ITM-E-12e9649c11a5",
+        "ITM-E-c0f0a9ab1018",
+        "ITM-E-b4455a345309"
+      ],
+      "baseline_test_candidates": [
+        "macos/tests/ownership_lifecycle_contract.py",
+        "macos/tests/schema21_ownership_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/library.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/reading.rs",
+            "rewrite/src-tauri/core/tests/compatibility.rs"
+          ],
+          "scope": "Read authoritative root tag ownership; mutations pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ],
+      "supplemental_evidence": [
+        {
+          "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
+          "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
+        }
+      ]
+    },
+    {
+      "id": "ITM-TRANSACTION",
+      "title": "NFO 写入、备份和撤销",
+      "contract": "完整候选验证、source hash 冲突检测、备份、fsync 和原子替换；BOM/换行/权限保留；撤销需验证后置 hash。",
+      "negative_paths": "磁盘满、权限拒绝、外部并发修改、失效撤销、崩溃和重复请求。",
+      "planned_destination": "infra/nfo-transaction / inspector",
+      "entrypoints": [
+        "ITM-E-560f39e8a552",
+        "ITM-E-d5a15b2f89af",
+        "ITM-E-ebea02720c0e",
+        "ITM-E-8e5bd91aca16",
+        "ITM-E-286cdcf29b7e",
+        "ITM-E-c3068c8d8874",
+        "ITM-E-64ef7c97f94e",
+        "ITM-E-a45297768c1c",
+        "ITM-E-6dce4d34e5b4",
+        "ITM-E-d6c7d535b78f",
+        "ITM-E-0517ff10c72f",
+        "ITM-E-af0bc01a6797"
+      ],
+      "baseline_test_candidates": [
+        "macos/tests/persistence_writer_contract.py",
+        "macos/tests/preview_write_cache_contract.py",
+        "macos/tests/selected_write_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/transaction.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/writing.rs"
+          ],
+          "scope": "Default-disabled write-prototype, isolated tests only; platform race guarantees pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ],
+      "supplemental_evidence": [
+        {
+          "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
+          "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
+        }
+      ]
+    },
+    {
+      "id": "ITM-AI",
+      "title": "AI 配置、请求和费用",
+      "contract": "Provider/模型/协议、凭据、默认和自定义提示词保持；截断先识别；重试可解释；每次真实请求和 usage 记账；缓存本次费用为零。",
+      "negative_paths": "截断、畸形JSON、Schema错误、鉴权、额度、限流、未知失败、重复失败跳过和显式重试。",
+      "planned_destination": "domain/ai / AI settings",
+      "entrypoints": [
+        "ITM-E-e1001bfbf83d",
+        "ITM-E-63ca8cdd3c84",
+        "ITM-E-088c2f8974f4",
+        "ITM-E-04234b3b9905",
+        "ITM-E-7c5315b2413d",
+        "ITM-E-bfed37926b1a",
+        "ITM-E-9e88cbefe716",
+        "ITM-E-0b2db54872d1",
+        "ITM-E-313926c406f1",
+        "ITM-E-61352a2cd265",
+        "ITM-E-e66b135f56df",
+        "ITM-E-3acec7b4fe5d",
+        "ITM-E-9d648a828ae6",
+        "ITM-E-9cc4acd9f4e3",
+        "ITM-E-b9b9ca456026",
+        "ITM-E-edc5dfdc5c75",
+        "ITM-E-499406a89011",
+        "ITM-E-84b1ca25a80c",
+        "ITM-E-552da4c28cda",
+        "ITM-E-0df7061fec8d",
+        "ITM-E-4a9669d9eda1",
+        "ITM-E-a58a1ae0b7fe",
+        "ITM-E-f536b825374b",
+        "ITM-E-b3fef396419a",
+        "ITM-E-b5075e8e9a0b",
+        "ITM-E-c209be706cd6",
+        "ITM-E-aac69c9dbbf5",
+        "ITM-E-3ee8af07d360",
+        "ITM-E-0c6778c04505",
+        "ITM-E-9da46df2c2d8",
+        "ITM-E-54e94ce31ccf",
+        "ITM-E-55c8a0a0a19f",
+        "ITM-E-b67d53de13bf",
+        "ITM-E-e627eff8fbe8",
+        "ITM-E-ad069e42ba11",
+        "ITM-E-78c58ecde949",
+        "ITM-E-e429a3768c50",
+        "ITM-E-5acfe9bff845",
+        "ITM-E-441cf05b0d18",
+        "ITM-E-98fea0768a68",
+        "ITM-E-4fe106c08cbb",
+        "ITM-E-1cb606848487",
+        "ITM-E-648650042a9e",
+        "ITM-E-a52072817524",
+        "ITM-E-56032517efe3",
+        "ITM-E-6459d3415bac",
+        "ITM-E-38ec5e1e8324",
+        "ITM-E-f2c4b52e66c4",
+        "ITM-E-6aae7e60bfaf",
+        "ITM-E-aa5f8880d887",
+        "ITM-E-51fc5ccf5b54",
+        "ITM-E-84df724ba352",
+        "ITM-E-5a2e1776fff2",
+        "ITM-E-50e23771b3c1",
+        "ITM-E-78cf3d932947",
+        "ITM-E-181b23e0e4f2",
+        "ITM-E-3a11a91eae75",
+        "ITM-E-f575ff614773",
+        "ITM-E-09ab911034ef",
+        "ITM-E-b98bc7dbb706",
+        "ITM-E-b745fe577d5a",
+        "ITM-E-dd3f2aab583c",
+        "ITM-E-36197ba9f9be",
+        "ITM-E-0d8167922eb9",
+        "ITM-E-642f3a4f29dd",
+        "ITM-E-11b5134510d4",
+        "ITM-E-e90d6e5b56db",
+        "ITM-E-00a49ea39278",
+        "ITM-E-305ab6f009a6",
+        "ITM-E-95ad828b75bd",
+        "ITM-E-d9b269e44040",
+        "ITM-E-2fc2ac1d09a0",
+        "ITM-E-c37cc5ebc9bc",
+        "ITM-E-9ab85ac73d5d",
+        "ITM-E-c29034b2556a",
+        "ITM-E-7b9c779e92ad",
+        "ITM-E-6bab3e6d170d",
+        "ITM-E-ee6193f90f8d",
+        "ITM-E-34c73fa7ccf8",
+        "ITM-E-4d09da03aa3e",
+        "ITM-E-615269e7876e",
+        "ITM-E-63a269f98827",
+        "ITM-E-9b36bf81dde7",
+        "ITM-E-e1200127ab7e",
+        "ITM-E-a0f7c55ee06f"
+      ],
+      "baseline_test_candidates": [
+        "macos/tests/ai_protocol_contract.py",
+        "macos/tests/ai_recovery_contract.py",
+        "macos/tests/cache_budget_contract.py",
+        "macos/tests/failure_fingerprint_contract.py",
+        "macos/tests/http_meter_contract.py",
+        "macos/tests/qwen_token_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/ai.rs",
+            "rewrite/src-tauri/core/src/rules.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/ai_policy.rs",
+            "rewrite/src-tauri/core/tests/rules.rs",
+            "tools/rewrite/differential.py"
+          ],
+          "scope": "Pure AI policies and local rules; actual requests, accounting persistence and orchestration pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ],
+      "supplemental_evidence": [
+        {
+          "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
+          "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
+        }
+      ]
+    },
+    {
+      "id": "ITM-PREVIEW",
+      "title": "规则/AI 预演和审批",
+      "contract": "规则与 AI 入口并列；预演不写 NFO；审批绑定具体输入、范围及候选；选择项和当前空间准确。",
+      "negative_paths": "预演后文件或参数变化、空选择、部分失败、缓存候选过期及重复审批。",
+      "planned_destination": "application/generation / preview",
+      "entrypoints": [
+        "ITM-E-ff65ee37385b",
+        "ITM-E-d1de70f4169e",
+        "ITM-E-8609774cff07",
+        "ITM-E-6c48af9b31c6",
+        "ITM-E-1b10ad3873e4",
+        "ITM-E-bde469554698",
+        "ITM-E-92ac5d43cdba",
+        "ITM-E-39db746531ab",
+        "ITM-E-02fcfdf56118",
+        "ITM-E-51356820c5e1",
+        "ITM-E-3e3080261afd",
+        "ITM-E-d37caaf52d77",
+        "ITM-E-835d7b565835",
+        "ITM-E-d371bf708dd2",
+        "ITM-E-0411d20cd46b",
+        "ITM-E-1d11c24c8585",
+        "ITM-E-867615afd496",
+        "ITM-E-0b5de05c5701",
+        "ITM-E-c07606689458",
+        "ITM-E-2439b4845940",
+        "ITM-E-f22dbfccf717",
+        "ITM-E-7622bf67efcb",
+        "ITM-E-f9fda99d25ac",
+        "ITM-E-fdb7f8318327",
+        "ITM-E-6da68ef07bc6"
+      ],
+      "baseline_test_candidates": [
+        "macos/tests/preview_regression.py",
+        "macos/tests/preview_write_cache_contract.py"
+      ],
+      "test_mapping_status": "candidate-references-not-proof",
+      "new_implementation": "not-implemented",
+      "platforms": {
+        "macos-arm64": "not-implemented",
+        "windows-x64": "not-implemented",
+        "windows-arm64": "not-implemented",
+        "linux-x64": "not-implemented",
+        "linux-arm64": "not-implemented"
+      }
+    },
+    {
+      "id": "ITM-SPECS",
+      "title": "IMDb 获取与规格标准化",
+      "contract": "获取并结构化十类 Technical Specs；保留手动有效规格；Specs 编辑标记标签过期，不隐式刷新或重建。",
+      "negative_paths": "无技术数据、网页变化、网络/反爬失败、缓存重解析、错误 IMDb ID。",
+      "planned_destination": "domain/specs / inspector",
+      "entrypoints": [
+        "ITM-E-75720941a559",
+        "ITM-E-a1443c469584",
+        "ITM-E-25e94a6e28a0",
+        "ITM-E-97d1645841fc",
+        "ITM-E-07d9c68e0dc1",
+        "ITM-E-4be8e9eb994f",
+        "ITM-E-f55fa3b5b5dc",
+        "ITM-E-01255915a51a",
+        "ITM-E-131be0b78f0e",
+        "ITM-E-d6bc0a9f8922",
+        "ITM-E-0e2d4ade1789",
+        "ITM-E-2308bc871058",
+        "ITM-E-0b1d042cabf8",
+        "ITM-E-a7d544b03404",
+        "ITM-E-91a07be79e1d",
+        "ITM-E-5c746e751b36",
+        "ITM-E-1be899271796",
+        "ITM-E-7bf808d0ff0b",
+        "ITM-E-117ab139ced4",
+        "ITM-E-4223bbc40993",
+        "ITM-E-677de7685d54",
+        "ITM-E-b0d3a901796f",
+        "ITM-E-3a7b8b4297eb",
+        "ITM-E-f56cb913aeac",
+        "ITM-E-4175ace0563c",
+        "ITM-E-c1bcf62fd8e2",
+        "ITM-E-7d4ad27de4b0",
+        "ITM-E-4bd76b6800a6",
+        "ITM-E-eccd922f3de7",
+        "ITM-E-fd380a3c6d46",
+        "ITM-E-c06420dd0dc1",
+        "ITM-E-5ceaa411a170",
+        "ITM-E-673aa3761362",
+        "ITM-E-aa29c53c149a",
+        "ITM-E-dd81a55e1fb6",
+        "ITM-E-5d8bc617de39",
+        "ITM-E-abbbbd4b24ac",
+        "ITM-E-fc73ef5875df",
+        "ITM-E-5bdbbaa5c590",
+        "ITM-E-fe7085c8bed4",
+        "ITM-E-fdceeca63ba4"
+      ],
+      "baseline_test_candidates": [
+        "macos/tests/inspector_edit_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/specs.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/writing.rs",
+            "tools/rewrite/differential.py"
+          ],
+          "scope": "Pure parsing/candidate validation; real acquisition and write flow pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ],
+      "supplemental_evidence": [
+        {
+          "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
+          "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
+        }
+      ]
+    },
+    {
+      "id": "ITM-INSPECTOR",
+      "title": "Inspector 与问题处理",
+      "contract": "展示全部根标签、XML状态和归属；问题确认与手动状态覆盖绑定源hash；刷新恢复真实状态。",
+      "negative_paths": "文件变化后旧确认失效、失效状态覆盖、解析异常及外部标签保护。",
+      "planned_destination": "application/inspector / inspector",
+      "entrypoints": [
+        "ITM-E-52d054bce73e",
+        "ITM-E-f05498a270bd",
+        "ITM-E-4c01b0d96466",
+        "ITM-E-036bd0062b55",
+        "ITM-E-8b9740973a32",
+        "ITM-E-dbb90065d95f",
+        "ITM-E-3f6c300f1bfb",
+        "ITM-E-b9926b5b03fc"
+      ],
+      "baseline_test_candidates": [
+        "macos/tests/inspector_edit_contract.py",
+        "macos/tests/library_issue_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/library.rs",
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/reading.rs"
+          ],
+          "scope": "Read inspector and reveal; edits pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ],
+      "supplemental_evidence": [
+        {
+          "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
+          "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
+        }
+      ]
+    },
+    {
+      "id": "ITM-PROTOCOL",
+      "title": "持久化和接口字段",
+      "contract": "保持字段类型、缺省值、枚举和版本迁移语义；模型在 Rust 为权威并生成 TypeScript；字段不能随语言改变。",
+      "negative_paths": "旧配置缺失字段、未知枚举、版本升级、历史状态兼容；序列化字段不是独立用户功能。",
+      "planned_destination": "contracts / persistence",
+      "entrypoints": [
+        "ITM-E-a293f5d5fd47",
+        "ITM-E-6d0e56b8a9e1",
+        "ITM-E-0111ec20bc19",
+        "ITM-E-17e236e62c9d",
+        "ITM-E-4cfd5d7f2483",
+        "ITM-E-9a37c2b9dfd6",
+        "ITM-E-375e9c14e7fc",
+        "ITM-E-4be99a97985f",
+        "ITM-E-2410d2a40e47",
+        "ITM-E-79800463774a",
+        "ITM-E-a624c96a0e00",
+        "ITM-E-e456b8845d03",
+        "ITM-E-f9b736bb0353",
+        "ITM-E-4005bfde0f64",
+        "ITM-E-e6e5b6983a19",
+        "ITM-E-80dc2e3658fa",
+        "ITM-E-7bd415d1c974",
+        "ITM-E-934f51e96040",
+        "ITM-E-528a394b86b8",
+        "ITM-E-5a2b91228992",
+        "ITM-E-54d370a6540b",
+        "ITM-E-870e9f1f4d12",
+        "ITM-E-96d5d4e5718a",
+        "ITM-E-2e8ab282c072",
+        "ITM-E-8bfc07ea5583",
+        "ITM-E-5e8d531742b8",
+        "ITM-E-b6adabc59fc4",
+        "ITM-E-ab2d5652e39d",
+        "ITM-E-4edb522ba90a",
+        "ITM-E-0a757c1e3627",
+        "ITM-E-b270b1e3ee29",
+        "ITM-E-40d1c1cbb072",
+        "ITM-E-8060cc6f85bb",
+        "ITM-E-c5ec1df44ab1",
+        "ITM-E-597abb5536c8",
+        "ITM-E-0254572fecca",
+        "ITM-E-03e69c39e32a",
+        "ITM-E-6ff738ef680c",
+        "ITM-E-5a8086945f33",
+        "ITM-E-34347c213ddd",
+        "ITM-E-69c83090e4a7",
+        "ITM-E-002d97cf85e9",
+        "ITM-E-cb38a6cdb095",
+        "ITM-E-605839260092",
+        "ITM-E-d7cde198c7d4",
+        "ITM-E-2215d1583b0b",
+        "ITM-E-0527c3d5f2df",
+        "ITM-E-a35323b6952e",
+        "ITM-E-a31499ba0145",
+        "ITM-E-0117f1c6681d",
+        "ITM-E-40685558d22d",
+        "ITM-E-5e70f1a14f0d",
+        "ITM-E-e4e95b7481dc",
+        "ITM-E-4907c1141ff4",
+        "ITM-E-69afb5ae1247",
+        "ITM-E-86b93edb3756",
+        "ITM-E-7450e5348e80",
+        "ITM-E-859e0b010a27",
+        "ITM-E-b1451906f9d5",
+        "ITM-E-8a8369dc2472",
+        "ITM-E-ea8138983d38",
+        "ITM-E-77da5cc79c9a",
+        "ITM-E-f677f458894c",
+        "ITM-E-1268bebbf6c7",
+        "ITM-E-c0329a215d08",
+        "ITM-E-d10e5aa3a6c0",
+        "ITM-E-0bd4c2d2bb2e",
+        "ITM-E-43d9ef5424b3",
+        "ITM-E-abd7610d83db",
+        "ITM-E-6cde25d5920d",
+        "ITM-E-9059b2172e05",
+        "ITM-E-d56c57eb180a",
+        "ITM-E-64032e45157b",
+        "ITM-E-4028b2c18173",
+        "ITM-E-09b1c5219277",
+        "ITM-E-7a0974b53ba0",
+        "ITM-E-c89435923910",
+        "ITM-E-5205015ba18b",
+        "ITM-E-9c5e627aaaf6",
+        "ITM-E-23a027e5360f",
+        "ITM-E-5aa8acc586b2",
+        "ITM-E-16531fcecd96",
+        "ITM-E-55868306f040",
+        "ITM-E-a2b9e3bd1db8",
+        "ITM-E-1ff3617e9540",
+        "ITM-E-3912aff28f93",
+        "ITM-E-bcc9ad3d8774",
+        "ITM-E-8d08a4026225",
+        "ITM-E-d99080bffd7b",
+        "ITM-E-f65332494a60",
+        "ITM-E-281cd99a752e",
+        "ITM-E-eb4412538915",
+        "ITM-E-f79d94606ab9",
+        "ITM-E-16a584a97d20",
+        "ITM-E-88ad23d5bfb8",
+        "ITM-E-da134fe9731a",
+        "ITM-E-7a8f842c97ea",
+        "ITM-E-4d790af45930",
+        "ITM-E-f9e93d943d41",
+        "ITM-E-d76d2f08354e",
+        "ITM-E-09e375c93673",
+        "ITM-E-101e6be56ac9",
+        "ITM-E-b8746cd92213",
+        "ITM-E-54d437320fcb",
+        "ITM-E-74e8d709e129",
+        "ITM-E-768ed92a2e2e",
+        "ITM-E-9b40e99ba6f1"
+      ],
+      "baseline_test_candidates": [],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/contracts.rs",
+            "rewrite/src/contracts.ts"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/examples/export_types.rs"
+          ],
+          "scope": "Generated typed contracts for migrated read commands only",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ]
+    },
+    {
+      "id": "ITM-DISPATCH",
+      "title": "操作分发和旧命令兼容",
+      "contract": "校验动作、参数、媒体根与运行状态；保留现有用户可观察操作；内部协议替换需要对应入口。",
+      "negative_paths": "未知动作、缺参数、重复请求、权限失败和任务冲突。",
+      "planned_destination": "application/commands",
+      "entrypoints": [
+        "ITM-E-4d9966d76c2b",
+        "ITM-E-77617a1d1d82",
+        "ITM-E-73b3db42c81e"
+      ],
+      "baseline_test_candidates": [],
+      "test_mapping_status": "candidate-references-not-proof",
+      "new_implementation": "not-implemented",
+      "platforms": {
+        "macos-arm64": "not-implemented",
+        "windows-x64": "not-implemented",
+        "windows-arm64": "not-implemented",
+        "linux-x64": "not-implemented",
+        "linux-arm64": "not-implemented"
+      }
+    },
+    {
+      "id": "ITM-LEGACY",
+      "title": "旧组件清理与状态迁移",
+      "contract": "仅处理能够证明由旧版拥有的组件和状态；预演、备份、确认及恢复路径保留。",
+      "negative_paths": "无法确认归属、部分迁移、陈旧进程信息、配置冲突。",
+      "planned_destination": "application/migration",
+      "entrypoints": [
+        "ITM-E-48da8786551d",
+        "ITM-E-b54e255abe6a",
+        "ITM-E-7f091010ab0f",
+        "ITM-E-d31903650a75"
+      ],
+      "baseline_test_candidates": [],
+      "test_mapping_status": "candidate-references-not-proof",
+      "new_implementation": "not-implemented",
+      "platforms": {
+        "macos-arm64": "not-implemented",
+        "windows-x64": "not-implemented",
+        "windows-arm64": "not-implemented",
+        "linux-x64": "not-implemented",
+        "linux-arm64": "not-implemented"
+      }
+    },
+    {
+      "id": "ITM-LOCALE",
+      "title": "语言和语言包",
+      "contract": "选择语言；验证包完整性及版本绑定；界面与原生控件同步；任务固定启动语言；保持旧数据和机器字段。",
+      "negative_paths": "下载失败、包不匹配、任务中切换、不支持语言回退。",
+      "planned_destination": "locale registry / settings",
+      "entrypoints": [
+        "ITM-E-1f7b12e0fa5c",
+        "ITM-E-e506a0f908e0",
+        "ITM-E-fe7ac6d693cd",
+        "ITM-E-f5ae913d5c8c",
+        "ITM-E-da3c008bbdd9",
+        "ITM-E-4933d133a9f8",
+        "ITM-E-5dcf43936c99",
+        "ITM-E-c4ae5789446e",
+        "ITM-E-3596e7aa4eef",
+        "ITM-E-73a20417e0e7",
+        "ITM-E-75ea71c101a9",
+        "ITM-E-603eaaf63799",
+        "ITM-E-b35592eb0b85",
+        "ITM-E-5bb2d8eed792",
+        "ITM-E-7d87b2eaaed1"
+      ],
+      "baseline_test_candidates": [
+        "macos/language_packs_test.go",
+        "macos/localization_upgrade_test.go",
+        "macos/tests/backend_native_localization_contract.py",
+        "macos/tests/language_pack_release_contract.py",
+        "macos/tests/language_refresh_contract.py",
+        "macos/tests/localization_upgrade_contract.py",
+        "macos/tests/localization_web_dom_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/services.rs",
+            "rewrite/src-tauri/core/src/contracts.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/reading.rs"
+          ],
+          "scope": "Registry and task locale snapshot only; complete translations and packs pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ]
+    },
+    {
+      "id": "ITM-UPDATE",
+      "title": "安装和更新",
+      "contract": "识别正确产品、系统、架构和包型；校验后更新；显示真实阶段；保留用户数据。",
+      "negative_paths": "断网、限流、资产错误、签名失败、取消、升级中断及回退。",
+      "planned_destination": "platform/update / settings",
+      "entrypoints": [
+        "ITM-E-b866428e8f1e",
+        "ITM-E-bf6bc50b5834",
+        "ITM-E-9a3029bc649d",
+        "ITM-E-9ddb13c368a2",
+        "ITM-E-4b24154e16c3",
+        "ITM-E-e72ca9ed3afa",
+        "ITM-E-3d0d64a52c73",
+        "ITM-E-6371b0aeccbd",
+        "ITM-E-790dc1399273",
+        "ITM-E-82d42386c887",
+        "ITM-E-3bd8401aa90a",
+        "ITM-E-60b573e205c1",
+        "ITM-E-a8521ed8fb73",
+        "ITM-E-06ad42e1f743",
+        "ITM-E-4423b3105496",
+        "ITM-E-8ca0b6638d42"
+      ],
+      "baseline_test_candidates": [
+        "macos/localization_upgrade_test.go",
+        "macos/tests/localization_upgrade_contract.py",
+        "macos/tests/release_metadata_update_contract.py",
+        "macos/update_test.go"
+      ],
+      "test_mapping_status": "candidate-references-not-proof",
+      "new_implementation": "not-implemented",
+      "platforms": {
+        "macos-arm64": "not-implemented",
+        "windows-x64": "not-implemented",
+        "windows-arm64": "not-implemented",
+        "linux-x64": "not-implemented",
+        "linux-arm64": "not-implemented"
+      }
+    },
+    {
+      "id": "ITM-DIAGNOSTICS",
+      "title": "诊断、日志和路径定位",
+      "contract": "可导出诊断、打开日志/数据和受影响路径；错误包含可用的媒体身份、路径与任务。",
+      "negative_paths": "无权限、路径不存在、导出失败；不泄露凭据。",
+      "planned_destination": "application/diagnostics / diagnostics",
+      "entrypoints": [
+        "ITM-E-96afdd07f516",
+        "ITM-E-f38edd1e2e79",
+        "ITM-E-39a590f865af",
+        "ITM-E-eefae82edb6e",
+        "ITM-E-f500005678ad",
+        "ITM-E-6b515c37f9e1",
+        "ITM-E-4d79eeebe2c5",
+        "ITM-E-6f824a29f8dd",
+        "ITM-E-c6913e757244",
+        "ITM-E-2209df7ab2fb",
+        "ITM-E-89b1fb8769a0",
+        "ITM-E-ac7babcaa1e9",
+        "ITM-E-2e14bba9f320",
+        "ITM-E-f1b2c6306952",
+        "ITM-E-59b4c76cf728",
+        "ITM-E-4405453725f2",
+        "ITM-E-b53e859a2192",
+        "ITM-E-70b9ffb8e784",
+        "ITM-E-e1cc43dc1df4",
+        "ITM-E-e3daf6742c48",
+        "ITM-E-cf267442e240",
+        "ITM-E-6ce386d5eecc",
+        "ITM-E-7b023f13b490",
+        "ITM-E-5cc35bbb55de",
+        "ITM-E-d2c7150ecd34",
+        "ITM-E-a26058701698",
+        "ITM-E-eac88648ec7e"
+      ],
+      "baseline_test_candidates": [
+        "macos/tests/cache_catalog_contract.py",
+        "macos/tests/startup_catalog_contract.py"
+      ],
+      "test_mapping_status": "candidate-references-not-proof",
+      "new_implementation": "not-implemented",
+      "platforms": {
+        "macos-arm64": "not-implemented",
+        "windows-x64": "not-implemented",
+        "windows-arm64": "not-implemented",
+        "linux-x64": "not-implemented",
+        "linux-arm64": "not-implemented"
+      }
+    },
+    {
+      "id": "ITM-LIFECYCLE",
+      "title": "单实例、窗口、托盘和退出",
+      "contract": "单实例；最小化和恢复；显式登录启动；退出清理资源；启动偏好独立于后台运行状态。",
+      "negative_paths": "重复启动/点击、关闭和退出区别、权限失败、进程残留、升级后启动项。",
+      "planned_destination": "platform/lifecycle / native UI",
+      "entrypoints": [
+        "ITM-E-9e7aa9eccda8",
+        "ITM-E-9addfd488bb0",
+        "ITM-E-2581a7ea307c",
+        "ITM-E-c823ba51c3a2",
+        "ITM-E-fe4038689f83",
+        "ITM-E-204ed695d049",
+        "ITM-E-396117509a4b",
+        "ITM-E-a83f3cbdf575",
+        "ITM-E-cfcf351a4ae0",
+        "ITM-E-2a9d298064bd",
+        "ITM-E-48aeda550065",
+        "ITM-E-5e1b80f1bfa2",
+        "ITM-E-b4cfbbe0cdd4",
+        "ITM-E-9f7424017e40",
+        "ITM-E-a0914847f21e",
+        "ITM-E-b5805a5ba116",
+        "ITM-E-d8e3b88d1c31",
+        "ITM-E-77e6d5e57c63",
+        "ITM-E-f659d1448681",
+        "ITM-E-12da23cfe8d9",
+        "ITM-E-5f0312d25ec8",
+        "ITM-E-4ba947c707a5"
+      ],
+      "baseline_test_candidates": [
+        "macos/startup_mode_test.go",
+        "macos/tests/backend_native_localization_contract.py",
+        "macos/tests/native_packaging_contract.py",
+        "macos/tests/release_410_closeout_contract.py",
+        "macos/tests/startup_catalog_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/src/desktop.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/reading.rs"
+          ],
+          "scope": "Owned scan worker and shutdown; all platform lifecycle paths pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ]
+    },
+    {
+      "id": "ITM-TASK",
+      "title": "任务状态与恢复",
+      "contract": "权威任务状态、阶段、范围、进度、历史；暂停/取消/恢复遵循旧行为；重复操作不产生重复副作用。",
+      "negative_paths": "中断、失败重试、任务冲突、退出、日志和状态持久化不一致。",
+      "planned_destination": "application/tasks / task center",
+      "entrypoints": [
+        "ITM-E-07a8e08c2867",
+        "ITM-E-2f080da1b36d",
+        "ITM-E-3d7bcd68bb54",
+        "ITM-E-0a866306435b",
+        "ITM-E-c5046c2f0470",
+        "ITM-E-f60054bafaa0",
+        "ITM-E-735412af9c33",
+        "ITM-E-114d382ed25e",
+        "ITM-E-4818ae4b996c",
+        "ITM-E-635f1fcca5ba",
+        "ITM-E-f849c430a80d",
+        "ITM-E-f9205e1a68eb",
+        "ITM-E-790438cb8731",
+        "ITM-E-90802decedbe",
+        "ITM-E-a6aece073dad",
+        "ITM-E-36e7dbd320df",
+        "ITM-E-f0d010531766",
+        "ITM-E-e64c6800b8fb",
+        "ITM-E-26d614e5fd38",
+        "ITM-E-73a26999f596",
+        "ITM-E-248daaaeb2d7",
+        "ITM-E-40480a02035d",
+        "ITM-E-cdc748a70620"
+      ],
+      "baseline_test_candidates": [
+        "macos/job_lifecycle_test.go",
+        "macos/startup_mode_test.go",
+        "macos/tests/ai_recovery_contract.py",
+        "macos/tests/startup_catalog_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/store.rs",
+            "rewrite/src-tauri/src/desktop.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/reading.rs"
+          ],
+          "scope": "Durable scan tasks, operation IDs, progress, pause, resume and cancel; legacy jobs remain pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ]
+    },
+    {
+      "id": "ITM-SCOPE",
+      "title": "媒体空间和操作范围",
+      "contract": "Movie/TV 独立根目录和状态；选择、全选/反选、季级选择及当前范围准确；全库从不默认。",
+      "negative_paths": "空目录、越界、符号链接、共享盘离线、目录重叠、路径大小写和不同媒体种类。",
+      "planned_destination": "domain/library / library setup",
+      "entrypoints": [
+        "ITM-E-9dfda4044950",
+        "ITM-E-9092935791bf",
+        "ITM-E-0c893b9c4554",
+        "ITM-E-daa171017960",
+        "ITM-E-c7800ac00b33",
+        "ITM-E-da9b664e65fe",
+        "ITM-E-47d7b1fd849f",
+        "ITM-E-10a88815e7d4",
+        "ITM-E-1c88349de463",
+        "ITM-E-d5234b45933e",
+        "ITM-E-8f2cb995d8ba",
+        "ITM-E-bdb225961887",
+        "ITM-E-0ddc03508b2c",
+        "ITM-E-083c0a20382f",
+        "ITM-E-0e7d70f202a3",
+        "ITM-E-3e79c3f59953",
+        "ITM-E-4ed34fa66f35",
+        "ITM-E-e7fc93aef8d1",
+        "ITM-E-f6389257cbec",
+        "ITM-E-bb5c86249272",
+        "ITM-E-57cbd8efd04a",
+        "ITM-E-632c61a0e618",
+        "ITM-E-af74feda54ea",
+        "ITM-E-41c315a2bf1f",
+        "ITM-E-e468dc7cb80a",
+        "ITM-E-235a8fa1a884",
+        "ITM-E-ed2bb9986f07",
+        "ITM-E-db39bce179b6",
+        "ITM-E-e533f029260e",
+        "ITM-E-6f543c2d7293",
+        "ITM-E-7f40e51daf65",
+        "ITM-E-6eb3f554e44f",
+        "ITM-E-da42411e07d9",
+        "ITM-E-2f4930c02027",
+        "ITM-E-7123608fd735",
+        "ITM-E-fe179713ff0b",
+        "ITM-E-2c516258c97d",
+        "ITM-E-98220c4797a0",
+        "ITM-E-ecef7c3ef0d6",
+        "ITM-E-0ee124e68e0c",
+        "ITM-E-8cff2b33aa0d",
+        "ITM-E-2fcdd952171e",
+        "ITM-E-1c85e98aa657",
+        "ITM-E-a5c55176dcb2",
+        "ITM-E-1c217e153ec2",
+        "ITM-E-089757ffae85"
+      ],
+      "baseline_test_candidates": [
+        "macos/tests/library_issue_contract.py",
+        "macos/tests/library_ui_contract.py",
+        "macos/tests/onboarding_safety_contract.py",
+        "macos/tests/scope_contract.py",
+        "macos/tests/selected_write_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/paths.rs",
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/reading.rs"
+          ],
+          "scope": "Explicit roots and Movie/TV scope; full legacy scope UI pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ],
+      "supplemental_evidence": [
+        {
+          "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
+          "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
+        }
+      ]
+    },
+    {
+      "id": "ITM-CATALOG",
+      "title": "索引、筛选和状态",
+      "contract": "索引权威数据；增量/重建范围准确；搜索过滤排序与选择状态保留；缓存容量、清理和错误状态可见。",
+      "negative_paths": "XML 异常、缓存过期、部分根离线、外部变更、冷启动、索引重建失败。",
+      "planned_destination": "application/catalog / library",
+      "entrypoints": [
+        "ITM-E-59dbaff41985",
+        "ITM-E-ad167b612f6e",
+        "ITM-E-94f3f3feaff0",
+        "ITM-E-3adbdf0306a5",
+        "ITM-E-5b058b5f2feb",
+        "ITM-E-4aea03563434",
+        "ITM-E-870b520cb799",
+        "ITM-E-2c3839e13977",
+        "ITM-E-a0f1f19b9a98",
+        "ITM-E-3932af1d09b8",
+        "ITM-E-f78fa18f4097",
+        "ITM-E-784717fa469f",
+        "ITM-E-eac925674641",
+        "ITM-E-3dcc9043448f",
+        "ITM-E-32e60a269188",
+        "ITM-E-37c569f1891e",
+        "ITM-E-432aac91e86a",
+        "ITM-E-0b405d389d5c",
+        "ITM-E-9f5582e7ea5c",
+        "ITM-E-a6967fae743f",
+        "ITM-E-39c9006ebc26",
+        "ITM-E-6017ed98225f",
+        "ITM-E-a5770014ede6",
+        "ITM-E-9d3758f6e909",
+        "ITM-E-7ba9636f7fb0",
+        "ITM-E-56e100447667",
+        "ITM-E-b466295dd431",
+        "ITM-E-7545a824a721",
+        "ITM-E-dd5e4e3bf6d1",
+        "ITM-E-dede213883ad",
+        "ITM-E-9dec2fbf2ede",
+        "ITM-E-5a1041822d05",
+        "ITM-E-5b86fbc35f01",
+        "ITM-E-b2ea0994edb6",
+        "ITM-E-fded56574295",
+        "ITM-E-c04a8c6598c3",
+        "ITM-E-23a20985b2a7",
+        "ITM-E-9296011946af"
+      ],
+      "baseline_test_candidates": [
+        "macos/cache_settings_test.go",
+        "macos/tests/cache_budget_contract.py",
+        "macos/tests/cache_catalog_contract.py",
+        "macos/tests/cache_ui_contract.py",
+        "macos/tests/language_refresh_contract.py",
+        "macos/tests/preview_write_cache_contract.py",
+        "macos/tests/startup_catalog_contract.py"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/library.rs",
+            "rewrite/src-tauri/core/src/store.rs",
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/reading.rs"
+          ],
+          "scope": "Read index, search, incremental scan and error location; full hierarchy and real library pending",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ],
+      "supplemental_evidence": [
+        {
+          "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
+          "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
+        }
+      ]
+    },
+    {
+      "id": "ITM-LAYOUT",
+      "title": "界面布局与交互",
+      "contract": "保留列设置、排序、面板尺寸、上下文入口和响应式语义；可键盘操作；错误/空状态可见。",
+      "negative_paths": "窄窗口、缩放、长翻译、溢出、遮挡、布局持久化和重置。",
+      "planned_destination": "presentation/layout / manager",
+      "entrypoints": [
+        "ITM-E-e6325d8bb0ff",
+        "ITM-E-58f4916c2d7a",
+        "ITM-E-478cfae122a1",
+        "ITM-E-3f69dea4567f",
+        "ITM-E-2aba7c28cc5f",
+        "ITM-E-ee956a75d75b",
+        "ITM-E-51db090f68b6",
+        "ITM-E-418d2374c94d",
+        "ITM-E-0cd1f5151a4a",
+        "ITM-E-a418db6c970d"
+      ],
+      "baseline_test_candidates": [
+        "macos/cache_settings_test.go",
+        "macos/tests/stability_contract.py",
+        "macos/ui_layout_test.go"
+      ],
+      "test_mapping_status": "executed-slice-only-full-group-pending",
+      "new_implementation": "partial",
+      "platforms": {
+        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "windows-x64": "unverified",
+        "windows-arm64": "unverified",
+        "linux-x64": "unverified",
+        "linux-arm64": "unverified"
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [],
+          "scope": "Read workspace only, incomplete product UI",
+          "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        }
+      ]
+    },
+    {
+      "id": "ITM-UNCLASSIFIED",
+      "title": "待逐项语义复核",
+      "contract": "源码已冻结并定位；仍需逐项检查调用方、用户入口和运行时语义，不能计为已验收。",
+      "negative_paths": "不得通过通用分组隐藏遗漏。",
+      "planned_destination": "pending-design",
+      "entrypoints": [],
+      "baseline_test_candidates": [],
+      "test_mapping_status": "candidate-references-not-proof",
+      "new_implementation": "not-implemented",
+      "platforms": {
+        "macos-arm64": "not-implemented",
+        "windows-x64": "not-implemented",
+        "windows-arm64": "not-implemented",
+        "linux-x64": "not-implemented",
+        "linux-arm64": "not-implemented"
+      }
+    }
+  ]
+}
