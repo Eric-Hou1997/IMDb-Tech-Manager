@@ -37,6 +37,14 @@ fn main() {
             value["extra_body"].as_str().unwrap(),
         )
         .unwrap()),
+        "legacy-ai-failure-fingerprint" => serde_json::json!(ai::legacy_failure::fingerprint(
+            value["path"].as_str().unwrap(),
+            &serde_json::from_value(value["specs"].clone()).unwrap(),
+            &serde_json::from_value(value["settings"].clone()).unwrap(),
+            value["kind"].as_str().unwrap(),
+            value["extra_body"].as_str().unwrap(),
+        )
+        .unwrap()),
         "next-data" => {
             serde_json::to_value(specs::parse_next_data(&value["data"]).unwrap()).unwrap()
         }

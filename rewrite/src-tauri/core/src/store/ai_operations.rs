@@ -245,6 +245,7 @@ impl Store {
             phase: "requested".into(),
             cached: false,
             legacy_cache: None,
+            legacy_failure: None,
             meter: Meter::default(),
             cost: 0.0,
             historical_cost: 0.0,
@@ -264,7 +265,8 @@ impl Store {
         )? {
             return Err(AppError::new("operation-conflict", "ID belongs to a task"));
         }
-        if !value.request.force {
+        super::legacy_ai_failure::inspect(&tx, &mut value)?;
+        if value.phase == "requested" && !value.request.force {
             if let Some(body) = tx
                 .query_row(
                     "SELECT body FROM ai_cache WHERE fingerprint=?1",
@@ -284,10 +286,10 @@ impl Store {
                 }
             }
         }
-        if !value.request.force && !value.cached {
+        if value.phase == "requested" && !value.request.force && !value.cached {
             super::legacy_ai_cache::reuse(&tx, &mut value)?;
         }
-        if !value.cached && !value.request.retry_failed {
+        if value.phase == "requested" && !value.cached && !value.request.retry_failed {
             if let Some(error) = tx
                 .query_row(
                     "SELECT error FROM ai_failures WHERE fingerprint=?1",
@@ -316,6 +318,9 @@ impl Store {
                 value.error = Some(serde_json::from_str(&error)?);
                 value.finished_at = Some(job::now());
             }
+        }
+        if value.cached {
+            super::legacy_ai_failure::resolve(&tx, &value.path)?;
         }
         job::fallback(&mut value);
         let execute = value.phase == "requested";
@@ -440,6 +445,7 @@ impl Store {
                         [&value.fingerprint],
                     )?;
                     tx.execute("DELETE FROM preferences WHERE key='ai-paused'", [])?;
+                    super::legacy_ai_failure::resolve(&tx, &value.path)?;
                 }
                 Err(error) => {
                     let cancelled = error.code == "cancelled";

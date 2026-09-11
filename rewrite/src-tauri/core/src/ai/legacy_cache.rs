@@ -15,7 +15,7 @@ pub struct Origin {
 // Python json.dumps uses Python's float representation, including .0 for
 // integral floats and two-digit signed exponents. Only temperature/top_p are
 // floats in this identity; extra_body is the original JSON *string*.
-fn python_json(value: &Value) -> Result<String> {
+pub(crate) fn python_json(value: &Value) -> Result<String> {
     Ok(match value {
         Value::Number(n) if n.is_f64() => {
             let v = n.as_f64().expect("finite JSON number");

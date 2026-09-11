@@ -153,6 +153,8 @@ pub struct Record {
     pub cached: bool,
     #[serde(default)]
     pub legacy_cache: Option<super::legacy_cache::Origin>,
+    #[serde(default)]
+    pub legacy_failure: Option<super::legacy_failure::Failure>,
     pub meter: Meter,
     pub cost: f64,
     pub historical_cost: f64,

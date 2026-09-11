@@ -104,6 +104,20 @@ class WriterBaseline(unittest.TestCase):
         for path in paths.values():
             self.assertEqual([tag.text for tag in ET.fromstring(path.read_bytes()).findall('tag')],['外部标签'])
 
+    def test_failure_queue_requires_explicit_retry_when_input_is_unchanged_or_unfingerprinted(self):
+        cfg=eng.ai_config();specs={'Camera':['Camera Model']}
+        entry={'path':str(self.nfo),'kind':'schema-invalid','message':'fixture error','fingerprint':eng._failure_fingerprint(self.nfo,specs,cfg,'schema-invalid')}
+        eng._failure_upsert(entry)
+        self.assertTrue(eng._known_failure_unchanged(self.nfo,specs,cfg))
+        self.assertTrue(eng._known_failure_unchanged(self.nfo,specs,dict(cfg,input_price_per_million=99)))
+        self.assertFalse(eng._known_failure_unchanged(self.nfo,dict(specs,Runtime=['100 min']),cfg))
+        self.assertFalse(eng._known_failure_unchanged(self.nfo,specs,dict(cfg,prompt=cfg['prompt']+'!')))
+        entry.pop('fingerprint');eng._failure_upsert(entry)
+        self.assertTrue(eng._known_failure_unchanged(self.nfo,specs,dict(cfg,prompt='changed')))
+        eng._failure_remove(self.nfo)
+        self.assertFalse(eng._known_failure_unchanged(self.nfo,specs,cfg))
+        self.assertEqual(self.nfo.read_bytes(),self.raw)
+
     def test_ai_cache_reuses_exact_request_with_zero_current_and_separate_historical_cost(self):
         cfg=eng.ai_config()
         specs={'Camera':['Camera Model']}

@@ -42,11 +42,13 @@ async function prepare(){const current=record.value;if(!current)return;await run
    <label>单次任务请求上限（0 为不限）<input v-model.number="settings.run_request_limit" type="number" min="0"></label><label>单次任务 token 上限（0 为不限）<input v-model.number="settings.run_token_limit" type="number" min="0"></label><label>单次任务费用上限（0 为不限）<input v-model.number="settings.run_cost_limit" type="number" min="0" step="0.01"></label>
    <label class="wide">附加请求参数（JSON）<textarea v-model="extra" rows="4" /></label><button type="submit">保存 AI 设置</button>
   </fieldset></form>
-  <section v-if="record" aria-label="AI 结果"><p>{{ record.phase }} · {{ record.cached?'缓存命中':'Provider 请求' }} · {{ record.title }} {{ record.year }}</p>
+  <section v-if="record" aria-label="AI 结果"><p>{{ record.phase }} · {{ record.cached?'缓存命中':record.meter.attempts?'Provider 请求':'未发送请求' }} · {{ record.title }} {{ record.year }}</p>
    <p v-if="record.engine==='local-rules'">AI 失败后按设置回退为规则候选，原请求费用及错误保留。</p>
    <p>本次实际尝试 {{ record.meter.attempts }} 次 · 输入 {{ record.meter.current.input }} / 输出 {{ record.meter.current.output }} tokens · 费用 {{ record.cost.toFixed(6) }}</p>
    <p v-if="record.cached">缓存来源历史 usage：{{ record.meter.historical_cache.total }} tokens · 历史费用 {{ record.historical_cost.toFixed(6) }}；不计入本次费用。</p>
    <details v-if="record.legacy_cache"><summary>旧版缓存 · {{ record.legacy_cache.created_at }} · {{ record.legacy_cache.model }}</summary><p>{{ record.legacy_cache.source }} · 导入 {{ record.legacy_cache.import_id }}</p><pre>{{ JSON.stringify(record.legacy_cache.raw_usage,null,2) }}</pre></details>
+   <details v-if="record.legacy_failure"><summary>原版失败记录 · {{ record.legacy_failure.source }}</summary><p>导入 {{record.legacy_failure.import_id}} · {{record.legacy_failure.path}}</p><pre>{{JSON.stringify(record.legacy_failure.entry,null,2)}}</pre></details>
+   <p v-if="record.phase==='skipped-legacy-failure'">输入与请求配置仍匹配旧失败记录，本次未发送请求。检查原因后可明确重试失败项。</p><p v-if="record.phase==='skipped-legacy-unverified'">旧失败记录没有请求指纹，无法确认输入是否改变。保留原版跳过规则；明确重试后才继续处理。</p>
    <pre v-if="record.error" role="alert">{{ record.error.code }}：{{ record.error.message }}</pre><p v-if="record.phase==='interrupted'||record.phase==='cancelled'">已发出的请求可能已被 Provider 计费；没有收到 usage 的部分无法估算，也不会自动重复发送。</p>
    <details v-for="attempt in record.attempts" :key="attempt.sequence"><summary>请求 {{ attempt.sequence }} · {{ attempt.phase }} · {{ attempt.error?.code||attempt.http_status||'等待响应' }}</summary><pre>{{ JSON.stringify(attempt.request,null,2) }}</pre><pre>{{ JSON.stringify(attempt.raw_usage,null,2) }}</pre></details>
    <pre v-if="record.result">{{ JSON.stringify(record.result,null,2) }}</pre>

@@ -2,15 +2,11 @@ use super::*;
 use crate::ai::{job::Record, legacy_cache};
 use std::collections::BTreeSet;
 
-pub(super) fn reuse(db: &Connection, record: &mut Record) -> Result<()> {
-    if !db.query_row(
-        "SELECT EXISTS(SELECT 1 FROM legacy_artifacts WHERE category='ai-cache')",
-        [],
-        |r| r.get::<_, bool>(0),
-    )? {
-        return Ok(());
-    }
-    let mut extras = BTreeSet::from([serde_json::to_string(&record.settings.config.extra_body)?]);
+pub(super) fn extra_candidates(
+    db: &Connection,
+    settings: &crate::ai::job::Settings,
+) -> Result<BTreeSet<String>> {
+    let mut extras = BTreeSet::from([serde_json::to_string(&settings.config.extra_body)?]);
     // Preserve the literal old extra_body string from every imported profile,
     // including whitespace and key order. The key builder checks its semantics.
     let mut statement = db.prepare("SELECT DISTINCT CASE WHEN json_valid(body) THEN CASE WHEN json_type(body,'$.ai.extra_body')='text' THEN json_extract(body,'$.ai.extra_body') END END FROM legacy_artifacts WHERE category='configuration'")?;
@@ -19,6 +15,17 @@ pub(super) fn reuse(db: &Connection, record: &mut Record) -> Result<()> {
             extras.insert(raw);
         }
     }
+    Ok(extras)
+}
+pub(super) fn reuse(db: &Connection, record: &mut Record) -> Result<()> {
+    if !db.query_row(
+        "SELECT EXISTS(SELECT 1 FROM legacy_artifacts WHERE category='ai-cache')",
+        [],
+        |r| r.get::<_, bool>(0),
+    )? {
+        return Ok(());
+    }
+    let extras = extra_candidates(db, &record.settings)?;
     let mut candidates = vec![];
     for extra in extras {
         let Ok(key) = legacy_cache::key(&record.settings, &record.specs, &record.existing, &extra)

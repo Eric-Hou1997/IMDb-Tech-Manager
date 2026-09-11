@@ -14,7 +14,7 @@ watch(()=>props.space,()=>{active.value=null;review.value=null;full.value=false;
 async function run(fn:()=>Promise<void>){if(busy.value)return;busy.value=true;error.value='';try{await fn();}catch(e){error.value=JSON.stringify(e);}finally{busy.value=false;}}
 async function plan(engine:BatchEngine,retry?:Task){await run(async()=>{
  if(retry)retry=await invoke<Task>('batch_detail',{id:retry.id});
- const request={operation_id:crypto.randomUUID(),space:props.space,engine,mode:retry?'rebuild':mode.value,item_ids:retry?retry.batch!.items.filter(i=>i.phase==='failed'||i.phase==='skipped-unchanged-failure').map(i=>i.item.id):full.value?[]:[...props.selected],root_ids:retry||!full.value?[]:[...props.roots],retry_failed:!!retry};
+ const request={operation_id:crypto.randomUUID(),space:props.space,engine,mode:retry?'rebuild':mode.value,item_ids:retry?retry.batch!.items.filter(i=>['failed','skipped-unchanged-failure','skipped-legacy-failure','skipped-legacy-unverified'].includes(i.phase)).map(i=>i.item.id):full.value?[]:[...props.selected],root_ids:retry||!full.value?[]:[...props.roots],retry_failed:!!retry};
  active.value=await invoke<Task>('plan_batch',{request});emit('refresh');
 });}
 async function approve(task:Task){await run(async()=>{active.value=await invoke<Task>('approve_batch_scope',{id:task.id,reviewedHash:task.batch!.plan_hash});emit('refresh');});}

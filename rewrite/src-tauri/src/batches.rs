@@ -68,7 +68,13 @@ pub fn execute(app: &tauri::AppHandle, task: &Task, row: &BatchItem) -> Result<O
                 ))?;
                 if result.phase != "review-ready" {
                     return Ok(Outcome {
-                        phase: if result.phase == "skipped-unchanged-failure" {
+                        phase: if [
+                            "skipped-unchanged-failure",
+                            "skipped-legacy-failure",
+                            "skipped-legacy-unverified",
+                        ]
+                        .contains(&result.phase.as_str())
+                        {
                             result.phase
                         } else {
                             "failed".into()

@@ -84,4 +84,9 @@ for protocol in ("openai", "anthropic"):
         expected = legacy._ai_cache_key(specs, old_cfg, existing)
         actual = rust({"mode": "legacy-ai-cache-key", "settings": {"config": cfg, "json_mode": "auto"}, "specs": specs, "existing": existing, "extra_body": extra})
         assert actual == expected, (protocol, temperature, actual, expected)
+        path="/fixture/中文电影.nfo"
+        expected_failure=legacy._failure_fingerprint(path,specs,old_cfg,"schema-invalid")
+        actual_failure=rust({"mode":"legacy-ai-failure-fingerprint","path":path,"kind":"schema-invalid","settings":{"config":cfg,"json_mode":"auto"},"specs":specs,"extra_body":extra})
+        assert actual_failure==expected_failure,(protocol,temperature,actual_failure,expected_failure)
     print("PASS exact legacy AI cache key: protocol, Unicode, floats and raw extra_body:", protocol)
+    print("PASS exact legacy AI failure fingerprint: full specs, endpoint and retry parameters:",protocol)

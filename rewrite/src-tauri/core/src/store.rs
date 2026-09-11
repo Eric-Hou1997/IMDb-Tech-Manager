@@ -1,5 +1,6 @@
 mod inspector;
 mod legacy_ai_cache;
+mod legacy_ai_failure;
 use crate::{contracts::*, hash, library, paths};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::{
@@ -229,6 +230,7 @@ impl Store {
             }
         }
         self.prepare_annotation_migration(&mut plan)?;
+        self.prepare_failure_migration(&mut plan)?;
         self.prepare_cache_migration(&mut plan)?;
         plan.fingerprint = hash(&serde_json::to_vec(&(
             &plan.fingerprint,
@@ -316,6 +318,7 @@ impl Store {
         for adapter in &plan.adapters {
             if !["ai-settings", "automatic"].contains(&adapter.target.as_str())
                 && !adapter.target.starts_with("inspector:")
+                && !adapter.target.starts_with("legacy-ai-failure:")
             {
                 return Err(AppError::new(
                     "migration-adapter",
@@ -342,6 +345,19 @@ impl Store {
                     serde_json::from_value(adapter.value.clone())?;
                 annotation.validate()?;
                 tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&annotation)?])?;
+            } else if adapter.target.starts_with("legacy-ai-failure:") {
+                let failure: crate::ai::legacy_failure::Failure =
+                    serde_json::from_value(adapter.value.clone())?;
+                failure.validate()?;
+                if adapter.target
+                    != crate::ai::legacy_failure::Failure::preference_key(&failure.path)
+                {
+                    return Err(AppError::new(
+                        "migration-adapter",
+                        "Failure path does not match its key",
+                    ));
+                }
+                tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&failure)?])?;
             } else {
                 let settings: crate::ai::job::Settings =
                     serde_json::from_value(adapter.value.clone())?;

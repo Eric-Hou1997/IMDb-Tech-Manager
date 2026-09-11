@@ -263,6 +263,7 @@ pub fn typescript() -> String {
         crate::ai::job::Attempt::decl(),
         crate::ai::job::Record::decl(),
         crate::ai::legacy_cache::Origin::decl(),
+        crate::ai::legacy_failure::Failure::decl(),
         crate::specs::SourceStatus::decl(),
         crate::specs::SourceSpecs::decl(),
         crate::acquisition::FetchRequest::decl(),
