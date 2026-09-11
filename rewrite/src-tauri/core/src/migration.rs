@@ -246,6 +246,19 @@ pub fn prepare(
                         "tv" | "series" => Some(Space::Tv),
                         _ => None,
                     };
+                    if root
+                        .get("kind")
+                        .and_then(Value::as_str)
+                        .is_some_and(|kind| kind.eq_ignore_ascii_case("mixed"))
+                    {
+                        let enabled = root
+                            .get("enabled")
+                            .and_then(Value::as_bool)
+                            .unwrap_or(false);
+                        add_root(&mut roots, path, Some(Space::Movie), enabled);
+                        add_root(&mut roots, path, Some(Space::Tv), enabled);
+                        continue;
+                    }
                     add_root(
                         &mut roots,
                         path,
@@ -295,7 +308,7 @@ pub fn prepare(
     })
 }
 fn add_root(roots: &mut Vec<LegacyRoot>, path: &str, space: Option<Space>, enabled: bool) {
-    if roots.iter().any(|r| r.path == path) {
+    if roots.iter().any(|r| r.path == path && r.space == space) {
         return;
     }
     let state = if !enabled {
@@ -363,21 +376,35 @@ pub fn merged_configuration(
             continue;
         }
         let real = paths::checked(Path::new(&root.path))?;
-        if next.roots.iter().any(|r| Path::new(&r.path) == real) {
-            continue;
-        }
         if next
             .roots
             .iter()
-            .any(|r| real.starts_with(&r.path) || Path::new(&r.path).starts_with(&real))
+            .any(|r| Path::new(&r.path) == real && Some(&r.space) == root.space.as_ref())
         {
+            continue;
+        }
+        if next.roots.iter().any(|r| {
+            (real.starts_with(&r.path) || Path::new(&r.path).starts_with(&real))
+                && !(Path::new(&r.path) == real && Some(&r.space) != root.space.as_ref())
+        }) {
             let mut root = root.clone();
             root.state = "overlapping-root".into();
             pending.push(root);
             continue;
         }
         next.roots.push(LibraryRoot {
-            id: hash(real.to_string_lossy().as_bytes()),
+            id: hash(
+                format!(
+                    "{}:{}",
+                    if root.space == Some(Space::Movie) {
+                        "movie"
+                    } else {
+                        "tv"
+                    },
+                    real.to_string_lossy()
+                )
+                .as_bytes(),
+            ),
             space: root
                 .space
                 .clone()

@@ -368,9 +368,14 @@ impl Store {
                         .at(real.display()),
                 );
             }
-            if roots.iter().any(|(id, p): &(String, std::path::PathBuf)| {
-                id == &root.id || real.starts_with(p) || p.starts_with(&real)
-            }) {
+            if roots
+                .iter()
+                .any(|(id, p, space): &(String, std::path::PathBuf, Space)| {
+                    id == &root.id
+                        || (real.starts_with(p) || p.starts_with(&real))
+                            && !(real == *p && root.space != *space)
+                })
+            {
                 return Err(AppError::new(
                     "overlapping-roots",
                     "Root IDs and physical roots must not overlap",
@@ -380,7 +385,7 @@ impl Store {
                 .to_str()
                 .ok_or_else(|| AppError::new("invalid-encoding", "Root path is not valid Unicode"))?
                 .into();
-            roots.push((root.id.clone(), real));
+            roots.push((root.id.clone(), real, root.space.clone()));
         }
         let mut db = self.db()?;
         self.writable()?;
@@ -454,7 +459,10 @@ impl Store {
             .collect::<std::result::Result<Vec<_>, _>>()?;
         drop(stmt);
         for root in old {
-            if !keep.contains(&root) {
+            if !keep.contains(&root)
+                || current.roots.iter().find(|r| r.id == root)
+                    != value.roots.iter().find(|r| r.id == root)
+            {
                 tx.execute("DELETE FROM items WHERE root_id=?1", [root])?;
             }
         }
@@ -1048,13 +1056,19 @@ impl Store {
                             if item.parser_revision == library::PARSER_REVISION
                                 && item.source_hash == hash(&raw)
                                 && item.error.is_none()
-                                && item.root_id == root.id =>
+                                && item.root_id == root.id
+                                && item.space == root.space =>
                         {
                             item
                         }
                         _ => library::parse(root, &real, &raw)?,
                     };
-                    Ok(Some(item))
+                    let relevant = match item.kind.as_str() {
+                        "Movie" => root.space == Space::Movie,
+                        "Series" | "Season" | "Episode" => root.space == Space::Tv,
+                        _ => true,
+                    };
+                    Ok(relevant.then_some(item))
                 });
                 let item = match result {
                     Ok(Some(item)) => Some(item),
@@ -1063,6 +1077,7 @@ impl Store {
                         error.operation_id = Some(task.id.clone());
                         root_failed = true;
                         let mut item = library::empty(root, &path);
+                        item.id = hash(format!("error:{}:{}", root.id, item.path).as_bytes());
                         item.error = Some(error);
                         Some(item)
                     }

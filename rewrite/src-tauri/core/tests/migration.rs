@@ -136,3 +136,37 @@ fn truncated_escaped_credential_json_stays_outside_generic_archive() {
         assert_eq!(fs::read(old.join("config.json")).unwrap(), bytes);
     }
 }
+
+#[test]
+fn mixed_legacy_root_migrates_both_spaces_without_copying_or_moving_media() {
+    let (_temp, old, store) = setup();
+    let media = old.parent().unwrap().join("mixed");
+    fs::create_dir(&media).unwrap();
+    let value = serde_json::json!({"library_roots":[{"path":media,"kind":"mixed","enabled":true}]});
+    fs::write(
+        old.join("settings.json"),
+        serde_json::to_vec(&value).unwrap(),
+    )
+    .unwrap();
+    let plan = store
+        .prepare_migration("mixed-import", &old, "tcm-portable")
+        .unwrap();
+    assert_eq!(plan.roots.len(), 2);
+    let receipt = store
+        .apply_migration("mixed-import", &plan.fingerprint)
+        .unwrap();
+    assert!(receipt.pending_roots.is_empty());
+    assert_eq!(receipt.configuration.roots.len(), 2);
+    assert_eq!(
+        receipt.configuration.roots[0].path,
+        receipt.configuration.roots[1].path
+    );
+    assert_ne!(
+        receipt.configuration.roots[0].id,
+        receipt.configuration.roots[1].id
+    );
+    assert_ne!(
+        receipt.configuration.roots[0].space,
+        receipt.configuration.roots[1].space
+    );
+}
