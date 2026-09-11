@@ -1,0 +1,54 @@
+{
+  "product": "ITM",
+  "target": "x86_64-unknown-linux-gnu",
+  "package": "ITM Validation_4.1.0_amd64.AppImage",
+  "sha256": "4cd47e1ccbe68ac6eda5b8e53ad5287c9fa7840daa1ed879421935b4f6203ce5",
+  "status": "passed",
+  "limitations": [
+    "OTA and data migration unverified",
+    "Full visual and system behavior unverified",
+    "DEB/RPM installation unverified",
+    "Same-version reinstall is not upgrade acceptance"
+  ],
+  "cycle_1": [
+    {
+      "arch": "x86_64",
+      "event": "native-setup-complete",
+      "os": "linux",
+      "product": "ITM"
+    },
+    {
+      "arch": "x86_64",
+      "event": "frontend-mounted-ipc-roundtrip",
+      "os": "linux",
+      "product": "ITM"
+    },
+    {
+      "arch": "x86_64",
+      "event": "process-exit",
+      "os": "linux",
+      "product": "ITM"
+    }
+  ],
+  "cycle_2": [
+    {
+      "arch": "x86_64",
+      "event": "native-setup-complete",
+      "os": "linux",
+      "product": "ITM"
+    },
+    {
+      "arch": "x86_64",
+      "event": "frontend-mounted-ipc-roundtrip",
+      "os": "linux",
+      "product": "ITM"
+    },
+    {
+      "arch": "x86_64",
+      "event": "process-exit",
+      "os": "linux",
+      "product": "ITM"
+    }
+  ],
+  "installation": "AppImage-extract-and-run-on-Xvfb; package-manager-install-unverified"
+}

@@ -1,0 +1,54 @@
+{
+  "product": "ITM",
+  "target": "aarch64-pc-windows-msvc",
+  "package": "ITM Validation_4.1.0_arm64-setup.exe",
+  "sha256": "7be8dc7c52184bbdb731ed1299eaeb7604b6631211fa1ef45d160cf5aa1ee558",
+  "status": "passed",
+  "limitations": [
+    "OTA and data migration unverified",
+    "Full visual and system behavior unverified",
+    "DEB/RPM installation unverified",
+    "Same-version reinstall is not upgrade acceptance"
+  ],
+  "cycle_1": [
+    {
+      "arch": "aarch64",
+      "event": "native-setup-complete",
+      "os": "windows",
+      "product": "ITM"
+    },
+    {
+      "arch": "aarch64",
+      "event": "frontend-mounted-ipc-roundtrip",
+      "os": "windows",
+      "product": "ITM"
+    },
+    {
+      "arch": "aarch64",
+      "event": "process-exit",
+      "os": "windows",
+      "product": "ITM"
+    }
+  ],
+  "cycle_2": [
+    {
+      "arch": "aarch64",
+      "event": "native-setup-complete",
+      "os": "windows",
+      "product": "ITM"
+    },
+    {
+      "arch": "aarch64",
+      "event": "frontend-mounted-ipc-roundtrip",
+      "os": "windows",
+      "product": "ITM"
+    },
+    {
+      "arch": "aarch64",
+      "event": "process-exit",
+      "os": "windows",
+      "product": "ITM"
+    }
+  ],
+  "installation": "NSIS-silent-install-reinstall-uninstall"
+}

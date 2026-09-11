@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "product": "ITM",
+  "timestamp": "2026-09-11T03:40:21.553783+00:00",
+  "application_source_commit": "9096d7d1fb525f5a0f6f346b6d2ceb5b90d167c1",
+  "build_run": "https://github.com/Eric-Hou1997/IMDb-Tech-Manager/actions/runs/34557044508",
+  "build_targets_passed": 5,
+  "package_count": 9,
+  "linux_install_run": "https://github.com/Eric-Hou1997/IMDb-Tech-Manager/actions/runs/34558742418",
+  "linux_container_combinations_passed": 12,
+  "tested_package_sha256": {
+    "ITM Validation-4.1.0-1.aarch64.rpm": "c65eebfdb8365fbf46c9f9856655d7532ff43f12b393d59eab9644a2098a7a37",
+    "ITM Validation-4.1.0-1.x86_64.rpm": "7b3185243d42ffee6e04284abf128d56f92fa3be3e81c7a4b442c445e11d1689",
+    "ITM Validation_4.1.0_aarch64.AppImage": "8a9759e717a5d8c17d423d6e31c04eabb729667813409d17f47870a09a023484",
+    "ITM Validation_4.1.0_aarch64.dmg": "4e356c5c2b66a47162b05d857253aeeaba5bab6b3ff7c57f093682d46abadfc7",
+    "ITM Validation_4.1.0_amd64.AppImage": "4cd47e1ccbe68ac6eda5b8e53ad5287c9fa7840daa1ed879421935b4f6203ce5",
+    "ITM Validation_4.1.0_amd64.deb": "9b8ed3cf3e5f64c2f12b9e196011f0254828ad8775bd66a9c09a20beb69801fb",
+    "ITM Validation_4.1.0_arm64-setup.exe": "7be8dc7c52184bbdb731ed1299eaeb7604b6631211fa1ef45d160cf5aa1ee558",
+    "ITM Validation_4.1.0_arm64.deb": "569a4feaa5b0a94450d0187390434678d511cea783222b2353f9867559f85ab0",
+    "ITM Validation_4.1.0_x64-setup.exe": "ff7f20182b55c552b92acdfeeb3cb116aa10f5d53819ba28298527daa14b22da"
+  },
+  "local_delivery": {
+    "status": "9-packages-match-cloud-tested-hashes",
+    "directory": "build/rewrite/cloud/34557044508",
+    "manifest": "DELIVERY.json",
+    "checksums": "SHA256SUMS.txt"
+  },
+  "acceptance": "isolated-validation-packages; not-complete-rewrite-or-official-release",
+  "remaining": [
+    "Full feature parity and retirement of old engines",
+    "TCM actual card integration and rendering",
+    "OTA, signed-channel bridge and data migration",
+    "Full native desktop UX and minimum OS acceptance",
+    "Windows 11 x64 acceptance; current x64 runner is Windows Server 2022"
+  ]
+}
