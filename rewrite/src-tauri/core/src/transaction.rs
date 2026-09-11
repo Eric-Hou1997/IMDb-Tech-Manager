@@ -100,9 +100,16 @@ impl Writer {
         let mut receipt: Receipt =
             serde_json::from_slice(&fs::read(dir.join("operation.json")).map_err(io)?)?;
         let actual = hash(&fs::read(self.authorize(&receipt.path)?).map_err(io)?);
-        if receipt.state == "prepared" {
+        if receipt.state == "prepared"
+            || receipt.state == "metadata-pending"
+            || receipt.state == "replaced"
+        {
             receipt.state = if actual == receipt.after {
-                "committed"
+                if receipt.state == "metadata-pending" {
+                    "metadata-pending"
+                } else {
+                    "committed"
+                }
             } else if actual == receipt.before {
                 "not-applied"
             } else {
@@ -147,6 +154,27 @@ impl Writer {
                     "Operation ID already identifies another write",
                 ));
             }
+            #[cfg(windows)]
+            let existing = if existing.state == "metadata-pending" {
+                let mut existing = existing;
+                let backup = existing.native_backup.as_ref().ok_or_else(|| {
+                    AppError::new("recovery-required", "Native metadata backup is missing")
+                })?;
+                if hash(&fs::read(backup).map_err(io)?) != existing.before {
+                    return Err(AppError::new(
+                        "backup-invalid",
+                        "Native metadata backup hash mismatch",
+                    ));
+                }
+                crate::windows_replace::Security::read(backup)
+                    .and_then(|security| security.apply(&path))
+                    .map_err(io)?;
+                existing.state = "committed".into();
+                self.save(&dir, &existing)?;
+                existing
+            } else {
+                existing
+            };
             return if existing.state == "committed" {
                 Ok(existing)
             } else {
@@ -164,6 +192,8 @@ impl Writer {
         }
         crate::specs::validate_specs_only(&original, candidate)?;
         let permissions = fs::metadata(&path).map_err(io)?.permissions();
+        #[cfg(windows)]
+        let security = crate::windows_replace::Security::read(&path).map_err(io)?;
         fs::create_dir(&dir).map_err(io)?;
         let mut backup = OpenOptions::new()
             .write(true)
@@ -205,6 +235,8 @@ impl Writer {
             .ok_or_else(|| AppError::new("invalid-path", "Target has no parent"))?;
         let mut tmp = tempfile::NamedTempFile::new_in(parent).map_err(io)?;
         tmp.as_file().set_permissions(permissions).map_err(io)?;
+        #[cfg(windows)]
+        security.apply(tmp.path()).map_err(io)?;
         tmp.write_all(candidate).map_err(io)?;
         tmp.as_file().sync_all().map_err(io)?;
         hook(Phase::BeforeReplace)?;
@@ -220,6 +252,8 @@ impl Writer {
             // handle first, while retaining ownership of the temporary pathname
             // so a failed replacement still cleans up the candidate.
             let candidate_path = tmp.into_temp_path();
+            receipt.state = "metadata-pending".into();
+            self.save(&dir, &receipt)?;
             crate::windows_replace::replace(
                 &path,
                 &candidate_path,
@@ -227,6 +261,11 @@ impl Writer {
                 expected,
             )
             .map_err(io)?;
+            // ReplaceFileW merges ACLs; restore the exact original entries and
+            // inheritance policy so repeated edits cannot accumulate grants.
+            security.apply(&path).map_err(io)?;
+            receipt.state = "replaced".into();
+            self.save(&dir, &receipt)?;
         }
         #[cfg(not(windows))]
         tmp.persist(&path).map_err(|e| io(e.error))?;
