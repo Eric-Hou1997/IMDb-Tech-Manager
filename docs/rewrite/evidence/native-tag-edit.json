@@ -1,0 +1,23 @@
+{
+  "platform": "macOS ARM64",
+  "date": "2026-09-11",
+  "source_base": "4bf74d6",
+  "scope": "Inspector Manual tag add, preview, confirmed write, persisted ownership, history undo, complete exit",
+  "test_copy": "/private/tmp/itm-native-write-20260911/media/GUI-验收副本.nfo",
+  "write_operation": "b0a1ec9d-2b0c-42ab-a943-e25f2b1cb8d8",
+  "before_sha256": "7b4ed64e8b34a35649b1e6e0789fe807a556c94d30cf1659d73dd1f99a028b60",
+  "after_sha256": "a7026fb750e257b1d0019b451671fc3878c0a9e2cf9a5fef6b3e6cf34ca42407",
+  "restored_sha256": "7b4ed64e8b34a35649b1e6e0789fe807a556c94d30cf1659d73dd1f99a028b60",
+  "preview_unchanged": true,
+  "xml_valid": true,
+  "ui_ownership": "manual",
+  "manual_id": "manual-5a68156ea9c28d54",
+  "ui_write_success": true,
+  "ui_undo_success": true,
+  "original_sample_modified": false,
+  "limits": [
+    "No AI or batch completion claim",
+    "Other native tag actions require additional desktop acceptance",
+    "Windows/Linux native tag UI pending"
+  ]
+}

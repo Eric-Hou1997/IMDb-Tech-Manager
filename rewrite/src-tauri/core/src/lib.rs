@@ -43,4 +43,5 @@ pub mod lifecycle;
 
 pub mod startup_file;
 
+pub mod tags;
 pub mod writing;

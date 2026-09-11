@@ -1,4 +1,5 @@
 //! ITM file transactions: candidate validation, source CAS, verified backup and recovery receipts.
+use crate::writing::WriteIntent;
 use crate::{hash, paths, AppError, Result};
 use serde::{Deserialize, Serialize};
 #[cfg(unix)]
@@ -10,6 +11,8 @@ use std::{
 };
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Receipt {
+    #[serde(default)]
+    pub intent: WriteIntent,
     pub operation_id: String,
     pub path: PathBuf,
     pub before: String,
@@ -127,6 +130,18 @@ impl Writer {
         candidate: &[u8],
         hook: impl Fn(Phase) -> Result<()>,
     ) -> Result<Receipt> {
+        self.commit_with_intent(id, path, expected, candidate, &WriteIntent::Specs, hook)
+    }
+    #[allow(clippy::too_many_arguments)]
+    pub fn commit_with_intent(
+        &self,
+        id: &str,
+        path: &Path,
+        expected: &str,
+        candidate: &[u8],
+        intent: &WriteIntent,
+        hook: impl Fn(Phase) -> Result<()>,
+    ) -> Result<Receipt> {
         let path = self.authorize(path)?;
         let dir = self.operation(id)?;
         let after = hash(candidate);
@@ -148,7 +163,11 @@ impl Writer {
             .map_err(|e| AppError::new("write-busy", e))?;
         if dir.exists() {
             let existing = self.inspect(id)?;
-            if existing.path != path || existing.before != expected || existing.after != after {
+            if existing.path != path
+                || existing.before != expected
+                || existing.after != after
+                || existing.intent != *intent
+            {
                 return Err(AppError::new(
                     "operation-conflict",
                     "Operation ID already identifies another write",
@@ -190,7 +209,29 @@ impl Writer {
                 AppError::new("source-conflict", "NFO changed after preview").at(path.display()),
             );
         }
-        crate::specs::validate_specs_only(&original, candidate)?;
+        match intent {
+            WriteIntent::Specs => crate::specs::validate_specs_only(&original, candidate)?,
+            WriteIntent::Tags { plan } => {
+                if crate::tags::candidate(&original, plan)? != candidate {
+                    return Err(AppError::new(
+                        "unsafe-candidate",
+                        "Tag candidate differs from the authorized mutation",
+                    ));
+                }
+            }
+            WriteIntent::Undo { original_id } => {
+                let previous = self.inspect(original_id)?;
+                if previous.path != path
+                    || previous.after != expected
+                    || self.original_bytes(original_id)? != candidate
+                {
+                    return Err(AppError::new(
+                        "unsafe-undo",
+                        "Undo must restore the exact verified original backup",
+                    ));
+                }
+            }
+        }
         let permissions = fs::metadata(&path).map_err(io)?.permissions();
         #[cfg(windows)]
         let security = crate::windows_replace::Security::read(&path).map_err(io)?;
@@ -221,6 +262,7 @@ impl Writer {
             ));
         }
         let mut receipt = Receipt {
+            intent: intent.clone(),
             operation_id: id.into(),
             path: path.clone(),
             before: expected.into(),
@@ -310,11 +352,14 @@ impl Writer {
                 "Original backup hash mismatch",
             ));
         }
-        self.commit(
+        self.commit_with_intent(
             undo_id,
             &receipt.path,
             &receipt.after,
             &original,
+            &WriteIntent::Undo {
+                original_id: original_id.into(),
+            },
             |_| Ok(()),
         )
     }

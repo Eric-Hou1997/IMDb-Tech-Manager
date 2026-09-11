@@ -20,6 +20,30 @@ pub async fn preview_specs(request: SpecsEdit, app: tauri::AppHandle) -> Result<
     .map_err(|e| AppError::new("write-worker", e))?
 }
 #[tauri::command]
+pub async fn preview_tags(
+    request: product_core::writing::TagEdit,
+    app: tauri::AppHandle,
+) -> Result<WritePreview> {
+    tauri::async_runtime::spawn_blocking(move || app.state::<Desktop>().store.preview_tags(request))
+        .await
+        .map_err(|e| AppError::new("write-worker", e))?
+}
+#[tauri::command]
+pub async fn preview_rules(
+    id: String,
+    item_id: String,
+    expected_hash: String,
+    app: tauri::AppHandle,
+) -> Result<WritePreview> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<Desktop>()
+            .store
+            .preview_rules(&id, &item_id, &expected_hash)
+    })
+    .await
+    .map_err(|e| AppError::new("write-worker", e))?
+}
+#[tauri::command]
 pub async fn apply_specs(
     id: String,
     reviewed_hash: String,

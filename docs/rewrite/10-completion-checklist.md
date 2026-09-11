@@ -104,3 +104,11 @@ Windows 写入回归发现候选 NamedTempFile 仍持有打开句柄，导致 Re
 - 首次插入、来源刷新、保留手动有效规格、更新来源快照和派生标签过期状态进入同一逐文件预览/事务/撤销链。预览可查看完整原节点与候选节点。首次插入不改变根标签、BOM、换行或其他节点；TV 的 mediatype 继续使用原有 tvshow 协议值。
 - macOS ARM64 原生窗口取得真实 tt0061452 数据：HTTP WAF → 系统 WebView → 差异预览 → 确认写入隔离副本 → Inspector 成功反馈 → 历史撤销。Technical Specs 外字节及权限不变；撤销后整文件 SHA256 恢复。另验证缓存命中、进行中的刷新取消、获取历史重启恢复及完全退出后无应用进程。详见 [本机证据](evidence/native-imdb-refresh.json)。
 - 新增核心获取流程 4 项、来源构造/解析 7 项回归通过，覆盖首次插入撤销、缓存/强制刷新/取消、重复操作、重启、外部修改冲突、手动来源快照、畸形字段和 TV 元数据。真实 Windows/Linux IMDb 获取、HTML 结构变化回退、全库自动任务、旧缓存适配、sidecar、标签与 AI 仍需继续实现和验收；此增量不关闭整体功能门禁。
+
+### 标签写入与 Inspector 归属操作增量（2026-09-11）
+
+- `4bf74d6` 的五目标构建/安装运行全部通过（34592065448）。
+- 原版 `edit_nfo` 的标签编辑、删除、显式归属调整、新增 Manual、清除 AI 标签已接入 Rust 候选构造与原生 Inspector 预览。Generated 手动编辑转为 Manual，External 编辑不接管归属，External 删除需显式勾选确认后再预览、确认写入。自动规则候选只替换权威 Generated，匹配现有 External/Manual 的值不插入、不认领。
+- Writer 的写入意图持久化并与候选、操作 ID 绑定；标签候选由授权计划重新构造验证。撤销只接受对应原操作的精确校验备份，不放宽成任意 XML 替换。原有 Specs-only 写入边界保持。
+- NFO 事务完成后才从嵌入 manifest 更新 sidecar。旁文件失败记录 `committed-mirror-pending`，重启恢复只补写旁文件，不重复替换 NFO。标签/归属、外部冲突、未知 schema、重复归属、崩溃恢复、旁文件失败恢复及撤销共 7 项新增行为回归通过；既有获取和写入用例继续通过。
+- 本机原生窗口验证 Casino Royale 隔离副本新增中文 Manual 标签、预览不写、确认后 Inspector 与文件一致、历史撤销恢复整文件哈希。详见 [本机标签证据](evidence/native-tag-edit.json)。规则批处理、AI 请求与审批、旧 sidecar 迁移及各目标完整桌面验收继续进行，不将此增量计为第 8 或 12 步整体完成。

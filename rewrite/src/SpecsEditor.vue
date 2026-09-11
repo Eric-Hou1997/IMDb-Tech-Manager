@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
-import type { AppError, FetchRecord, MediaItem, SpecsEdit, WritePreview } from './contracts';
+import type { Action, AppError, FetchRecord, MediaItem, SpecsEdit, WritePreview } from './contracts';
+import TagEditor from './TagEditor.vue';
 const props=defineProps<{item:MediaItem}>();
 const emit=defineEmits<{changed:[]}>();
 const fields=['Runtime','Sound mix','Color','Aspect ratio','Camera','Laboratory','Film Length','Negative Format','Cinematographic Process','Printed Film Format'];
@@ -26,6 +27,7 @@ async function fetchSpecs(refresh:boolean){await run(async(token)=>{
 });}
 async function cancelFetch(){const id=fetchingId.value;if(!id)return;try{await invoke('cancel_fetch',{id});}catch(e){report(e);}}
 async function sourcePreview(){const source=fetched.value;if(!source)return;await run(async(token)=>{const value=await invoke<WritePreview>('preview_source',{id:crypto.randomUUID(),fetchId:source.request.operation_id});if(current(token)){preview.value=value;await reloadHistory();}});}
+async function tagPreview(action:Action){await run(async(token)=>{const value=await invoke<WritePreview>('preview_tags',{request:{operation_id:crypto.randomUUID(),item_id:props.item.id,expected_hash:props.item.source_hash,action}});if(current(token)){preview.value=value;await reloadHistory();}});}
 async function prepare(){await run(async(token)=>{
  request??={operation_id:crypto.randomUUID(),item_id:props.item.id,expected_hash:props.item.source_hash,specs:Object.fromEntries(fields.map(field=>[field,draft.value[field].split('\n')]))};
  const value=await invoke<WritePreview>('preview_specs',{request});if(current(token)){preview.value=value;await reloadHistory();}
@@ -49,16 +51,18 @@ async function reload(){await run(async()=>{resetDraft();emit('changed');});}
    <fieldset :disabled="busy"><legend>当前文件的规格</legend><label v-for="field in fields" :key="field">{{ field }}<textarea v-model="draft[field]" rows="2" @input="draftChanged" /></label></fieldset>
    <div class="actions"><button :disabled="busy" @click="prepare">预览更改</button><button :disabled="busy" @click="editing=false;preview=null;request=null">取消编辑</button><button :disabled="busy" @click="reload">重新读取文件</button></div>
   </div>
+  <TagEditor :item="item" :busy="busy" @preview="tagPreview" />
   <section v-if="preview" aria-label="写入预览" class="write-preview">
    <h5>{{ preview.undo_of?'撤销预览':'写入预览' }} · {{ preview.title }} {{ preview.year }}</h5>
    <p>{{ preview.imdb }} · {{ preview.media_kind }}</p><pre>{{ preview.path }}</pre>
+   <div v-if="JSON.stringify(preview.before_tags)!==JSON.stringify(preview.after_tags)"><h5>根标签与归属变化</h5><p>原标签</p><ul><li v-for="(tag,index) in preview.before_tags" :key="index">{{ tag.value }} · {{ tag.ownership }} {{ tag.engine }}</li></ul><p>写入后的标签</p><ul><li v-for="(tag,index) in preview.after_tags" :key="index">{{ tag.value }} · {{ tag.ownership }} {{ tag.engine }}</li></ul></div>
    <details v-if="preview.before_xml||preview.after_xml"><summary>完整节点与来源元数据差异</summary><p>原节点</p><pre>{{ preview.before_xml||'（无）' }}</pre><p>候选节点</p><pre>{{ preview.after_xml||'（移除）' }}</pre></details>
    <dl><template v-for="field in changed" :key="field"><dt>{{ field }}</dt><dd><span>原值</span><pre>{{ (preview.before_specs[field]||[]).join('\n')||'（空）' }}</pre><span>新值</span><pre>{{ (preview.after_specs[field]||[]).join('\n')||'（空）' }}</pre></dd></template></dl>
    <p v-if="preview.phase==='unchanged'">内容没有变化，无需写入。</p>
    <p v-else-if="preview.phase==='committed'" role="status">写入已完成，备份及操作记录已保留。</p>
-   <p v-else>操作状态：{{ preview.phase }}</p><p v-if="!changed.length&&preview.phase!=='unchanged'">有效规格没有变化；本次预览更新来源时间、来源快照或其他 Technical Specs 元数据。</p>
+   <p v-else>操作状态：{{ preview.phase }}</p><p v-if="!changed.length&&preview.phase!=='unchanged'&&preview.intent.kind==='specs'">有效规格没有变化；本次预览更新来源时间、来源快照或其他 Technical Specs 元数据。</p>
    <pre v-if="preview.error" role="alert">{{ preview.error.code }}：{{ preview.error.message }}</pre>
-   <button v-if="['preview','writing','committed-index-pending','metadata-pending'].includes(preview.phase)" :disabled="busy" @click="apply">{{ preview.phase==='preview'?'确认写入当前文件':'查询并恢复本次操作' }}</button>
+   <button v-if="['preview','writing','committed-index-pending','committed-mirror-pending','metadata-pending'].includes(preview.phase)" :disabled="busy" @click="apply">{{ preview.phase==='preview'?'确认写入当前文件':'查询并恢复本次操作' }}</button>
    <p v-else-if="!['committed','unchanged'].includes(preview.phase)">本次操作未完成。请重新读取文件后建立新的预览；原操作记录与备份保留。</p>
   </section>
   <p v-if="busy" role="status">正在处理当前文件…</p><pre v-if="error" role="alert">{{ error }}</pre>

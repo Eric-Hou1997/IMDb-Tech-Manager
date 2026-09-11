@@ -1,6 +1,25 @@
 use crate::Specs;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[serde(tag = "kind", rename_all = "kebab-case")]
+pub enum WriteIntent {
+    #[default]
+    Specs,
+    Tags {
+        plan: crate::tags::Plan,
+    },
+    Undo {
+        original_id: String,
+    },
+}
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct TagEdit {
+    pub operation_id: String,
+    pub item_id: String,
+    pub expected_hash: String,
+    pub action: crate::tags::Action,
+}
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct SpecsEdit {
     pub operation_id: String,
@@ -10,6 +29,8 @@ pub struct SpecsEdit {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct WritePreview {
+    #[serde(default)]
+    pub intent: WriteIntent,
     pub operation_id: String,
     pub item_id: String,
     pub path: String,
@@ -28,4 +49,8 @@ pub struct WritePreview {
     pub before_xml: String,
     #[serde(default)]
     pub after_xml: String,
+    #[serde(default)]
+    pub before_tags: Vec<crate::Tag>,
+    #[serde(default)]
+    pub after_tags: Vec<crate::Tag>,
 }

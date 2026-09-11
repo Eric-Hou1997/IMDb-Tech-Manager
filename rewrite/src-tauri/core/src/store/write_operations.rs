@@ -1,4 +1,5 @@
 use super::*;
+use crate::writing::WriteIntent;
 fn technical_xml(raw: &[u8]) -> Result<String> {
     let text = std::str::from_utf8(raw)
         .map_err(|e| AppError::new("invalid-encoding", e))?
@@ -50,7 +51,7 @@ impl Store {
             &item,
             root,
             (&raw, &candidate),
-            None,
+            WriteIntent::Specs,
         )
     }
     pub fn preview_source(&self, id: &str, fetch_id: &str) -> Result<crate::writing::WritePreview> {
@@ -91,7 +92,132 @@ impl Store {
             .at(&item.path));
         }
         let candidate = crate::specs::source_candidate(&raw, &source)?;
-        self.save_write_preview(id, &fingerprint, &item, root, (&raw, &candidate), None)
+        self.save_write_preview(
+            id,
+            &fingerprint,
+            &item,
+            root,
+            (&raw, &candidate),
+            WriteIntent::Specs,
+        )
+    }
+    pub fn preview_tags(
+        &self,
+        request: crate::writing::TagEdit,
+    ) -> Result<crate::writing::WritePreview> {
+        valid_id(&request.operation_id)?;
+        let fingerprint = hash(&serde_json::to_vec(&("tag-edit", &request))?);
+        if let Some(body) = self.operation(&request.operation_id, &fingerprint)? {
+            return match serde_json::from_str(&body)? {
+                OperationResult::Write(value) => Ok(value),
+                _ => Err(AppError::new(
+                    "operation-conflict",
+                    "ID belongs to another action",
+                )),
+            };
+        }
+        // Generated results must come from an authoritative rule/AI operation, never arbitrary IPC input.
+        if matches!(request.action, crate::tags::Action::Generate { .. }) {
+            return Err(AppError::new(
+                "generation-required",
+                "Use a rule or approved AI generation result",
+            ));
+        }
+        self.tag_preview(
+            &request.operation_id,
+            &fingerprint,
+            &request.item_id,
+            &request.expected_hash,
+            request.action,
+        )
+    }
+    pub fn preview_rules(
+        &self,
+        id: &str,
+        item_id: &str,
+        expected_hash: &str,
+    ) -> Result<crate::writing::WritePreview> {
+        valid_id(id)?;
+        let fingerprint = hash(&serde_json::to_vec(&("rule-tags", item_id, expected_hash))?);
+        if let Some(body) = self.operation(id, &fingerprint)? {
+            return match serde_json::from_str(&body)? {
+                OperationResult::Write(value) => Ok(value),
+                _ => Err(AppError::new(
+                    "operation-conflict",
+                    "ID belongs to another action",
+                )),
+            };
+        }
+        let item = self.item(item_id)?;
+        let configuration = self.configuration()?;
+        let root = configuration
+            .roots
+            .iter()
+            .find(|r| r.id == item.root_id)
+            .ok_or_else(|| AppError::new("invalid-root", "Item root is no longer configured"))?;
+        let (_, raw) = library::read_bytes(root, Path::new(&item.path))?;
+        if hash(&raw) != expected_hash {
+            return Err(
+                AppError::new("source-conflict", "NFO changed since inspection").at(&item.path),
+            );
+        }
+        let entries = crate::rules::entries(&crate::tags::effective_specs(&raw)?)
+            .into_iter()
+            .map(|e| crate::tags::GeneratedEntry {
+                value: e.value,
+                field: e.field,
+                source_indexes: e.source_indexes,
+                confidence: "high".into(),
+                operation: String::new(),
+            })
+            .collect();
+        self.tag_preview(
+            id,
+            &fingerprint,
+            item_id,
+            expected_hash,
+            crate::tags::Action::Generate {
+                entries,
+                engine: "local-rules".into(),
+                model: String::new(),
+                prompt_hash: String::new(),
+            },
+        )
+    }
+    fn tag_preview(
+        &self,
+        id: &str,
+        fingerprint: &str,
+        item_id: &str,
+        expected_hash: &str,
+        action: crate::tags::Action,
+    ) -> Result<crate::writing::WritePreview> {
+        let item = self.item(item_id)?;
+        let config = self.configuration()?;
+        let root = config
+            .roots
+            .iter()
+            .find(|r| r.id == item.root_id)
+            .ok_or_else(|| AppError::new("invalid-root", "Item root is no longer configured"))?;
+        let (_, raw) = library::read_bytes(root, Path::new(&item.path))?;
+        if hash(&raw) != expected_hash {
+            return Err(
+                AppError::new("source-conflict", "NFO changed since inspection").at(&item.path),
+            );
+        }
+        let plan = crate::tags::Plan {
+            action,
+            timestamp: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        };
+        let candidate = crate::tags::candidate(&raw, &plan)?;
+        self.save_write_preview(
+            id,
+            fingerprint,
+            &item,
+            root,
+            (&raw, &candidate),
+            WriteIntent::Tags { plan },
+        )
     }
     fn save_write_preview(
         &self,
@@ -100,13 +226,31 @@ impl Store {
         item: &MediaItem,
         root: &LibraryRoot,
         bytes: (&[u8], &[u8]),
-        undo_of: Option<String>,
+        intent: WriteIntent,
     ) -> Result<crate::writing::WritePreview> {
         let (original, candidate) = bytes;
-        crate::specs::validate_specs_only(original, candidate)?;
+        match &intent {
+            WriteIntent::Specs => crate::specs::validate_specs_only(original, candidate)?,
+            WriteIntent::Tags { plan } => {
+                if crate::tags::candidate(original, plan)? != candidate {
+                    return Err(AppError::new(
+                        "unsafe-candidate",
+                        "Tag candidate does not match the plan",
+                    ));
+                }
+            }
+            // The sole caller obtains and verifies this backup through Writer::original_bytes.
+            // Writer checks its identity and exact bytes again before replacement.
+            WriteIntent::Undo { .. } => {}
+        }
         let before = library::parse(root, Path::new(&item.path), original)?;
         let after = library::parse(root, Path::new(&item.path), candidate)?;
         let value = crate::writing::WritePreview {
+            undo_of: match &intent {
+                WriteIntent::Undo { original_id } => Some(original_id.clone()),
+                _ => None,
+            },
+            intent,
             operation_id: id.into(),
             item_id: item.id.clone(),
             path: item.path.clone(),
@@ -124,10 +268,11 @@ impl Store {
                 "preview"
             }
             .into(),
-            undo_of,
             error: None,
             before_xml: technical_xml(original)?,
             after_xml: technical_xml(candidate)?,
+            before_tags: before.tags,
+            after_tags: after.tags,
         };
         let mut db = self.db()?;
         self.writable()?;
@@ -243,11 +388,12 @@ impl Store {
                 serde_json::to_string(&OperationResult::Write(preview.clone()))?
             ],
         )?;
-        let result = writer.commit(
+        let result = writer.commit_with_intent(
             id,
             Path::new(&preview.path),
             &preview.before_hash,
             &candidate,
+            &preview.intent,
             |phase| {
                 if matches!(phase, crate::transaction::Phase::BeforeReplace) && cancelled() {
                     Err(AppError::new(
@@ -272,6 +418,23 @@ impl Store {
                     }
                 })
                 .unwrap_or_else(|_| "failed".into());
+            preview.error = Some(error.clone());
+            db.execute(
+                "UPDATE operations SET result=?2 WHERE id=?1",
+                params![id, serde_json::to_string(&OperationResult::Write(preview))?],
+            )?;
+            return Err(error);
+        }
+        let mirror = journal
+            .parent()
+            .ok_or_else(|| AppError::new("invalid-journal", "Journal has no data directory"))?
+            .join("ownership");
+        if let Err(mut error) =
+            crate::tags::mirror(&mirror, Path::new(&preview.path), &preview.after_hash)
+        {
+            error.path = Some(preview.path.clone());
+            error.operation_id = Some(id.into());
+            preview.phase = "committed-mirror-pending".into();
             preview.error = Some(error.clone());
             db.execute(
                 "UPDATE operations SET result=?2 WHERE id=?1",
@@ -354,7 +517,9 @@ impl Store {
             &item,
             root,
             (&raw, &backup),
-            Some(original_id.into()),
+            WriteIntent::Undo {
+                original_id: original_id.into(),
+            },
         )
     }
     pub fn write_history(&self) -> Result<Vec<crate::writing::WritePreview>> {

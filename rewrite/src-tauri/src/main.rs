@@ -167,6 +167,8 @@ fn main() {
             acquisition::cancel_fetch,
             acquisition::preview_source,
             writing::preview_specs,
+            writing::preview_tags,
+            writing::preview_rules,
             writing::apply_specs,
             writing::preview_undo,
             writing::write_history,
