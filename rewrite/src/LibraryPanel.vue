@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch, nextTick } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
+import SpecsEditor from './SpecsEditor.vue';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import type { AppError, CatalogPage, Configuration, MediaItem, Space, Task, TaskState, LibraryView, UiState, UiReceipt, TvPage, TvRow } from './contracts';
 
@@ -107,8 +108,8 @@ onUnmounted(() => { disposed = true; ++refreshToken; clearTimeout(timer); unlist
 </script>
 <template>
   <section class="library-panel">
-    <h2>媒体库 · 只读迁移工作台</h2>
-    <p>选择根目录并明确勾选本次扫描范围。索引写入本应用独立数据目录，媒体 NFO 保持只读。</p>
+    <h2>媒体库</h2>
+    <p>选择根目录并明确勾选本次扫描范围。扫描仅建立索引；Inspector 中的规格编辑需要逐次预览并确认写入。</p>
     <div class="actions" aria-label="媒体空间">
       <button :aria-pressed="space === 'movie'" @click="switchSpace('movie')">Movie</button>
       <button :aria-pressed="space === 'tv'" @click="switchSpace('tv')">TV</button>
@@ -143,6 +144,7 @@ onUnmounted(() => { disposed = true; ++refreshToken; clearTimeout(timer); unlist
     <aside v-if="detail" class="inspector"><h3>{{ detail.title || '异常条目' }} · Inspector</h3><p>{{ detail.year }} · {{ detail.imdb }} · {{ detail.kind }}</p><pre>{{ detail.path }}</pre><pre v-if="detail.error" role="alert">{{ detail.error.code }}：{{ detail.error.message }}</pre>
       <button :disabled="busy" @click="action(async () => { await invoke('reveal_item', { id: detail!.id }); })">在文件管理器中定位</button>
       <h4>Technical Specs</h4><dl><template v-for="(values, field) in detail.specs" :key="field"><dt>{{ field }}</dt><dd v-for="(value, index) in values" :key="index">{{ value }}</dd></template></dl>
+      <SpecsEditor :item="detail" @changed="action(async()=>{ if(detail)detail=await invoke<MediaItem>('inspector',{id:detail.id}); await refresh(); })" />
       <h4>根标签与归属</h4><ul><li v-for="(tag, index) in detail.tags" :key="index">{{ tag.value }} · {{ tag.ownership }}<span v-if="tag.engine"> · {{ tag.engine }}</span></li></ul>
       <button @click="detail = null">关闭检查器</button>
     </aside>

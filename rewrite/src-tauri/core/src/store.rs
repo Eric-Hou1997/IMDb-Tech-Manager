@@ -46,7 +46,7 @@ impl Store {
         let connection = Connection::open(path)?;
         connection.busy_timeout(std::time::Duration::from_secs(5))?;
         let version: u32 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 2 {
+        if version > 3 {
             return Err(AppError::new(
                 "newer-database",
                 "Database belongs to a newer application; refusing downgrade",
@@ -62,7 +62,8 @@ impl Store {
           CREATE INDEX IF NOT EXISTS items_root ON items(root_id);
           CREATE TABLE IF NOT EXISTS legacy_artifacts(import_id TEXT NOT NULL, path TEXT NOT NULL, category TEXT NOT NULL, sha256 TEXT NOT NULL, body BLOB NOT NULL, PRIMARY KEY(import_id,path));
           CREATE TABLE IF NOT EXISTS preferences(key TEXT PRIMARY KEY, body TEXT NOT NULL);
-          PRAGMA user_version=2; COMMIT;")?;
+          CREATE TABLE IF NOT EXISTS write_candidates(id TEXT PRIMARY KEY,root_id TEXT NOT NULL,body BLOB NOT NULL);
+          PRAGMA user_version=3; COMMIT;")?;
         let store = Self {
             connection: Mutex::new(connection),
             worker: Mutex::new(()),
@@ -1142,3 +1143,5 @@ impl Store {
         Ok(Some(result))
     }
 }
+
+mod write_operations;

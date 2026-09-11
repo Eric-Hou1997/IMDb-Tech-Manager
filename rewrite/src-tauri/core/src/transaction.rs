@@ -1,4 +1,4 @@
-//! ITM-only journal prototype. Not exposed through Tauri until platform/ownership gates pass.
+//! ITM file transactions: candidate validation, source CAS, verified backup and recovery receipts.
 use crate::{hash, paths, AppError, Result};
 use serde::{Deserialize, Serialize};
 #[cfg(unix)]
@@ -15,6 +15,8 @@ pub struct Receipt {
     pub before: String,
     pub after: String,
     pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub native_backup: Option<PathBuf>,
 }
 pub enum Phase {
     BackupSynced,
@@ -36,10 +38,9 @@ fn sync_directory(path: &Path) -> Result<()> {
     #[cfg(not(unix))]
     {
         let _ = path;
-        Err(AppError::new(
-            "platform-write-unverified",
-            "Native durable replacement adapter has not passed acceptance",
-        ))
+        // Windows does not expose directory fsync through File. Each journal
+        // and replacement file is flushed explicitly by its write adapter.
+        Ok(())
     }
 }
 impl Writer {
@@ -86,6 +87,12 @@ impl Writer {
         tmp.as_file().sync_all().map_err(io)?;
         tmp.persist(dir.join("operation.json"))
             .map_err(|e| io(e.error))?;
+        #[cfg(windows)]
+        OpenOptions::new()
+            .write(true)
+            .open(dir.join("operation.json"))
+            .and_then(|f| f.sync_all())
+            .map_err(io)?;
         sync_directory(dir)
     }
     pub fn inspect(&self, id: &str) -> Result<Receipt> {
@@ -169,12 +176,27 @@ impl Writer {
             return Err(AppError::new("backup-invalid", "Backup readback mismatch"));
         }
         hook(Phase::BackupSynced)?;
+        let native_backup = if cfg!(windows) {
+            Some(path.with_file_name(format!(".itm-replaced-{}.bak", hash(id.as_bytes()))))
+        } else {
+            None
+        };
+        if native_backup
+            .as_ref()
+            .is_some_and(|p| fs::symlink_metadata(p).is_ok())
+        {
+            return Err(AppError::new(
+                "recovery-required",
+                "Native replacement backup already exists",
+            ));
+        }
         let mut receipt = Receipt {
             operation_id: id.into(),
             path: path.clone(),
             before: expected.into(),
             after,
             state: "prepared".into(),
+            native_backup,
         };
         self.save(&dir, &receipt)?;
         sync_directory(&self.journal)?;
@@ -192,6 +214,15 @@ impl Writer {
                     .at(path.display()),
             );
         }
+        #[cfg(windows)]
+        crate::windows_replace::replace(
+            &path,
+            tmp.path(),
+            receipt.native_backup.as_ref().expect("Windows backup"),
+            expected,
+        )
+        .map_err(io)?;
+        #[cfg(not(windows))]
         tmp.persist(&path).map_err(|e| io(e.error))?;
         sync_directory(parent)?;
         hook(Phase::Replaced)?;
@@ -204,6 +235,20 @@ impl Writer {
         receipt.state = "committed".into();
         self.save(&dir, &receipt)?;
         Ok(receipt)
+    }
+    pub fn original_bytes(&self, original_id: &str) -> Result<Vec<u8>> {
+        let receipt = self.inspect(original_id)?;
+        if receipt.state != "committed" {
+            return Err(AppError::new(
+                "unsafe-undo",
+                "Original write is not committed",
+            ));
+        }
+        let original = fs::read(self.operation(original_id)?.join("original.nfo")).map_err(io)?;
+        if hash(&original) != receipt.before {
+            return Err(AppError::new("backup-invalid", "Backup hash mismatch"));
+        }
+        Ok(original)
     }
     pub fn undo(&self, undo_id: &str, original_id: &str) -> Result<Receipt> {
         let receipt = self.inspect(original_id)?;

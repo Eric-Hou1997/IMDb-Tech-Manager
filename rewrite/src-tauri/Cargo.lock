@@ -2012,6 +2012,7 @@ name = "itm-core"
 version = "4.1.0"
 dependencies = [
  "base64 0.22.1",
+ "chrono",
  "flate2",
  "html-escape",
  "minisign-verify",

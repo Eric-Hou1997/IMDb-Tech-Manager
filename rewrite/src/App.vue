@@ -29,7 +29,7 @@ onMounted(async () => {
 </script>
 <template>
   <main>
-    <header><span class="mark">{{ product }}</span><div><h1>重写工作台</h1><p>读取流程迁移中 · 写入功能尚未开放</p></div></header>
+    <header><span class="mark">{{ product }}</span><div><h1>IMDb Tech Manager</h1><p>媒体库与 Technical Specs</p></div></header>
     <p class="status" role="status">{{ status }}</p>
     <LibraryPanel />
     <LifecyclePanel />

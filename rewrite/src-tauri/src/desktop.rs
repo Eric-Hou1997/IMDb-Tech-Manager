@@ -12,6 +12,7 @@ use tauri_plugin_dialog::DialogExt;
 
 pub struct Desktop {
     pub store: Arc<Store>,
+    pub(crate) write_gate: Mutex<()>,
     stop: Arc<AtomicBool>,
     worker: Mutex<Option<JoinHandle<()>>>,
 }
@@ -26,6 +27,7 @@ impl Desktop {
         let stop = Arc::new(AtomicBool::new(false));
         let desktop = Self {
             store,
+            write_gate: Mutex::new(()),
             stop,
             worker: Mutex::new(None),
         };
@@ -71,8 +73,12 @@ impl Desktop {
         );
         Ok(())
     }
+    pub fn stopping(&self) -> bool {
+        self.stop.load(Ordering::SeqCst)
+    }
     pub fn shutdown(&self) {
         self.stop.store(true, Ordering::SeqCst);
+        let _writes = self.write_gate.lock();
         if let Ok(mut worker) = self.worker.lock() {
             if let Some(worker) = worker.take() {
                 if worker.join().is_err() {
@@ -169,7 +175,14 @@ pub fn catalog(query: CatalogQuery, state: State<'_, Desktop>) -> Result<Catalog
 }
 #[tauri::command]
 pub fn inspector(id: String, state: State<'_, Desktop>) -> Result<MediaItem> {
-    state.store.item(&id)
+    let item = state.store.item(&id)?;
+    let config = state.store.configuration()?;
+    let root = config
+        .roots
+        .iter()
+        .find(|r| r.id == item.root_id)
+        .ok_or_else(|| AppError::new("invalid-root", "Root is no longer configured"))?;
+    product_core::library::read(root, std::path::Path::new(&item.path))
 }
 #[tauri::command]
 pub async fn reveal_item(id: String, app: tauri::AppHandle) -> Result<()> {

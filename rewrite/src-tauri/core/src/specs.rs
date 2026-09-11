@@ -243,6 +243,45 @@ pub fn manual_candidate(raw: &[u8], specs: &Specs) -> Result<Vec<u8>> {
         ));
     }
     let tech = nodes[0];
+    if tech
+        .attribute("formatVersion")
+        .is_some_and(|v| v.parse::<u32>().map_or(true, |v| v > 21))
+    {
+        return Err(AppError::new(
+            "unsafe-skip",
+            "Technical Specs schema is newer or unrecognized",
+        ));
+    }
+    let mut normalized = Specs::new();
+    for (field, values) in specs {
+        let mut seen = std::collections::HashSet::new();
+        let values = values
+            .iter()
+            .map(|v| clean(v))
+            .filter(|v| !v.is_empty() && seen.insert(crate::ownership_key(v)))
+            .collect::<Vec<_>>();
+        normalized.insert(field.clone(), values);
+    }
+    let specs = &normalized;
+    let mut current = Specs::new();
+    for node in tech.children().filter(|n| n.has_tag_name("section")) {
+        crate::collect_specs(
+            &mut current,
+            node.attribute("name").unwrap_or(""),
+            node.children()
+                .filter(|n| n.has_tag_name("item"))
+                .map(|n| {
+                    n.descendants()
+                        .filter(|c| c.is_text())
+                        .filter_map(|c| c.text())
+                        .collect()
+                })
+                .collect(),
+        );
+    }
+    if fingerprint(&current)? == fingerprint(specs)? {
+        return Ok(raw.to_vec());
+    }
     let nl = if source.contains("\r\n") {
         "\r\n"
     } else {
@@ -266,6 +305,9 @@ pub fn manual_candidate(raw: &[u8], specs: &Specs) -> Result<Vec<u8>> {
     for child in tech.children() {
         if child.has_tag_name("section") {
             source_sections.push_str(&source[child.range()]);
+            if !SECTIONS.contains(&child.attribute("name").unwrap_or("")) {
+                body.push_str(&source[child.range()]);
+            }
             continue;
         }
         if child.has_tag_name("sourcesnapshot") {
@@ -296,16 +338,31 @@ pub fn manual_candidate(raw: &[u8], specs: &Specs) -> Result<Vec<u8>> {
     if !has_snapshot {
         body.push_str(&element(
             "sourcesnapshot",
-            vec![("factOrigin".into(), "imdb".into())],
+            vec![
+                ("factOrigin".into(), "imdb".into()),
+                ("specHash".into(), fingerprint(&current)?),
+                (
+                    "fetched".into(),
+                    tech.attribute("fetched").unwrap_or("").into(),
+                ),
+            ],
             &source_sections,
         ));
     }
     let mut attributes: Vec<_> = tech
         .attributes()
-        .filter(|a| !["specHash", "modified"].contains(&a.name()))
+        .filter(|a| !["specHash", "modified", "modifiedAt"].contains(&a.name()))
         .map(|a| (a.name().into(), a.value().into()))
         .collect();
+    if !has_snapshot {
+        attributes.retain(|(name, _)| name != "sourceSpecHash");
+        attributes.push(("sourceSpecHash".into(), fingerprint(&current)?));
+    }
     attributes.push(("modified".into(), "manual".into()));
+    attributes.push((
+        "modifiedAt".into(),
+        chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+    ));
     attributes.push(("specHash".into(), fingerprint(specs)?));
     let replacement = element("technicalspecs", attributes, &body);
     let range = tech.range();

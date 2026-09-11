@@ -4,6 +4,7 @@ mod desktop;
 mod lifecycle;
 mod migration;
 mod update;
+mod writing;
 use product_core::services::CredentialStore;
 use serde_json::{json, Value};
 use std::{
@@ -158,6 +159,10 @@ fn main() {
         })
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
+            writing::preview_specs,
+            writing::apply_specs,
+            writing::preview_undo,
+            writing::write_history,
             runtime_probe,
             lifecycle::lifecycle_status,
             lifecycle::lifecycle_apply,

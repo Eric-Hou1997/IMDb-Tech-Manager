@@ -1,5 +1,3 @@
-#![cfg(feature = "write-prototype")]
-#[cfg(unix)]
 use itm_core::transaction::Phase;
 use itm_core::{specs, transaction::Writer, *};
 use std::{fs, path::PathBuf};
@@ -100,7 +98,6 @@ fn ownership_mutation_is_rejected() {
         "unsafe-skip"
     );
 }
-#[cfg(unix)]
 #[test]
 fn concurrent_external_edit_is_never_replaced() {
     let (_tmp, writer, path, candidate) = setup();
@@ -121,7 +118,6 @@ fn concurrent_external_edit_is_never_replaced() {
     assert_eq!(fs::read_to_string(path).unwrap(), external);
     assert_eq!(writer.inspect("race").unwrap().state, "conflict");
 }
-#[cfg(unix)]
 #[test]
 fn cancelled_before_replace_preserves_source() {
     let (_tmp, writer, path, candidate) = setup();
@@ -141,7 +137,6 @@ fn cancelled_before_replace_preserves_source() {
     assert_eq!(fs::read(&path).unwrap(), ORIGINAL.as_bytes());
     assert_eq!(writer.inspect("cancel").unwrap().state, "not-applied");
 }
-#[cfg(unix)]
 #[test]
 fn interruption_after_replace_is_recovered_by_hash() {
     let (_tmp, writer, path, candidate) = setup();
@@ -198,4 +193,52 @@ fn structured_imdb_keeps_separate_bullets() {
     assert_eq!(specs["Runtime"], vec!["2h 4m (124 min)"]);
     assert_eq!(specs.len(), 10);
     assert!(specs::parse_next_data(&serde_json::json!({"challenge":true})).is_err());
+}
+
+#[test]
+fn native_commit_and_undo_restore_original_bytes() {
+    let (_temp, writer, path, candidate) = setup();
+    writer
+        .commit(
+            "native",
+            &path,
+            &hash(ORIGINAL.as_bytes()),
+            &candidate,
+            |_| Ok(()),
+        )
+        .unwrap();
+    assert_eq!(fs::read(&path).unwrap(), candidate);
+    writer.undo("undo-native", "native").unwrap();
+    assert_eq!(fs::read(&path).unwrap(), ORIGINAL.as_bytes());
+}
+
+#[test]
+fn future_schema_is_read_only_and_unknown_fact_children_are_preserved() {
+    let future = ORIGINAL.replace("source=\"IMDb\"", "source=\"IMDb\" formatVersion=\"99\"");
+    let next = Specs::from([("Camera".into(), vec!["Updated".into()])]);
+    assert_eq!(
+        specs::manual_candidate(future.as_bytes(), &next)
+            .unwrap_err()
+            .code,
+        "unsafe-skip"
+    );
+    let unknown = ORIGINAL.replace(
+        "<section name=\"Camera\">",
+        "<section name=\"Future field\"><item>opaque</item></section><section name=\"Camera\">",
+    );
+    let candidate = specs::manual_candidate(unknown.as_bytes(), &next).unwrap();
+    let doc = roxmltree::Document::parse(
+        std::str::from_utf8(&candidate)
+            .unwrap()
+            .trim_start_matches('\u{feff}'),
+    )
+    .unwrap();
+    let tech = doc
+        .root_element()
+        .children()
+        .find(|n| n.has_tag_name("technicalspecs"))
+        .unwrap();
+    assert!(tech
+        .children()
+        .any(|n| n.has_tag_name("section") && n.attribute("name") == Some("Future field")));
 }

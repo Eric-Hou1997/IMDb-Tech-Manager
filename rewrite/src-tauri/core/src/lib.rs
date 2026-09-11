@@ -8,9 +8,9 @@ pub mod rules;
 pub mod services;
 pub mod specs;
 pub mod store;
-#[cfg(feature = "write-prototype")]
 pub mod transaction;
 pub mod update;
+mod windows_replace;
 
 pub use contracts::*;
 pub(crate) fn ownership_key(value: &str) -> String {
@@ -41,3 +41,5 @@ pub mod tv;
 pub mod lifecycle;
 
 pub mod startup_file;
+
+pub mod writing;
