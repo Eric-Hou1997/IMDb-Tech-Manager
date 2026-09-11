@@ -181,6 +181,8 @@ fn main() {
             writing::apply_specs,
             writing::preview_undo,
             writing::write_history,
+            writing::legacy_undo_entries,
+            writing::preview_legacy_undo,
             runtime_probe,
             lifecycle::lifecycle_status,
             lifecycle::lifecycle_apply,

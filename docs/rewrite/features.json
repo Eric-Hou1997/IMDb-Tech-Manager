@@ -533,6 +533,20 @@
           "scope": "Native Inspector write and ownership entrypoints with affected-file navigation and undo; all UI languages/edge states pending",
           "evidence": "docs/rewrite/evidence/native-tag-edit.json",
           "recorded_at": "2026-09-11"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/legacy_undo.rs",
+            "rewrite/src-tauri/core/src/store/legacy_undo.rs",
+            "rewrite/src/SpecsEditor.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/legacy_undo.rs",
+            "tools/rewrite/itm_behavior.py"
+          ],
+          "scope": "Imported original Inspector undo journals: full-file preview, original expiry, hash/path validation, one-shot restore, interrupted-operation recovery and undo-of-restoration; remaining Inspector overlays/locales pending",
+          "evidence": "docs/rewrite/evidence/native-legacy-undo.json",
+          "recorded_at": "2026-09-11"
         }
       ],
       "supplemental_evidence": [
@@ -541,7 +555,7 @@
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
       ],
-      "current_scope": "Native Inspector write and ownership entrypoints with affected-file navigation and undo; all UI languages/edge states pending"
+      "current_scope": "Imported original Inspector undo journals: full-file preview, original expiry, hash/path validation, one-shot restore, interrupted-operation recovery and undo-of-restoration; remaining Inspector overlays/locales pending"
     },
     {
       "id": "ITM-PROTOCOL",

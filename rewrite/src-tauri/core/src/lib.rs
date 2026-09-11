@@ -5,6 +5,7 @@ pub mod batch;
 pub mod contracts;
 pub mod imdb_cache;
 pub mod install;
+pub mod legacy_undo;
 pub mod library;
 pub mod migration;
 pub mod paths;

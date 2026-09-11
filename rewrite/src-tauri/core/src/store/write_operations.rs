@@ -219,7 +219,7 @@ impl Store {
             WriteIntent::Tags { plan },
         )
     }
-    fn save_write_preview(
+    pub(super) fn save_write_preview(
         &self,
         id: &str,
         fingerprint: &str,
@@ -230,6 +230,10 @@ impl Store {
     ) -> Result<crate::writing::WritePreview> {
         let (original, candidate) = bytes;
         match &intent {
+            WriteIntent::LegacyUndo { proof } => {
+                super::legacy_undo::validate_proof(&*self.db()?, proof, candidate)?;
+                proof.validate_candidate(Path::new(&item.path), &hash(original), candidate)?;
+            }
             WriteIntent::Specs => crate::specs::validate_specs_only(original, candidate)?,
             WriteIntent::Tags { plan } => {
                 if crate::tags::candidate(original, plan)? != candidate {
@@ -245,9 +249,19 @@ impl Store {
         }
         let before = library::parse(root, Path::new(&item.path), original)?;
         let after = library::parse(root, Path::new(&item.path), candidate)?;
+        let legacy_restore = matches!(intent, WriteIntent::LegacyUndo { .. });
+        if legacy_restore && before.kind != after.kind {
+            return Err(AppError::new(
+                "legacy-undo-media",
+                "Historical restore cannot change the media type",
+            ));
+        }
         let value = crate::writing::WritePreview {
             undo_of: match &intent {
                 WriteIntent::Undo { original_id } => Some(original_id.clone()),
+                WriteIntent::LegacyUndo { proof } => {
+                    Some(format!("legacy:{}:{}", proof.import_id, proof.source))
+                }
                 _ => None,
             },
             intent,
@@ -269,8 +283,16 @@ impl Store {
             }
             .into(),
             error: None,
-            before_xml: technical_xml(original)?,
-            after_xml: technical_xml(candidate)?,
+            before_xml: if legacy_restore {
+                String::from_utf8_lossy(original).into_owned()
+            } else {
+                technical_xml(original)?
+            },
+            after_xml: if legacy_restore {
+                String::from_utf8_lossy(candidate).into_owned()
+            } else {
+                technical_xml(candidate)?
+            },
             before_tags: before.tags,
             after_tags: after.tags,
         };
@@ -379,6 +401,12 @@ impl Store {
         paths::within(Path::new(&root.path), Path::new(&preview.path))?;
         let writer =
             crate::transaction::Writer::new(journal, vec![std::path::PathBuf::from(&root.path)])?;
+        if let WriteIntent::LegacyUndo { proof } = &preview.intent {
+            super::legacy_undo::validate_proof(&db, proof, &candidate)?;
+            if let Some(state) = super::legacy_undo::restore_state(&db, &proof.archive_hash, id)? {
+                return Err(AppError::new("legacy-undo-unavailable", state));
+            }
+        }
         preview.phase = "writing".into();
         preview.error = None;
         db.execute(

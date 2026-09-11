@@ -210,6 +210,9 @@ impl Writer {
             );
         }
         match intent {
+            WriteIntent::LegacyUndo { proof } => {
+                proof.validate_candidate(&path, expected, candidate)?
+            }
             WriteIntent::Specs => crate::specs::validate_specs_only(&original, candidate)?,
             WriteIntent::Tags { plan } => {
                 if crate::tags::candidate(&original, plan)? != candidate {
@@ -287,6 +290,9 @@ impl Writer {
                 AppError::new("source-conflict", "NFO changed before replacement")
                     .at(path.display()),
             );
+        }
+        if let WriteIntent::LegacyUndo { proof } = intent {
+            proof.validate_candidate(&path, expected, candidate)?;
         }
         #[cfg(windows)]
         {

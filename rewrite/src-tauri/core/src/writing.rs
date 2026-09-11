@@ -12,6 +12,9 @@ pub enum WriteIntent {
     Undo {
         original_id: String,
     },
+    LegacyUndo {
+        proof: Box<crate::legacy_undo::LegacyUndoProof>,
+    },
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct TagEdit {

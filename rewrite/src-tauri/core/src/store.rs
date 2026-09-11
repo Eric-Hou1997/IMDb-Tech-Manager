@@ -72,6 +72,13 @@ impl Store {
           CREATE INDEX IF NOT EXISTS batch_pending ON batch_items(task_id,phase,ordinal);
           CREATE INDEX IF NOT EXISTS ai_batch_operations ON operations(json_extract(result,'$.result.batch_id')) WHERE json_extract(result,'$.kind')='ai';
           COMMIT;"#)?;
+        for (name, expression) in [
+            ("legacy_undo_path", crate::legacy_undo::PATH_EXPR),
+            ("legacy_undo_hash", crate::legacy_undo::HASH_EXPR),
+        ] {
+            connection.execute_batch(&format!("CREATE INDEX IF NOT EXISTS {name} ON legacy_artifacts({expression}) WHERE category='backup'"))?;
+        }
+        connection.execute_batch("CREATE INDEX IF NOT EXISTS legacy_undo_operations ON operations(json_extract(result,'$.result.intent.proof.archive_hash')) WHERE json_extract(result,'$.kind')='write' AND json_extract(result,'$.result.intent.kind')='legacy-undo'")?;
         // Upgrade early rewrite batch snapshots before the worker can resume.
         if version < 7 {
             let tx = connection.unchecked_transaction()?;
@@ -1350,3 +1357,4 @@ mod write_operations;
 mod automatic;
 mod batches;
 mod cache_migration;
+mod legacy_undo;

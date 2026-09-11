@@ -87,3 +87,28 @@ pub async fn preview_undo(
 pub fn write_history(state: tauri::State<'_, Desktop>) -> Result<Vec<WritePreview>> {
     state.store.write_history()
 }
+#[tauri::command]
+pub async fn legacy_undo_entries(
+    item_id: String,
+    offset: u32,
+    app: tauri::AppHandle,
+) -> Result<product_core::legacy_undo::LegacyUndoPage> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<Desktop>()
+            .store
+            .legacy_undo_entries(&item_id, offset)
+    })
+    .await
+    .map_err(|e| AppError::new("legacy-undo-worker", e))?
+}
+#[tauri::command]
+pub async fn preview_legacy_undo(
+    request: product_core::legacy_undo::LegacyUndoRequest,
+    app: tauri::AppHandle,
+) -> Result<WritePreview> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<Desktop>().store.preview_legacy_undo(request)
+    })
+    .await
+    .map_err(|e| AppError::new("legacy-undo-worker", e))?
+}

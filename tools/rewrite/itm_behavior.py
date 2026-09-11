@@ -111,4 +111,31 @@ class WriterBaseline(unittest.TestCase):
             self.assertEqual(eng._parsed_specs_cache('tt0064757') is not None,hit,(age,status))
             if status=='timeout': self.assertIsNone(eng._parsed_specs_cache('tt0064757',retry_failed=True))
 
+    def test_inspector_undo_journal_restores_exact_bytes_and_is_consumed(self):
+        eng.edit_nfo({'path':str(self.nfo),'expected_source_hash':eng._source_hash(self.raw),'operation':'edit-tag','target':{'root_index':0},'value':'修改后的外部标签'})
+        after=self.nfo.read_bytes()
+        journal=eng.load_json(eng._undo_path(self.nfo),{})
+        self.assertEqual(journal['before_hash'],eng._source_hash(self.raw))
+        self.assertEqual(journal['after_hash'],eng._source_hash(after))
+        self.assertEqual(eng.base64.b64decode(journal['before'],validate=True),self.raw)
+        eng.undo_nfo({'path':str(self.nfo),'expected_source_hash':eng._source_hash(after)})
+        self.assertEqual(self.nfo.read_bytes(),self.raw)
+        self.assertFalse(eng._undo_path(self.nfo).exists())
+
+    def test_inspector_undo_expiry_and_external_change_are_not_overwritten(self):
+        self.write_edit()
+        after=self.nfo.read_bytes()
+        external=after.replace('候选片名'.encode(),'后续修改'.encode())
+        self.nfo.write_bytes(external)
+        with self.assertRaises(eng.EditConflictError):
+            eng.undo_nfo({'path':str(self.nfo),'expected_source_hash':eng._source_hash(external)})
+        self.assertEqual(self.nfo.read_bytes(),external)
+        self.nfo.write_bytes(after)
+        journal=eng.load_json(eng._undo_path(self.nfo),{})
+        journal['expires_at']=(eng.dt.datetime.now(eng.dt.timezone.utc)-eng.dt.timedelta(seconds=1)).isoformat()
+        eng.save_json(eng._undo_path(self.nfo),journal)
+        with self.assertRaises(ValueError):
+            eng.undo_nfo({'path':str(self.nfo),'expected_source_hash':eng._source_hash(after)})
+        self.assertEqual(self.nfo.read_bytes(),after)
+
 if __name__=='__main__': unittest.main(verbosity=2)

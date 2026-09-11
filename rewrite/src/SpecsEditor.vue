@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
-import type { Action, AppError, FetchRecord, MediaItem, SpecsEdit, WritePreview } from './contracts';
+import type { Action, AppError, FetchRecord, MediaItem, SpecsEdit, WritePreview, LegacyUndoEntry, LegacyUndoPage } from './contracts';
 import TagEditor from './TagEditor.vue';
 import AiGenerator from './AiGenerator.vue';
 const props=defineProps<{item:MediaItem}>();
@@ -12,12 +12,13 @@ const completed=ref<WritePreview|null>(null), fetched=ref<FetchRecord|null>(null
 function current(token:number){return !disposed&&token===generation;}
 const draft=ref<Record<string,string>>({});
 const preview=ref<WritePreview|null>(null),history=ref<WritePreview[]>([]),fetchHistory=ref<FetchRecord[]>([]);
+const legacy=ref<LegacyUndoPage>({total:0,entries:[]}),legacyOffset=ref(0),pathMappings=ref<Record<string,boolean>>({});
 let request:SpecsEdit|null=null, generation=0,disposed=false;
 const changed=computed(()=>fields.filter(field=>JSON.stringify(preview.value?.before_specs[field]||[])!==JSON.stringify(preview.value?.after_specs[field]||[])));
 function report(value:unknown){const e=value as AppError;error.value=e?.code?`${e.code}：${e.message}${e.path?'\n'+e.path:''}`:String(value);}
-async function reloadHistory(){const token=generation;const [rows,requests]=await Promise.all([invoke<WritePreview[]>('write_history'),invoke<FetchRecord[]>('fetch_history',{itemId:props.item.id})]);if(!disposed&&token===generation){history.value=rows.filter(row=>row.item_id===props.item.id);fetchHistory.value=requests;if(!fetched.value)fetched.value=requests[0]??null;}}
+async function reloadHistory(){const token=generation;const [rows,requests,backups]=await Promise.all([invoke<WritePreview[]>('write_history'),invoke<FetchRecord[]>('fetch_history',{itemId:props.item.id}),invoke<LegacyUndoPage>('legacy_undo_entries',{itemId:props.item.id,offset:legacyOffset.value})]);if(!disposed&&token===generation){legacy.value=backups;history.value=rows.filter(row=>row.item_id===props.item.id);fetchHistory.value=requests;if(!fetched.value)fetched.value=requests[0]??null;}}
 function resetDraft(){draft.value=Object.fromEntries(fields.map(field=>[field,(props.item.specs[field]||[]).join('\n')]));preview.value=null;request=null;error.value='';}
-watch(()=>[props.item.id,props.item.source_hash],(value,previous)=>{if(value[0]!==previous?.[0]){completed.value=null;fetched.value=null;}generation++;editing.value=false;resetDraft();void reloadHistory().catch(report);},{immediate:true});
+watch(()=>[props.item.id,props.item.source_hash],(value,previous)=>{if(value[0]!==previous?.[0]){completed.value=null;fetched.value=null;legacyOffset.value=0;pathMappings.value={};}generation++;editing.value=false;resetDraft();void reloadHistory().catch(report);},{immediate:true});
 onUnmounted(()=>{disposed=true;generation++;});
 async function run(work:(token:number)=>Promise<void>){if(busy.value||aiBusy.value)return;const token=generation;busy.value=true;error.value='';try{await work(token);}catch(e){if(current(token))report(e);}finally{busy.value=false;}}
 function draftChanged(){request=null;preview.value=null;}
@@ -39,6 +40,8 @@ async function apply(){const reviewed=preview.value;if(!reviewed)return;await ru
  if(current(token)){await reloadHistory();emit('changed');}
 });}
 async function undo(row:WritePreview){await run(async(token)=>{const value=await invoke<WritePreview>('preview_undo',{id:crypto.randomUUID(),originalId:row.operation_id});if(current(token)){preview.value=value;editing.value=true;}});}
+async function legacyPage(offset:number){await run(async token=>{const value=await invoke<LegacyUndoPage>('legacy_undo_entries',{itemId:props.item.id,offset});if(current(token)){legacy.value=value;legacyOffset.value=offset;}});}
+async function restoreLegacy(entry:LegacyUndoEntry){await run(async token=>{const value=await invoke<WritePreview>('preview_legacy_undo',{request:{operation_id:crypto.randomUUID(),item_id:props.item.id,import_id:entry.import_id,source:entry.source,expected_hash:props.item.source_hash,confirm_path_mapping:!!pathMappings.value[entry.import_id+'/'+entry.source]}});if(current(token)){preview.value=value;editing.value=true;}});}
 async function reload(){await run(async()=>{resetDraft();emit('changed');});}
 </script>
 <template>
@@ -58,7 +61,7 @@ async function reload(){await run(async()=>{resetDraft();emit('changed');});}
    <h5>{{ preview.undo_of?'撤销预览':'写入预览' }} · {{ preview.title }} {{ preview.year }}</h5>
    <p>{{ preview.imdb }} · {{ preview.media_kind }}</p><pre>{{ preview.path }}</pre>
    <div v-if="JSON.stringify(preview.before_tags)!==JSON.stringify(preview.after_tags)"><h5>根标签与归属变化</h5><p>原标签</p><ul><li v-for="(tag,index) in preview.before_tags" :key="index">{{ tag.value }} · {{ tag.ownership }} {{ tag.engine }}</li></ul><p>写入后的标签</p><ul><li v-for="(tag,index) in preview.after_tags" :key="index">{{ tag.value }} · {{ tag.ownership }} {{ tag.engine }}</li></ul></div>
-   <details v-if="preview.before_xml||preview.after_xml"><summary>完整节点与来源元数据差异</summary><p>原节点</p><pre>{{ preview.before_xml||'（无）' }}</pre><p>候选节点</p><pre>{{ preview.after_xml||'（移除）' }}</pre></details>
+   <details v-if="preview.before_xml||preview.after_xml"><summary>{{preview.intent.kind==='legacy-undo'?'完整 NFO 备份差异':'完整节点与来源元数据差异'}}</summary><p>原节点</p><pre>{{ preview.before_xml||'（无）' }}</pre><p>候选节点</p><pre>{{ preview.after_xml||'（移除）' }}</pre></details>
    <dl><template v-for="field in changed" :key="field"><dt>{{ field }}</dt><dd><span>原值</span><pre>{{ (preview.before_specs[field]||[]).join('\n')||'（空）' }}</pre><span>新值</span><pre>{{ (preview.after_specs[field]||[]).join('\n')||'（空）' }}</pre></dd></template></dl>
    <p v-if="preview.phase==='unchanged'">内容没有变化，无需写入。</p>
    <p v-else-if="preview.phase==='committed'" role="status">写入已完成，备份及操作记录已保留。</p>
@@ -69,6 +72,7 @@ async function reload(){await run(async()=>{resetDraft();emit('changed');});}
   </section>
   <p v-if="busy" role="status">正在处理当前文件…</p><pre v-if="error" role="alert">{{ error }}</pre>
   <details v-if="fetchHistory.length"><summary>当前文件最近的获取记录</summary><article v-for="row in fetchHistory" :key="row.request.operation_id"><p>{{ row.started_at }} · {{ row.phase }} · {{ row.cached?'缓存':'网络' }}</p><button :disabled="busy" @click="fetched=row">查看来源与请求结果</button></article></details>
+  <details v-if="legacy.total"><summary>旧版 Inspector 撤销记录（{{legacy.total}}）</summary><p>原版 30 分钟有效期继续生效。过期、校验失败或后续修改的文件不能从此入口恢复；原始归档保留。已使用的记录不能再次恢复；进行中的恢复请在下方写入记录中查询并恢复原操作。</p><article v-for="entry in legacy.entries" :key="entry.import_id+'/'+entry.source"><p>{{entry.old_path}} · {{entry.operation}} · {{entry.expires_at}} · {{entry.state}}</p><pre v-if="entry.error">{{entry.error.code}}：{{entry.error.message}}</pre><label v-if="entry.state==='path-confirmation-required'"><input v-model="pathMappings[entry.import_id+'/'+entry.source]" type="checkbox">确认将上述历史路径对应到当前文件 {{item.path}}（当前完整哈希已匹配）</label><button v-if="['available','path-confirmation-required'].includes(entry.state)" :disabled="busy||aiBusy||(entry.state==='path-confirmation-required'&&!pathMappings[entry.import_id+'/'+entry.source])" @click="restoreLegacy(entry)">预览从旧版备份撤销</button></article><button :disabled="busy||legacyOffset===0" @click="legacyPage(Math.max(0,legacyOffset-20))">上一页旧记录</button><button :disabled="busy||legacyOffset+20>=legacy.total" @click="legacyPage(legacyOffset+20)">下一页旧记录</button></details>
   <details v-if="history.length"><summary>当前文件写入记录（{{ history.length }}）</summary><article v-for="row in history" :key="row.operation_id"><p>{{ row.phase }} · {{ row.operation_id }}</p><button v-if="row.phase==='committed'" :disabled="busy" @click="undo(row)">预览撤销</button><button v-else-if="row.phase!=='unchanged'" :disabled="busy" @click="preview=row;editing=true">查看操作</button></article></details>
  </section>
 </template>

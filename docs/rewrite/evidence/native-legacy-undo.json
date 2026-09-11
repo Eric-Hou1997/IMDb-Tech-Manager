@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-11",
+  "product": "ITM",
+  "target": "macos-arm64",
+  "base_commit": "798fb5a",
+  "source": "Original v4.1.0 Python edit_nfo created a real Inspector undo journal against an isolated fixture",
+  "checks": [
+    "original-engine-journal-imported-with-identical-bytes",
+    "untyped-root-requires-explicit-movie-configuration",
+    "native-inspector-reports-original-expiry-and-available-state",
+    "full-nfo-preview-preserves-current-file",
+    "confirmed-native-restore-matches-original-full-hash-and-file-mode",
+    "external-tag-and-unknown-xml-bom-crlf-restored",
+    "consumed-legacy-record-has-no-restore-button",
+    "undo-of-restoration-matches-original-post-edit-bytes",
+    "consumed-state-remains-after-undo-of-restoration",
+    "full-exit"
+  ],
+  "fixture": {
+    "source": "/private/tmp/itm-undo-native-20260911/media/旧版备份验收.nfo",
+    "before_sha256": "a77ae955f9c08bd324f5d8fb402e4f616f5e9330b2e322dfff48f8943a6e4214",
+    "after_sha256": "602a3273caa34ec6e95665031b9d4cf677c9e086679ff532704ac97242468bcf",
+    "journal": "/private/tmp/itm-undo-native-20260911/legacy/undo/72d2391020dda6f144d288945e0d512a5ebe3108f7a2dbfb59ae92f80149326c.json",
+    "expires_at": "2026-09-11T16:09:24+00:00"
+  },
+  "writes": [
+    {
+      "operation_id": "0db1c02a-415a-4abe-91d4-0e8211ef78f5",
+      "phase": "committed",
+      "before_hash": "602a3273caa34ec6e95665031b9d4cf677c9e086679ff532704ac97242468bcf",
+      "after_hash": "a77ae955f9c08bd324f5d8fb402e4f616f5e9330b2e322dfff48f8943a6e4214",
+      "undo_of": "legacy:0e5f4d21-1a88-4875-a6a6-2002c6edc718:undo/72d2391020dda6f144d288945e0d512a5ebe3108f7a2dbfb59ae92f80149326c.json"
+    },
+    {
+      "operation_id": "0737622b-4ba6-443f-bd67-7587627f7d97",
+      "phase": "committed",
+      "before_hash": "a77ae955f9c08bd324f5d8fb402e4f616f5e9330b2e322dfff48f8943a6e4214",
+      "after_hash": "602a3273caa34ec6e95665031b9d4cf677c9e086679ff532704ac97242468bcf",
+      "undo_of": "0db1c02a-415a-4abe-91d4-0e8211ef78f5"
+    }
+  ],
+  "final_sha256": "602a3273caa34ec6e95665031b9d4cf677c9e086679ff532704ac97242468bcf",
+  "limits": [
+    "Isolated local macOS arm64 fixture; other targets require their own desktop evidence",
+    "Original 30-minute validity retained; expired legacy backups are archived but not eligible for this undo entrypoint",
+    "No IMDb or model request and no production media access"
+  ]
+}
