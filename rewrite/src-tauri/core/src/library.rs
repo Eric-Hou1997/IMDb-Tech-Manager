@@ -4,7 +4,7 @@ use std::io::Read;
 use std::{collections::BTreeMap, path::Path};
 pub const MAX_NFO_BYTES: u64 = 32 * 1024 * 1024;
 // Bump whenever parsing/ownership semantics change, including validation builds.
-pub const PARSER_REVISION: u32 = 3;
+pub const PARSER_REVISION: u32 = 4;
 fn text(node: Node<'_, '_>) -> String {
     node.descendants()
         .filter(|n| n.is_text())
@@ -166,11 +166,13 @@ pub fn parse(root: &LibraryRoot, path: &Path, raw: &[u8]) -> Result<MediaItem> {
             engine,
         });
     }
+    crate::inspector::derive(&mut item, tech, raw)?;
     Ok(item)
 }
 pub fn empty(root: &LibraryRoot, path: &Path) -> MediaItem {
     let path = path.to_string_lossy().into_owned();
     MediaItem {
+        inspection: Default::default(),
         modified_at: 0,
         spec_status: "missing".into(),
         parser_revision: PARSER_REVISION,

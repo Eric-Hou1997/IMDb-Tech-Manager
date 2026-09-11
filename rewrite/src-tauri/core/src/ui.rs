@@ -12,6 +12,10 @@ pub enum Sort {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS, Default)]
 pub struct LibraryView {
+    #[serde(default)]
+    pub lifecycle: String,
+    #[serde(default)]
+    pub issues: bool,
     pub search: String,
     pub errors: bool,
     pub roots: Vec<String>,
@@ -41,7 +45,8 @@ impl Default for UiState {
 impl UiState {
     pub fn validate(&self) -> Result<()> {
         for view in [&self.movie, &self.tv] {
-            if view.search.len() > 4096
+            if view.lifecycle.len() > 64
+                || view.search.len() > 4096
                 || view.roots.len() > 1000
                 || view.selected.len() > 100_000
                 || view.expanded.len() > 100_000
@@ -69,6 +74,8 @@ impl UiState {
 }
 pub fn matches(item: &MediaItem, space: &Space, view: &LibraryView) -> bool {
     item.space == *space
+        && (view.lifecycle.is_empty() || item.inspection.lifecycle == view.lifecycle)
+        && (!view.issues || !item.inspection.issues.is_empty() || item.error.is_some())
         && (!view.errors || item.error.is_some())
         && (view.search.is_empty()
             || format!("{} {} {} {}", item.title, item.year, item.imdb, item.path)
@@ -81,7 +88,7 @@ pub fn sort(items: &mut [MediaItem], view: &LibraryView) {
             Sort::Title => a.title.to_lowercase().cmp(&b.title.to_lowercase()),
             Sort::Year => a.year.cmp(&b.year),
             Sort::Path => a.path.cmp(&b.path),
-            Sort::Status => a.error.is_some().cmp(&b.error.is_some()),
+            Sort::Status => a.inspection.lifecycle.cmp(&b.inspection.lifecycle),
         };
         let order = order
             .then_with(|| a.path.cmp(&b.path))

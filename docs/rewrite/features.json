@@ -547,6 +547,22 @@
           "scope": "Imported original Inspector undo journals: full-file preview, original expiry, hash/path validation, one-shot restore, interrupted-operation recovery and undo-of-restoration; remaining Inspector overlays/locales pending",
           "evidence": "docs/rewrite/evidence/native-legacy-undo.json",
           "recorded_at": "2026-09-11"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/inspector.rs",
+            "rewrite/src-tauri/core/src/store/inspector.rs",
+            "rewrite/src/InspectorStatus.vue",
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/inspector.rs",
+            "rewrite/src-tauri/core/tests/migration.rs",
+            "tools/rewrite/itm_behavior.py"
+          ],
+          "scope": "NFO-derived status, independent hash-bound issue/status annotations, typed legacy migration, status/issue filters and misplaced-media generation guards; final native follow-up, AI dynamic overlays, sidecar recovery and locales pending",
+          "evidence": "docs/rewrite/evidence/native-inspector-annotations.json",
+          "recorded_at": "2026-09-12"
         }
       ],
       "supplemental_evidence": [
@@ -555,7 +571,7 @@
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
       ],
-      "current_scope": "Imported original Inspector undo journals: full-file preview, original expiry, hash/path validation, one-shot restore, interrupted-operation recovery and undo-of-restoration; remaining Inspector overlays/locales pending"
+      "current_scope": "NFO-derived status, independent hash-bound issue/status annotations, typed legacy migration, status/issue filters and misplaced-media generation guards; final native follow-up, AI dynamic overlays, sidecar recovery and locales pending"
     },
     {
       "id": "ITM-PROTOCOL",

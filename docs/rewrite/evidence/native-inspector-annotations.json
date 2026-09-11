@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-12",
+  "product": "ITM",
+  "target": "macos-arm64",
+  "base_commit": "de28ac5",
+  "status": "partial-native-followup-blocked-by-locked-mac",
+  "checks": [
+    "original-python-issue-and-status-records-imported",
+    "native-list-and-inspector-show-migrated-ai-complete-status",
+    "restored-ignored-issue-prompt",
+    "acknowledged-both-current-issues",
+    "search-and-unacknowledged-filter-return-zero-matching-items",
+    "all-three-fixture-bytes-and-mtime-preserved-through-annotation-actions",
+    "external-edit-invalidates-both-annotations-on-native-reread"
+  ],
+  "annotation_operations": [
+    {
+      "source_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "issue_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "status_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "ignored_kinds": [],
+      "status_override": "ai-complete",
+      "updated_at": "2026-09-11T16:30:47.109107+00:00"
+    },
+    {
+      "source_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "issue_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "status_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "ignored_kinds": [
+        "spec-missing"
+      ],
+      "status_override": "ai-complete",
+      "updated_at": "2026-09-11T16:34:05.084065+00:00"
+    },
+    {
+      "source_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "issue_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "status_hash": "e7fdfabb28e4f6afd7b47ebeb636f12d70d1ae669df323948a5b867c19ee800b",
+      "ignored_kinds": [
+        "duplicate-tag",
+        "spec-missing"
+      ],
+      "status_override": "ai-complete",
+      "updated_at": "2026-09-11T16:34:49.899442+00:00"
+    }
+  ],
+  "limits": [
+    "After the initial native run, categorized-root deduplication, misplaced-NFO visibility and error-row identity fixes passed core regressions; desktop follow-up is pending unlock",
+    "Native select-menu automation did not prove choosing another manual status; core regressions cover accepted/rejected status and independent hashes",
+    "No production media, IMDb or paid AI was accessed"
+  ]
+}

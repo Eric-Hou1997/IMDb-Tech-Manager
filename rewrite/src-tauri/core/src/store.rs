@@ -1,3 +1,4 @@
+mod inspector;
 use crate::{contracts::*, hash, library, paths};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::{
@@ -60,6 +61,7 @@ impl Store {
           CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, body TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS items (id TEXT PRIMARY KEY, root_id TEXT NOT NULL, seen_task TEXT NOT NULL, body TEXT NOT NULL);
           CREATE INDEX IF NOT EXISTS items_root ON items(root_id);
+          CREATE INDEX IF NOT EXISTS items_path ON items(root_id,json_extract(body,'$.path'));
           CREATE TABLE IF NOT EXISTS legacy_artifacts(import_id TEXT NOT NULL, path TEXT NOT NULL, category TEXT NOT NULL, sha256 TEXT NOT NULL, body BLOB NOT NULL, PRIMARY KEY(import_id,path));
           CREATE TABLE IF NOT EXISTS preferences(key TEXT PRIMARY KEY, body TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS write_candidates(id TEXT PRIMARY KEY,root_id TEXT NOT NULL,body BLOB NOT NULL);
@@ -224,6 +226,7 @@ impl Store {
                 }
             }
         }
+        self.prepare_annotation_migration(&mut plan)?;
         self.prepare_cache_migration(&mut plan)?;
         plan.fingerprint = hash(&serde_json::to_vec(&(
             &plan.fingerprint,
@@ -309,7 +312,9 @@ impl Store {
         let mut applied_adapters = vec![];
         let applied_cache_entries = cache_migration::apply(&tx, id, &plan.cache_entries)?;
         for adapter in &plan.adapters {
-            if !["ai-settings", "automatic"].contains(&adapter.target.as_str()) {
+            if !["ai-settings", "automatic"].contains(&adapter.target.as_str())
+                && !adapter.target.starts_with("inspector:")
+            {
                 return Err(AppError::new(
                     "migration-adapter",
                     "Unsupported configuration adapter",
@@ -330,6 +335,11 @@ impl Store {
             }
             if adapter.target == "automatic" {
                 automatic::import_settings(&tx, serde_json::from_value(adapter.value.clone())?)?;
+            } else if adapter.target.starts_with("inspector:") {
+                let annotation: crate::inspector::Annotation =
+                    serde_json::from_value(adapter.value.clone())?;
+                annotation.validate()?;
+                tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&annotation)?])?;
             } else {
                 let settings: crate::ai::job::Settings =
                     serde_json::from_value(adapter.value.clone())?;
@@ -875,9 +885,13 @@ impl Store {
         let db = self.db()?;
         let mut statement = db.prepare("SELECT body FROM items ORDER BY id")?;
         let rows = statement.query_map([], |r| r.get::<_, String>(0))?;
+        let annotations = inspector::annotations(&db)?;
         let mut items = Vec::new();
         for row in rows {
-            items.push(serde_json::from_str(&row?)?);
+            let mut item: MediaItem = serde_json::from_str(&row?)?;
+            let value = annotations.get(&format!("inspector:{}", hash(item.path.as_bytes())));
+            crate::inspector::apply(&mut item, value);
+            items.push(item);
         }
         Ok(items)
     }
@@ -1222,7 +1236,11 @@ impl Store {
         };
         progress(&task);
         let scan_id = format!("{}:{}", task.id, task.attempt);
+        let configured_roots = self.configuration()?.roots;
         for root in &task.roots {
+            let mixed = configured_roots
+                .iter()
+                .any(|r| r.path == root.path && r.space != root.space);
             let mut stack = vec![std::path::PathBuf::from(&root.path)];
             let mut root_failed = false;
             while let Some(path) = stack.pop() {
@@ -1275,7 +1293,9 @@ impl Store {
                         "Series" | "Season" | "Episode" => root.space == Space::Tv,
                         _ => true,
                     };
-                    Ok(relevant.then_some(item))
+                    // A mixed root explicitly configured for both spaces routes by type.
+                    // A single-space root must expose misplaced NFOs as actionable issues.
+                    Ok((relevant || !mixed).then_some(item))
                 });
                 let item = match result {
                     Ok(Some(item)) => Some(item),
@@ -1302,9 +1322,19 @@ impl Store {
                         return Ok(Some(current));
                     }
                     current.processed += 1;
-                    current.errors += u32::from(item.error.is_some());
+                    current.errors += u32::from(
+                        item.error.is_some()
+                            || item
+                                .inspection
+                                .issues
+                                .iter()
+                                .any(|i| i == "library-type-mismatch"),
+                    );
                     current.current_path = Some(item.path.clone());
                     tx.execute("INSERT INTO items VALUES(?1,?2,?3,?4) ON CONFLICT(id) DO UPDATE SET root_id=excluded.root_id,seen_task=excluded.seen_task,body=excluded.body",params![item.id,root.id,scan_id,serde_json::to_string(&item)?])?;
+                    // A readable path supersedes its former error row even if a different
+                    // file keeps the root-wide stale-entry cleanup suspended.
+                    tx.execute("DELETE FROM items WHERE root_id=?1 AND json_extract(body,'$.path')=?2 AND id<>?3",params![root.id,item.path,item.id])?;
                     tx.execute(
                         "UPDATE tasks SET body=?2 WHERE id=?1",
                         params![task.id, serde_json::to_string(&current)?],

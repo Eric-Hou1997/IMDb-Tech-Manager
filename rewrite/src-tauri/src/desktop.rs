@@ -223,15 +223,19 @@ pub fn catalog(query: CatalogQuery, state: State<'_, Desktop>) -> Result<Catalog
     state.store.query(query)
 }
 #[tauri::command]
-pub fn inspector(id: String, state: State<'_, Desktop>) -> Result<MediaItem> {
-    let item = state.store.item(&id)?;
-    let config = state.store.configuration()?;
-    let root = config
-        .roots
-        .iter()
-        .find(|r| r.id == item.root_id)
-        .ok_or_else(|| AppError::new("invalid-root", "Root is no longer configured"))?;
-    product_core::library::read(root, std::path::Path::new(&item.path))
+pub async fn inspector(id: String, app: tauri::AppHandle) -> Result<MediaItem> {
+    tauri::async_runtime::spawn_blocking(move || app.state::<Desktop>().store.inspect_item(&id))
+        .await
+        .map_err(|e| AppError::new("inspector-worker", e))?
+}
+#[tauri::command]
+pub async fn annotate_item(
+    request: product_core::inspector::AnnotationRequest,
+    app: tauri::AppHandle,
+) -> Result<product_core::inspector::Annotation> {
+    tauri::async_runtime::spawn_blocking(move || app.state::<Desktop>().store.annotate(request))
+        .await
+        .map_err(|e| AppError::new("inspector-worker", e))?
 }
 #[tauri::command]
 pub async fn reveal_item(id: String, app: tauri::AppHandle) -> Result<()> {

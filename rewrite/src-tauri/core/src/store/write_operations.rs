@@ -229,6 +229,21 @@ impl Store {
         intent: WriteIntent,
     ) -> Result<crate::writing::WritePreview> {
         let (original, candidate) = bytes;
+        if matches!(
+            &intent,
+            WriteIntent::Tags {
+                plan: crate::tags::Plan {
+                    action: crate::tags::Action::Generate { .. },
+                    ..
+                }
+            }
+        ) {
+            crate::inspector::generation_allowed(&library::parse(
+                root,
+                Path::new(&item.path),
+                original,
+            )?)?;
+        }
         match &intent {
             WriteIntent::LegacyUndo { proof } => {
                 super::legacy_undo::validate_proof(&*self.db()?, proof, candidate)?;
@@ -399,6 +414,21 @@ impl Store {
                 AppError::new("invalid-root", "Reviewed root is no longer configured")
             })?;
         paths::within(Path::new(&root.path), Path::new(&preview.path))?;
+        if matches!(
+            &preview.intent,
+            WriteIntent::Tags {
+                plan: crate::tags::Plan {
+                    action: crate::tags::Action::Generate { .. },
+                    ..
+                }
+            }
+        ) {
+            crate::inspector::generation_allowed(&library::parse(
+                root,
+                Path::new(&preview.path),
+                &candidate,
+            )?)?;
+        }
         let writer =
             crate::transaction::Writer::new(journal, vec![std::path::PathBuf::from(&root.path)])?;
         if let WriteIntent::LegacyUndo { proof } = &preview.intent {

@@ -4,6 +4,7 @@ pub mod automatic;
 pub mod batch;
 pub mod contracts;
 pub mod imdb_cache;
+pub mod inspector;
 pub mod install;
 pub mod legacy_undo;
 pub mod library;

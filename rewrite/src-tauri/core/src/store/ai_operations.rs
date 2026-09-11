@@ -200,6 +200,7 @@ impl Store {
             .find(|r| r.id == item.root_id)
             .ok_or_else(|| AppError::new("invalid-root", "Item root is no longer configured"))?;
         let (_, raw) = library::read_bytes(root, Path::new(&item.path))?;
+        crate::inspector::generation_allowed(&library::parse(root, Path::new(&item.path), &raw)?)?;
         if hash(&raw) != request.expected_hash {
             return Err(
                 AppError::new("source-conflict", "NFO changed since inspection").at(&item.path),

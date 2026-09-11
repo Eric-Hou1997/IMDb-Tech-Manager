@@ -221,6 +221,7 @@ fn main() {
             desktop::tv_catalog,
             desktop::tv_members,
             desktop::inspector,
+            desktop::annotate_item,
             desktop::reveal_item
         ])
         .setup(|app| {

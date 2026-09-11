@@ -142,6 +142,8 @@ pub type Specs = BTreeMap<String, Vec<String>>;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct MediaItem {
     #[serde(default)]
+    pub inspection: Box<crate::inspector::Inspection>,
+    #[serde(default)]
     #[ts(type = "number")]
     pub modified_at: i64,
     #[serde(default)]
@@ -179,6 +181,7 @@ pub struct CatalogPage {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(tag = "kind", content = "result", rename_all = "kebab-case")]
 pub enum OperationResult {
+    Annotation(crate::inspector::Annotation),
     Automatic(crate::automatic::Status),
     Fetch(crate::acquisition::FetchRecord),
     Write(crate::writing::WritePreview),
@@ -213,6 +216,10 @@ pub fn typescript() -> String {
         crate::batch::Batch::decl(),
         Ownership::decl(),
         Tag::decl(),
+        crate::inspector::Inspection::decl(),
+        crate::inspector::Annotation::decl(),
+        crate::inspector::AnnotationAction::decl(),
+        crate::inspector::AnnotationRequest::decl(),
         MediaItem::decl(),
         CatalogQuery::decl(),
         CatalogPage::decl(),

@@ -138,4 +138,30 @@ class WriterBaseline(unittest.TestCase):
             eng.undo_nfo({'path':str(self.nfo),'expected_source_hash':eng._source_hash(after)})
         self.assertEqual(self.nfo.read_bytes(),after)
 
+    def test_issue_ack_and_status_follow_original_independent_hash_contract(self):
+        detail=eng.inspector_detail(str(self.nfo))
+        eng.acknowledge_issue({'path':str(self.nfo),'expected_source_hash':detail['source_hash'],'kind':'spec-missing'})
+        eng.set_status_override({'path':str(self.nfo),'value':'ai-complete'})
+        current=eng.inspector_detail(str(self.nfo))
+        self.assertEqual(current['lifecycle'],'ai-complete')
+        self.assertEqual([i['kind'] for i in current['ignored_issues']],['spec-missing'])
+        self.assertEqual(self.nfo.read_bytes(),self.raw)
+        self.nfo.write_bytes(self.raw.replace('原片名'.encode(),'外部编辑'.encode()))
+        current=eng.inspector_detail(str(self.nfo))
+        self.assertEqual(current['lifecycle'],'spec-missing')
+        self.assertFalse(current['ignored_issues'])
+        eng.set_status_override({'path':str(self.nfo),'value':'review'})
+        self.nfo.write_bytes(self.raw)
+        current=eng.inspector_detail(str(self.nfo))
+        self.assertEqual(current['lifecycle'],'spec-missing')
+        self.assertEqual([i['kind'] for i in current['ignored_issues']],['spec-missing'])
+
+    def test_original_tag_status_priority(self):
+        specs={k:[] for k in eng.SECTIONS};specs['Camera']=['Arri Alexa']
+        digest=eng._specs_hash(specs)
+        for engine,fingerprint,state,tag,want in [('ai',digest,'current',True,'ai-complete'),('local-rules',digest,'current',True,'local-complete'),('ai','old','review',True,'stale'),('ai',digest,'review',True,'review'),('ai','old','current',False,'tag-missing')]:
+            raw='<movie><uniqueid type="imdb">tt1234567</uniqueid>'+('<tag>Camera: Arri Alexa</tag>' if tag else '')+'<technicalspecs source="IMDb" imdbid="tt1234567"><section name="Camera"><item>Arri Alexa</item></section><generatedtags owner="IMDb Tech Manager" schema="2" engine="'+engine+'" specHash="'+fingerprint+'" state="'+state+'"><tag>Camera: Arri Alexa</tag></generatedtags></technicalspecs></movie>'
+            self.nfo.write_text(raw,encoding='utf-8')
+            self.assertEqual(eng.inspector_detail(str(self.nfo))['lifecycle'],want)
+
 if __name__=='__main__': unittest.main(verbosity=2)

@@ -95,6 +95,7 @@ pub fn candidates(
 ) -> Vec<String> {
     let eligible = |i: &&MediaItem| {
         i.error.is_none()
+            && crate::inspector::type_matches(i)
             && ["Movie", "Series", "Episode"].contains(&i.kind.as_str())
             && !i.imdb.is_empty()
             && i.spec_status == "missing"

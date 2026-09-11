@@ -335,6 +335,14 @@ pub fn prepare(
     })
 }
 fn add_root(roots: &mut Vec<LegacyRoot>, path: &str, space: Option<Space>, enabled: bool) {
+    // Old config stores both categorized roots and their flattened compatibility list.
+    // The flattened duplicate must not create a second unresolved migration entry.
+    if space.is_none() && roots.iter().any(|r| r.path == path && r.space.is_some()) {
+        return;
+    }
+    if space.is_some() {
+        roots.retain(|r| r.path != path || r.space.is_some());
+    }
     if roots.iter().any(|r| r.path == path && r.space == space) {
         return;
     }

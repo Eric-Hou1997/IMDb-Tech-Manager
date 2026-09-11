@@ -170,3 +170,21 @@ fn mixed_legacy_root_migrates_both_spaces_without_copying_or_moving_media() {
         receipt.configuration.roots[1].space
     );
 }
+#[test]
+fn flattened_compatibility_roots_do_not_duplicate_categorized_roots() {
+    let (_t, old, store) = setup();
+    let media = old.parent().unwrap().join("media");
+    fs::create_dir(&media).unwrap();
+    let cfg = serde_json::json!({"library_roots":{"movies":[media],"tv":[]},"roots":[media]});
+    fs::write(old.join("config.json"), serde_json::to_vec(&cfg).unwrap()).unwrap();
+    let plan = store
+        .prepare_migration("import", &old, "itm-engine")
+        .unwrap();
+    assert_eq!(plan.roots.len(), 1);
+    assert_eq!(plan.roots[0].state, "ready");
+    assert!(store
+        .apply_migration("import", &plan.fingerprint)
+        .unwrap()
+        .pending_roots
+        .is_empty());
+}

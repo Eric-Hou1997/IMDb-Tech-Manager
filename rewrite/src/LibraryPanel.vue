@@ -2,13 +2,14 @@
 import { computed, shallowRef, onMounted, onUnmounted, reactive, ref, watch, nextTick } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import SpecsEditor from './SpecsEditor.vue';
+import InspectorStatus from './InspectorStatus.vue';
 import BatchPanel from './BatchPanel.vue';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import type { AppError, CatalogPage, Configuration, MediaItem, Space, Task, TaskState, LibraryView, UiState, UiReceipt, TvPage, TvRow } from './contracts';
 
 const configuration = ref<Configuration>({ revision: 0, locale: 'zh-CN', roots: [] });
 const space = ref<Space>('movie');
-const emptyView=():LibraryView=>({search:'',errors:false,roots:[],selected:[],expanded:[],offset:0,sort:'title',descending:false});
+const emptyView=():LibraryView=>({search:'',errors:false,issues:false,lifecycle:'',roots:[],selected:[],expanded:[],offset:0,sort:'title',descending:false});
 const views=reactive<{movie:LibraryView;tv:LibraryView}>({movie:emptyView(),tv:emptyView()});
 let savedRevision=0, stateReady=false, saving=false;
 let queuedState:UiState|null=null;
@@ -88,6 +89,7 @@ async function control(task: Task, state: TaskState) {
 async function inspect(item: MediaItem) { await action(async () => { detail.value = await invoke<MediaItem>('inspector', { id: item.id }); }); }
 function toggleExpanded(id:string){const values=new Set(views.tv.expanded);if(values.has(id))values.delete(id);else values.add(id);views.tv.expanded=[...values];void refresh();}
 async function toggleTv(row:TvRow){await action(async()=>{const ids=await invoke<string[]>('tv_members',{id:row.id});const selected=new Set(views.tv.selected);const remove=ids.every(id=>selected.has(id));for(const id of ids){if(remove)selected.delete(id);else selected.add(id);}views.tv.selected=[...selected];await refresh();});}
+function statusLabel(item:MediaItem){const labels:Record<string,string>={'ai-complete':'AI 完成','local-complete':'规则完成','spec-ready':'规格就绪','spec-missing':'缺少规格','spec-empty':'已确认无规格','no-tags':'尚无标签','stale':'标签过期','review':'待复核','tag-missing':'标签缺失','legacy':'历史标签','manual-spec':'手动规格','xml-error':'读取异常','not-applicable':'不适用','index-refresh-required':'待刷新索引'};return labels[item.inspection.lifecycle]||item.inspection.lifecycle||'待刷新索引';}
 function tvName(row:TvRow){if(row.kind==='orphan')return '未归属节目';if(row.kind==='season')return row.name==='unknown'?'未标注季':'第 '+row.name+' 季';return row.name||row.item?.path||'异常条目';}
 function switchSpace(next: Space) { space.value = next; detail.value = null; void refresh(); }
 onMounted(async () => {
@@ -124,17 +126,17 @@ onUnmounted(() => { disposed = true; ++refreshToken; clearTimeout(timer); unlist
     <p v-if="saveError" role="alert">界面状态尚未保存：{{ saveError }} <button @click="retryState">重试保存</button></p>
     <div class="search-row">
       <input v-model="view.search" aria-label="搜索标题、年份、IMDb ID 或路径" placeholder="搜索标题、年份、IMDb ID 或路径" @input="view.offset = 0; scheduleRefresh()" />
-      <label><input v-model="view.errors" type="checkbox" @change="view.offset = 0; refresh()" />仅异常</label>
+      <label><input v-model="view.errors" type="checkbox" @change="view.offset = 0; refresh()" />仅读取错误</label><label><input v-model="view.issues" type="checkbox" @change="view.offset=0;refresh()">仅未确认问题</label>
     </div>
-    <div class="actions"><label>排序 <select v-model="view.sort" @change="view.offset=0;refresh()"><option value="title">名称</option><option value="year">年份</option><option value="path">路径</option><option value="status">状态</option></select></label><label><input v-model="view.descending" type="checkbox" @change="view.offset=0;refresh()">降序</label><button :disabled="!view.selected.length" @click="view.selected=[]">清除选择</button></div>
+    <div class="actions"><label>状态筛选 <select v-model="view.lifecycle" @change="view.offset=0;refresh()"><option value="">全部状态</option><option value="ai-complete">AI 完成</option><option value="local-complete">规则完成</option><option value="spec-missing">缺少规格</option><option value="spec-empty">已确认无规格</option><option value="no-tags">尚无标签</option><option value="stale">标签过期</option><option value="review">待复核</option><option value="tag-missing">标签缺失</option><option value="legacy">历史标签</option><option value="spec-ready">规格就绪</option><option value="manual-spec">手动规格</option><option value="xml-error">读取异常</option><option value="not-applicable">不适用</option></select></label><label>排序 <select v-model="view.sort" @change="view.offset=0;refresh()"><option value="title">名称</option><option value="year">年份</option><option value="path">路径</option><option value="status">状态</option></select></label><label><input v-model="view.descending" type="checkbox" @change="view.offset=0;refresh()">降序</label><button :disabled="!view.selected.length" @click="view.selected=[]">清除选择</button></div>
     <p>{{ page.total }} 个条目 · 已选 {{ view.selected.length }} 项</p>
     <div v-if="space==='movie'" class="table-scroll"><table><thead><tr><th>选择</th><th>名称</th><th>年份</th><th>类型</th><th>IMDb</th><th>状态</th></tr></thead><tbody>
-      <tr v-for="item in page.items" :key="item.id"><td><input v-model="view.selected" type="checkbox" :value="item.id" :aria-label="'选择 ' + (item.title || item.path)" /></td><td><button class="item-name" @click="inspect(item)">{{ item.title || item.path }}</button></td><td>{{ item.year }}</td><td>{{ item.kind }}</td><td>{{ item.imdb }}</td><td>{{ item.error ? '读取异常' : '已索引' }}</td></tr>
+      <tr v-for="item in page.items" :key="item.id"><td><input v-model="view.selected" type="checkbox" :value="item.id" :aria-label="'选择 ' + (item.title || item.path)" /></td><td><button class="item-name" @click="inspect(item)">{{ item.title || item.path }}</button></td><td>{{ item.year }}</td><td>{{ item.kind }}</td><td>{{ item.imdb }}</td><td>{{ statusLabel(item) }}</td></tr>
     </tbody></table></div>
     <div v-else class="table-scroll"><table><thead><tr><th>节目／季／集</th><th>年份</th><th>IMDb</th><th>数量</th></tr></thead><tbody>
       <tr v-for="row in tvPage.rows" :key="row.id"><td><div class="tv-node" :style="{paddingInlineStart:(row.depth*20)+'px'}">
         <button v-if="row.expandable" class="expander" :aria-expanded="view.expanded.includes(row.id)" :aria-label="(view.expanded.includes(row.id)?'折叠 ':'展开 ')+tvName(row)" @click="toggleExpanded(row.id)">{{ view.expanded.includes(row.id)?'▾':'▸' }}</button><span v-else class="expander-space"></span>
-        <span class="badge">{{ row.item?.error?'异常':row.kind==='season'?'季':row.kind==='series'?'节目':row.kind==='orphan'?'待归属':'集' }}</span>
+        <span class="badge">{{row.item?statusLabel(row.item):row.kind==='season'?'季':row.kind==='series'?'节目':row.kind==='orphan'?'待归属':'集'}}</span>
         <input type="checkbox" :checked="row.member_count>0&&row.selected_count===row.member_count" :indeterminate="row.selected_count>0&&row.selected_count<row.member_count" :disabled="busy||!row.member_count" :aria-label="'选择 '+tvName(row)" @change="toggleTv(row)">
         <button v-if="row.item" class="item-name" @click="inspect(row.item)">{{ tvName(row) }}</button><span v-else>{{ tvName(row) }}</span>
       </div></td><td>{{ row.item?.year }}</td><td>{{ row.item?.imdb }}</td><td>{{ row.selected_count }} / {{ row.member_count }}</td></tr>
@@ -145,16 +147,17 @@ onUnmounted(() => { disposed = true; ++refreshToken; clearTimeout(timer); unlist
     <BatchPanel :space="space" :selected="view.selected" :roots="view.roots" :tasks="tasks" @refresh="refresh" @inspect="id=>action(async()=>{detail=await invoke<MediaItem>('inspector',{id});})" />
     <aside v-if="detail" class="inspector"><h3>{{ detail.title || '异常条目' }} · Inspector</h3><p>{{ detail.year }} · {{ detail.imdb }} · {{ detail.kind }}</p><pre>{{ detail.path }}</pre><pre v-if="detail.error" role="alert">{{ detail.error.code }}：{{ detail.error.message }}</pre>
       <button :disabled="busy" @click="action(async () => { await invoke('reveal_item', { id: detail!.id }); })">在文件管理器中定位</button>
+      <InspectorStatus :item="detail" @changed="action(async()=>{if(detail)detail=await invoke<MediaItem>('inspector',{id:detail.id});await refresh();})" />
       <h4>Technical Specs</h4><dl><template v-for="(values, field) in detail.specs" :key="field"><dt>{{ field }}</dt><dd v-for="(value, index) in values" :key="index">{{ value }}</dd></template></dl>
       <SpecsEditor :item="detail" @changed="action(async()=>{ if(detail)detail=await invoke<MediaItem>('inspector',{id:detail.id}); await refresh(); })" />
       <h4>根标签与归属</h4><ul><li v-for="(tag, index) in detail.tags" :key="index">{{ tag.value }} · {{ tag.ownership }}<span v-if="tag.engine"> · {{ tag.engine }}</span></li></ul>
       <button @click="detail = null">关闭检查器</button>
     </aside>
-    <h3>当前空间任务</h3><article v-for="task in tasks.filter(t => t.space === space)" :key="task.id"><p>{{ task.state }} · {{ task.processed }} 项 · {{ task.errors }} 个异常</p><p class="task-id">{{ task.id }} · {{ task.locale }}</p><pre v-if="task.current_path">{{ task.current_path }}</pre><pre v-if="task.failure" role="alert">{{ task.failure.code }}：{{ task.failure.message }}\n{{ task.failure.path }}</pre><button v-if="task.errors" @click="view.errors=true;view.offset=0;refresh()">查看异常条目</button>
+    <h3>当前空间任务</h3><article v-for="task in tasks.filter(t => t.space === space)" :key="task.id"><p>{{ task.state }} · {{ task.processed }} 项 · {{ task.errors }} 个异常</p><p class="task-id">{{ task.id }} · {{ task.locale }}</p><pre v-if="task.current_path">{{ task.current_path }}</pre><pre v-if="task.failure" role="alert">{{ task.failure.code }}：{{ task.failure.message }}\n{{ task.failure.path }}</pre><button v-if="task.errors" @click="view.errors=false;view.issues=true;view.offset=0;refresh()">查看异常条目</button>
       <div class="actions"><button v-if="['requested', 'running'].includes(task.state)" :disabled="busy" @click="control(task, 'paused')">暂停</button><button v-if="['paused', 'interrupted'].includes(task.state)&&(!task.batch||task.batch.approved)" :disabled="busy" @click="control(task, 'requested')">恢复</button><button v-if="!['completed', 'failed', 'cancelled'].includes(task.state)" :disabled="busy" @click="control(task, 'cancelled')">取消</button></div>
     </article>
   </section>
 </template>
 <style scoped>
-.tv-node{display:flex;align-items:center;gap:8px;white-space:nowrap}.expander{padding:2px;width:28px;min-width:28px}.expander-space{width:28px;min-width:28px}.badge{font-size:12px;font-weight:600;border:1px solid #65768b66;border-radius:4px;padding:2px 5px}.root{display:flex;gap:8px;margin:12px 0;overflow-wrap:anywhere}.search-row{display:flex;gap:12px;align-items:center;margin-top:20px}.search-row>input{min-width:0;flex:1}.search-row label{white-space:nowrap}input{font:inherit;padding:8px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:8px;border-bottom:1px solid #65768b44}.item-name{text-align:left;min-width:120px;max-width:300px;overflow-wrap:anywhere}.inspector{padding:16px;margin-top:20px;border:1px solid #65768b66;border-radius:10px}.task-id{font-size:12px;overflow-wrap:anywhere}dt{font-weight:600}dd{margin:4px 0 8px 16px}article{border-top:1px solid #65768b44;margin-top:12px}button[aria-pressed=true]{background:#174e9c;color:white}
+.tv-node{display:flex;align-items:center;gap:8px;white-space:nowrap}.expander{padding:2px;width:28px;min-width:28px}.expander-space{width:28px;min-width:28px}.badge{font-size:12px;font-weight:600;border:1px solid #65768b66;border-radius:4px;padding:2px 5px}.root{display:flex;gap:8px;margin:12px 0;overflow-wrap:anywhere}.search-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:20px}.search-row>input{min-width:0;flex:1}.search-row label{white-space:nowrap}input{font:inherit;padding:8px}.table-scroll{overflow:auto}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:8px;border-bottom:1px solid #65768b44}.item-name{text-align:left;min-width:120px;max-width:300px;overflow-wrap:anywhere}.inspector{padding:16px;margin-top:20px;border:1px solid #65768b66;border-radius:10px}.task-id{font-size:12px;overflow-wrap:anywhere}dt{font-weight:600}dd{margin:4px 0 8px 16px}article{border-top:1px solid #65768b44;margin-top:12px}button[aria-pressed=true]{background:#174e9c;color:white}
 </style>

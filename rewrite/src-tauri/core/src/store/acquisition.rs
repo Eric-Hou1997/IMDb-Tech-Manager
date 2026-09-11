@@ -53,6 +53,7 @@ impl Store {
             );
         }
         let current = library::parse(root, Path::new(&item.path), &raw)?;
+        crate::inspector::generation_allowed(&current)?;
         crate::specs::imdb_url(&current.imdb)?;
         let mut db = self.db()?;
         self.writable()?;
