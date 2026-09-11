@@ -1,6 +1,7 @@
 pub mod ai;
 pub mod contracts;
 pub mod library;
+pub mod migration;
 pub mod paths;
 pub mod rules;
 pub mod services;

@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod credentials;
 mod desktop;
+mod migration;
 use product_core::services::CredentialStore;
 use serde_json::{json, Value};
 use std::{
@@ -148,6 +149,9 @@ fn main() {
             credential_probe,
             network_probe,
             quit_probe,
+            migration::migration_plan,
+            migration::migration_apply,
+            migration::migration_result,
             desktop::configuration,
             desktop::operation_result,
             desktop::add_library_root,
