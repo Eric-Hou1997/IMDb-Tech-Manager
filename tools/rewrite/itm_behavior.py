@@ -104,4 +104,11 @@ class WriterBaseline(unittest.TestCase):
         for path in paths.values():
             self.assertEqual([tag.text for tag in ET.fromstring(path.read_bytes()).findall('tag')],['外部标签'])
 
+    def test_parsed_cache_retains_positive_empty_and_failure_expiry(self):
+        for age,status,hit in [(29*86400,'ok',True),(31*86400,'ok',False),(6*86400,'no-tech',True),(8*86400,'no-tech',False),(60,'timeout',True),(3601,'timeout',False)]:
+            value=dict(self.obj,cache_version=8,parser_version=1,status=status,ok=status=='ok',fetched_at=(eng.dt.datetime.now(eng.dt.timezone.utc)-eng.dt.timedelta(seconds=age)).isoformat())
+            eng.save_json(eng.cache_file('tt0064757'),value)
+            self.assertEqual(eng._parsed_specs_cache('tt0064757') is not None,hit,(age,status))
+            if status=='timeout': self.assertIsNone(eng._parsed_specs_cache('tt0064757',retry_failed=True))
+
 if __name__=='__main__': unittest.main(verbosity=2)

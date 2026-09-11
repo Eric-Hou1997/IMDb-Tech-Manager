@@ -3,6 +3,7 @@ pub mod ai;
 pub mod automatic;
 pub mod batch;
 pub mod contracts;
+pub mod imdb_cache;
 pub mod install;
 pub mod library;
 pub mod migration;

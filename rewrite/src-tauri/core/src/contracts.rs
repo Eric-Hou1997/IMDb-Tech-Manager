@@ -217,6 +217,7 @@ pub fn typescript() -> String {
         CatalogQuery::decl(),
         CatalogPage::decl(),
         crate::migration::AdapterPlan::decl(),
+        crate::imdb_cache::CacheMigrationItem::decl(),
         crate::migration::LegacyFile::decl(),
         crate::migration::LegacyRoot::decl(),
         crate::migration::MigrationPlan::decl(),

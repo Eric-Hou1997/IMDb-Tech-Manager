@@ -2,7 +2,7 @@ use super::*;
 use crate::acquisition::{FetchRecord, FetchRequest};
 impl Store {
     pub fn begin_fetch(&self, request: FetchRequest) -> Result<(FetchRecord, bool)> {
-        self.begin_fetch_context(request, None)
+        self.begin_fetch_context(request, None, false)
     }
     pub fn begin_batch_fetch(
         &self,
@@ -16,12 +16,17 @@ impl Store {
             &request.expected_hash,
             crate::batch::BatchEngine::Specs,
         )?;
-        self.begin_fetch_context(request, Some(task.locale))
+        let retry_failed = task
+            .batch
+            .as_ref()
+            .is_some_and(|b| b.mode == crate::batch::BatchMode::Generate);
+        self.begin_fetch_context(request, Some(task.locale), retry_failed)
     }
     fn begin_fetch_context(
         &self,
         request: FetchRequest,
         locale: Option<Locale>,
+        retry_failed: bool,
     ) -> Result<(FetchRecord, bool)> {
         valid_id(&request.operation_id)?;
         let fingerprint = hash(&serde_json::to_vec(&("imdb-fetch", &request))?);
@@ -93,23 +98,51 @@ impl Store {
             .map(|body| serde_json::from_str(&body))
             .transpose()?
         };
-        let now = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+        let clock = chrono::Utc::now();
+        let cached =
+            cached.filter(|source| crate::imdb_cache::source_fresh(source, clock.timestamp()));
+        let failure: Option<crate::imdb_cache::Failure> =
+            if cached.is_none() && !request.refresh && !retry_failed {
+                tx.query_row(
+                    "SELECT body FROM preferences WHERE key=?1",
+                    [super::cache_migration::negative_key(&current.imdb)],
+                    |r| r.get::<_, String>(0),
+                )
+                .optional()?
+                .map(|body| serde_json::from_str(&body))
+                .transpose()?
+                .filter(|f: &crate::imdb_cache::Failure| {
+                    crate::imdb_cache::fresh(&f.fetched_at, clock.timestamp(), 3600)
+                })
+            } else {
+                None
+            };
+        let cache_hit = cached.is_some() || failure.is_some();
+        let error = failure.map(|f| {
+            let mut error = f.error;
+            error.path = Some(current.path.clone());
+            error.operation_id = Some(request.operation_id.clone());
+            error
+        });
+        let now = clock.to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
         let value = FetchRecord {
             request,
             imdb: current.imdb,
             path: current.path,
             locale: locale.unwrap_or(configuration.locale),
-            phase: if cached.is_some() {
+            phase: if error.is_some() {
+                "failed"
+            } else if cached.is_some() {
                 "completed"
             } else {
                 "requested"
             }
             .into(),
-            cached: cached.is_some(),
+            cached: cache_hit,
             started_at: now.clone(),
-            finished_at: cached.as_ref().map(|_| now),
+            finished_at: cache_hit.then_some(now),
             source: cached,
-            error: None,
+            error,
             attempts: Vec::new(),
         };
         tx.execute(
@@ -160,6 +193,7 @@ impl Store {
             Some(chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true));
         match result {
             Ok(source) => {
+                source.validate()?;
                 if source.imdb != value.imdb {
                     return Err(AppError::new(
                         "imdb-title-mismatch",
@@ -167,10 +201,22 @@ impl Store {
                     ));
                 }
                 tx.execute("INSERT INTO imdb_cache VALUES(?1,1,?2) ON CONFLICT(imdb) DO UPDATE SET parser_version=1,body=excluded.body",params![source.imdb,serde_json::to_string(&source)?])?;
+                tx.execute(
+                    "DELETE FROM preferences WHERE key=?1",
+                    [super::cache_migration::negative_key(&source.imdb)],
+                )?;
                 value.source = Some(source);
                 value.phase = "completed".into();
             }
             Err(mut error) => {
+                if crate::imdb_cache::cacheable(&error) {
+                    let failure = crate::imdb_cache::Failure {
+                        imdb: value.imdb.clone(),
+                        fetched_at: value.finished_at.clone().expect("completion time"),
+                        error: error.clone(),
+                    };
+                    tx.execute("INSERT INTO preferences VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![super::cache_migration::negative_key(&value.imdb),serde_json::to_string(&failure)?])?;
+                }
                 error.path = Some(value.path.clone());
                 error.operation_id = Some(id.into());
                 value.phase = if error.code == "cancelled" {

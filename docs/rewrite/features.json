@@ -463,6 +463,20 @@
             "docs/rewrite/evidence/native-automatic.json"
           ],
           "status": "local-core-and-native-macos-passed-cloud-pending"
+        },
+        {
+          "slice": "legacy-imdb-cache-runtime-adapter",
+          "implementation": [
+            "rewrite/src-tauri/core/src/imdb_cache.rs",
+            "rewrite/src-tauri/core/src/store/cache_migration.rs",
+            "rewrite/src-tauri/core/src/store/acquisition.rs"
+          ],
+          "evidence": [
+            "rewrite/src-tauri/core/tests/migration_cache.rs",
+            "tools/rewrite/itm_behavior.py",
+            "docs/rewrite/evidence/native-cache-migration.json"
+          ],
+          "status": "local-core-and-native-macos-passed-cloud-pending"
         }
       ]
     },
@@ -742,6 +756,20 @@
             "rewrite/src-tauri/core/tests/automatic.rs",
             "tools/rewrite/itm_behavior.py",
             "docs/rewrite/evidence/native-automatic.json"
+          ],
+          "status": "local-core-and-native-macos-passed-cloud-pending"
+        },
+        {
+          "slice": "legacy-imdb-cache-runtime-adapter",
+          "implementation": [
+            "rewrite/src-tauri/core/src/imdb_cache.rs",
+            "rewrite/src-tauri/core/src/store/cache_migration.rs",
+            "rewrite/src-tauri/core/src/store/acquisition.rs"
+          ],
+          "evidence": [
+            "rewrite/src-tauri/core/tests/migration_cache.rs",
+            "tools/rewrite/itm_behavior.py",
+            "docs/rewrite/evidence/native-cache-migration.json"
           ],
           "status": "local-core-and-native-macos-passed-cloud-pending"
         }
@@ -1051,6 +1079,20 @@
             "rewrite/src-tauri/core/tests/automatic.rs",
             "tools/rewrite/itm_behavior.py",
             "docs/rewrite/evidence/native-automatic.json"
+          ],
+          "status": "local-core-and-native-macos-passed-cloud-pending"
+        },
+        {
+          "slice": "legacy-imdb-cache-runtime-adapter",
+          "implementation": [
+            "rewrite/src-tauri/core/src/imdb_cache.rs",
+            "rewrite/src-tauri/core/src/store/cache_migration.rs",
+            "rewrite/src-tauri/core/src/store/acquisition.rs"
+          ],
+          "evidence": [
+            "rewrite/src-tauri/core/tests/migration_cache.rs",
+            "tools/rewrite/itm_behavior.py",
+            "docs/rewrite/evidence/native-cache-migration.json"
           ],
           "status": "local-core-and-native-macos-passed-cloud-pending"
         }

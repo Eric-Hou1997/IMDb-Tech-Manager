@@ -202,9 +202,9 @@ impl Store {
                     && config.roots.iter().any(|r| r.id == i.root_id)
             })
             .collect();
-        let cooling = {
+        let mut cooling = {
             let db = self.db()?;
-            let mut statement = db.prepare("SELECT json_extract(result,'$.result.imdb'),COALESCE(json_extract(result,'$.result.finished_at'),json_extract(result,'$.result.started_at')) FROM operations WHERE rowid IN (SELECT MAX(rowid) FROM operations WHERE json_extract(result,'$.kind')='fetch' GROUP BY json_extract(result,'$.result.imdb')) AND json_extract(result,'$.result.phase')!='completed'")?;
+            let mut statement = db.prepare("SELECT json_extract(result,'$.result.imdb'),COALESCE(json_extract(result,'$.result.finished_at'),json_extract(result,'$.result.started_at')) FROM operations WHERE rowid IN (SELECT MAX(rowid) FROM operations WHERE json_extract(result,'$.kind')='fetch' AND json_extract(result,'$.result.cached')=0 GROUP BY json_extract(result,'$.result.imdb')) AND json_extract(result,'$.result.phase')!='completed'")?;
             let rows = statement
                 .query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?
                 .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -216,6 +216,17 @@ impl Store {
                 .map(|(imdb, _)| imdb)
                 .collect::<std::collections::HashSet<_>>()
         };
+        {
+            let db = self.db()?;
+            let mut stmt =
+                db.prepare("SELECT body FROM preferences WHERE key LIKE 'imdb-failure:%'")?;
+            for body in stmt.query_map([], |r| r.get::<_, String>(0))? {
+                let failure: crate::imdb_cache::Failure = serde_json::from_str(&body?)?;
+                if crate::imdb_cache::fresh(&failure.fetched_at, now, 3600) {
+                    cooling.insert(failure.imdb);
+                }
+            }
+        }
         let selected = crate::automatic::candidates(&items, now, |i| cooling.contains(&i.imdb));
         let cycle = {
             let mut db = self.db()?;

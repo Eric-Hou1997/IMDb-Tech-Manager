@@ -1,0 +1,92 @@
+{
+  "date": "2026-09-11",
+  "product": "ITM",
+  "target": "macos-arm64",
+  "base_commit": "85895a2",
+  "environment": "Independent native Tauri app with synthetic legacy cache and temporary media",
+  "checks": [
+    "migration-preview-lists-source-time-and-reuse-state",
+    "confirmed-config-and-cache-import-updates-root-ui",
+    "scan-preserves-source",
+    "native-fetch-completes-from-imported-cache-with-zero-http-attempts",
+    "preview-does-not-write",
+    "confirmed-write-updates-inspector-and-file",
+    "external-tags-and-unknown-xml-preserved",
+    "native-history-undo-restores-exact-original-bytes"
+  ],
+  "migration": [
+    {
+      "applied_cache_entries": 1,
+      "applied_adapters": [],
+      "id": "e37ff1be-300a-4841-a00a-fa4984c2f5ee",
+      "source": "/private/tmp/itm-cache-native-20260911/legacy",
+      "fingerprint": "16497830a959d1349f8ed14467d2ca55dac326e19e71264a8eac39e626755de0",
+      "imported_files": 2,
+      "imported_bytes": "411",
+      "pending_roots": [],
+      "phase": "imported-requires-adapter-validation",
+      "configuration": {
+        "revision": 1,
+        "locale": "zh-CN",
+        "roots": [
+          {
+            "id": "c95059632a0bcf0bd3dcdba670082017d43996fd7e4d5fe07c508af9d4d1739f",
+            "space": "movie",
+            "path": "/private/tmp/itm-cache-native-20260911/media"
+          }
+        ]
+      }
+    }
+  ],
+  "fetch": [
+    {
+      "request": {
+        "operation_id": "41f707a8-0428-42fe-aa35-3f200b8d7aa5",
+        "item_id": "9d40efc8c851e8a1b24d06de4442ff3007e476e9ea5069f5eba1ce1997286aec",
+        "expected_hash": "026cfc0240bf7a8398258c16ab220a7d1bad686f17edd2025d8356482082ae01",
+        "refresh": false
+      },
+      "imdb": "tt1234567",
+      "path": "/private/tmp/itm-cache-native-20260911/media/缓存迁移验收.nfo",
+      "locale": "zh-CN",
+      "phase": "completed",
+      "cached": true,
+      "started_at": "2026-09-11T15:09:02Z",
+      "finished_at": "2026-09-11T15:09:02Z",
+      "source": {
+        "status": "ok",
+        "imdb": "tt1234567",
+        "specs": {
+          "Camera": [
+            "Migration Fixture Camera"
+          ]
+        },
+        "fetched_at": "2026-09-11T14:56:26.045775+00:00",
+        "parser": "isolated-fixture"
+      },
+      "error": null,
+      "attempts": []
+    }
+  ],
+  "writes": [
+    {
+      "operation_id": "7c953885-3757-4b97-9df7-c2db17380236",
+      "phase": "committed",
+      "before_hash": "026cfc0240bf7a8398258c16ab220a7d1bad686f17edd2025d8356482082ae01",
+      "after_hash": "a78f44a7fd80539bbb645ab9a2ac8c72948d42d416ed6de6b95c8fbe97798544",
+      "undo_of": null
+    },
+    {
+      "operation_id": "bae7fb7c-9df8-4818-b9f1-e2abbbb67fb5",
+      "phase": "committed",
+      "before_hash": "a78f44a7fd80539bbb645ab9a2ac8c72948d42d416ed6de6b95c8fbe97798544",
+      "after_hash": "026cfc0240bf7a8398258c16ab220a7d1bad686f17edd2025d8356482082ae01",
+      "undo_of": "7c953885-3757-4b97-9df7-c2db17380236"
+    }
+  ],
+  "restored_sha256": "026cfc0240bf7a8398258c16ab220a7d1bad686f17edd2025d8356482082ae01",
+  "limits": [
+    "Synthetic cache contents are a fixture, not actual IMDb metadata",
+    "Other targets require their own desktop acceptance"
+  ]
+}

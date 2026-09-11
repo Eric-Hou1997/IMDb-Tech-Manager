@@ -217,7 +217,12 @@ impl Store {
                 }
             }
         }
-        plan.fingerprint = hash(&serde_json::to_vec(&(&plan.fingerprint, &plan.adapters))?);
+        self.prepare_cache_migration(&mut plan)?;
+        plan.fingerprint = hash(&serde_json::to_vec(&(
+            &plan.fingerprint,
+            &plan.adapters,
+            &plan.cache_entries,
+        ))?);
         let db = self.db()?;
         self.writable()?;
         if db.query_row(
@@ -295,6 +300,7 @@ impl Store {
                 .ok_or_else(|| AppError::new("migration-size", "Import byte count overflow"))?;
         }
         let mut applied_adapters = vec![];
+        let applied_cache_entries = cache_migration::apply(&tx, id, &plan.cache_entries)?;
         for adapter in &plan.adapters {
             if !["ai-settings", "automatic"].contains(&adapter.target.as_str()) {
                 return Err(AppError::new(
@@ -330,6 +336,7 @@ impl Store {
         tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![preference_key,serde_json::to_string(&crate::migration::normalized_preferences(&preferences))?])?;
         tx.execute("INSERT INTO configuration(id,body) VALUES(1,?1) ON CONFLICT(id) DO UPDATE SET body=excluded.body",[serde_json::to_string(&configuration)?])?;
         let receipt = crate::migration::MigrationReceipt {
+            applied_cache_entries,
             applied_adapters,
             id: id.into(),
             source: plan.source,
@@ -1342,3 +1349,4 @@ mod write_operations;
 
 mod automatic;
 mod batches;
+mod cache_migration;

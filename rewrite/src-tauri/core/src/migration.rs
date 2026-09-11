@@ -36,6 +36,8 @@ pub struct LegacyRoot {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct MigrationPlan {
     #[serde(default)]
+    pub cache_entries: Vec<crate::imdb_cache::CacheMigrationItem>,
+    #[serde(default)]
     pub adapters: Vec<AdapterPlan>,
     pub id: String,
     pub source: String,
@@ -49,6 +51,8 @@ pub struct MigrationPlan {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct MigrationReceipt {
+    #[serde(default)]
+    pub applied_cache_entries: u32,
     #[serde(default)]
     pub applied_adapters: Vec<String>,
     pub id: String,
@@ -317,6 +321,7 @@ pub fn prepare(
         current.revision,
     ))?);
     Ok(MigrationPlan {
+        cache_entries: vec![],
         adapters: vec![],
         id: id.into(),
         source: source.to_string_lossy().into(),

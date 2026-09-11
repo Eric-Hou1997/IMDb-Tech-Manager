@@ -18,6 +18,23 @@ pub struct SourceSpecs {
     pub fetched_at: String,
     pub parser: String,
 }
+impl SourceSpecs {
+    pub fn validate(&self) -> Result<()> {
+        imdb_url(&self.imdb)?;
+        chrono::DateTime::parse_from_rfc3339(&self.fetched_at)
+            .map_err(|e| AppError::new("invalid-fetch-time", e))?;
+        if self.specs.keys().any(|k| !SECTIONS.contains(&k.as_str()))
+            || (self.status == SourceStatus::Empty)
+                == self.specs.values().flatten().any(|v| !v.trim().is_empty())
+        {
+            return Err(AppError::new(
+                "invalid-source-specs",
+                "Source status does not match the validated specifications",
+            ));
+        }
+        Ok(())
+    }
+}
 pub fn imdb_url(imdb: &str) -> Result<String> {
     if !regex::Regex::new(r"^tt[0-9]{5,12}$")
         .unwrap()
@@ -126,24 +143,7 @@ fn sections(specs: &Specs, nl: &str) -> String {
 /// Only changes within the authoritative node are permitted, including first insertion.
 pub fn source_candidate(raw: &[u8], fetched: &SourceSpecs) -> Result<Vec<u8>> {
     let url = imdb_url(&fetched.imdb)?;
-    chrono::DateTime::parse_from_rfc3339(&fetched.fetched_at)
-        .map_err(|e| AppError::new("invalid-fetch-time", e))?;
-    if fetched
-        .specs
-        .keys()
-        .any(|k| !SECTIONS.contains(&k.as_str()))
-        || (fetched.status == SourceStatus::Empty)
-            == fetched
-                .specs
-                .values()
-                .flatten()
-                .any(|v| !v.trim().is_empty())
-    {
-        return Err(AppError::new(
-            "invalid-source-specs",
-            "Source status does not match the validated specifications",
-        ));
-    }
+    fetched.validate()?;
     let mut normalized = Specs::new();
     for (field, values) in &fetched.specs {
         let mut seen = std::collections::HashSet::new();
