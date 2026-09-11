@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 use ts_rs::TS;
+pub mod identity;
 pub mod job;
 pub mod legacy_cache;
 pub mod legacy_failure;
@@ -147,6 +148,8 @@ fn output_schema() -> Value {
     serde_json::from_str(include_str!("../assets/ai-output-schema.json"))
         .expect("verified embedded schema")
 }
+/// Frozen early-rewrite v1 identity retained for compatibility characterization.
+/// Durable runtime requests use `identity::keys` instead.
 pub fn failure_fingerprint(cfg: &Config, specs: &Specs, existing: &[Value]) -> Result<String> {
     Ok(hash(
         serde_json::to_string(

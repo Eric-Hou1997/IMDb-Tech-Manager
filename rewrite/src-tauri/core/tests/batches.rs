@@ -352,6 +352,8 @@ fn item_checkpoints_are_separate_rows_and_early_snapshots_migrate_atomically() {
     db.execute("DELETE FROM batch_items WHERE task_id='storage'", [])
         .unwrap();
     db.pragma_update(None, "user_version", 6).unwrap();
+    db.execute_batch("DROP TABLE ai_cache_v1_archive; DROP TABLE ai_failures_v1_archive;")
+        .unwrap();
     drop(db);
     let store = Store::open(&path).unwrap();
     let migrated = store.task("storage").unwrap();

@@ -223,11 +223,7 @@ impl Store {
             .filter(|t| t.ownership == Ownership::Generated)
             .map(|t| json!({"value":t.value,"source":if t.engine=="ai" {"ai"}else{"rules"}}))
             .collect::<Vec<_>>();
-        let fingerprint = hash(&serde_json::to_vec(&(
-            "ai-runtime-1",
-            ai::failure_fingerprint(&settings.config, &specs, &existing)?,
-            &settings,
-        ))?);
+        let keys = ai::identity::keys(&settings, &specs, &existing, &item.path)?;
         let mut value = Record {
             batch_id: task.map(|t| t.id),
             engine: "ai".into(),
@@ -241,7 +237,7 @@ impl Store {
             settings,
             specs,
             existing,
-            fingerprint,
+            fingerprint: keys.cache,
             phase: "requested".into(),
             cached: false,
             legacy_cache: None,
@@ -293,7 +289,7 @@ impl Store {
             if let Some(error) = tx
                 .query_row(
                     "SELECT error FROM ai_failures WHERE fingerprint=?1",
-                    [&value.fingerprint],
+                    [&keys.failure],
                     |r| r.get::<_, String>(0),
                 )
                 .optional()?
@@ -442,7 +438,7 @@ impl Store {
                     tx.execute("INSERT INTO ai_cache VALUES(?1,?2) ON CONFLICT(fingerprint) DO UPDATE SET body=excluded.body",params![value.fingerprint,serde_json::to_string(&value)?])?;
                     tx.execute(
                         "DELETE FROM ai_failures WHERE fingerprint=?1",
-                        [&value.fingerprint],
+                        [ai::identity::record_keys(&value)?.failure],
                     )?;
                     tx.execute("DELETE FROM preferences WHERE key='ai-paused'", [])?;
                     super::legacy_ai_failure::resolve(&tx, &value.path)?;
@@ -466,7 +462,7 @@ impl Store {
                                 .as_ref()
                                 .is_none_or(|e| e.code != "budget-exhausted")
                         {
-                            tx.execute("INSERT INTO ai_failures VALUES(?1,?2) ON CONFLICT(fingerprint) DO UPDATE SET error=excluded.error",params![value.fingerprint,serde_json::to_string(&value.error)?])?;
+                            tx.execute("INSERT INTO ai_failures VALUES(?1,?2) ON CONFLICT(fingerprint) DO UPDATE SET error=excluded.error",params![ai::identity::record_keys(&value)?.failure,serde_json::to_string(&value.error)?])?;
                         }
                     }
                 }

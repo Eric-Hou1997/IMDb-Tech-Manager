@@ -66,6 +66,361 @@ fn response(reason: &str, content: &str, input: u64, output: u64) -> HttpRespons
 fn good() -> String {
     serde_json::to_string(&json!({"tags":[{"value":"Camera Model","field":"Camera","source_indexes":[0],"confidence":"high"}],"warnings":[]})).unwrap()
 }
+
+#[test]
+fn price_budget_review_timeout_and_non_tag_specs_changes_reuse_current_cache() {
+    let (_temp, store, item, _) = setup();
+    store.begin_ai(request(&item, "generate")).unwrap();
+    let result = send(&store, "generate", response("stop", &good(), 100, 20));
+    let mut settings = store.ai_settings().unwrap();
+    settings.input_price_per_million = 999.0;
+    settings.output_price_per_million = 555.0;
+    settings.run_request_limit = 1;
+    settings.run_token_limit = 1;
+    settings.run_cost_limit = 0.01;
+    settings.warning_policy = "accept".into();
+    settings.timeout_seconds = 120;
+    settings.retry_count = 5;
+    settings.output_token_cap = 12000;
+    store.save_ai_settings("policy", settings).unwrap();
+    fs::write(
+        &item.path,
+        RAW.replace(
+            "</technicalspecs>",
+            "<section name=\"Runtime\"><item>900 min</item></section></technicalspecs>",
+        ),
+    )
+    .unwrap();
+    let changed = store.inspect_item(&item.id).unwrap();
+    let (cached, execute) = store.begin_ai(request(&changed, "cached")).unwrap();
+    assert!(!execute);
+    assert!(cached.cached);
+    assert_eq!(cached.meter.attempts, 0);
+    assert_eq!(cached.cost, 0.0);
+    assert_eq!(cached.historical_cost, result.cost);
+    assert_eq!(cached.meter.historical_cache.total, 120);
+    assert_eq!(cached.fingerprint, result.fingerprint);
+}
+
+#[test]
+fn current_failure_survives_accounting_changes_but_new_credentials_and_input_allow_retry() {
+    let (_temp, store, item, _) = setup();
+    let mut settings = store.ai_settings().unwrap();
+    settings.retry_count = 0;
+    store.save_ai_settings("no-retry", settings).unwrap();
+    store.begin_ai(request(&item, "fail")).unwrap();
+    assert_eq!(
+        send(
+            &store,
+            "fail",
+            HttpResponse {
+                status: 418,
+                body: b"fixture".to_vec()
+            }
+        )
+        .phase,
+        "failed"
+    );
+    let mut settings = store.ai_settings().unwrap();
+    settings.input_price_per_million = 999.0;
+    settings.retry_count = 4;
+    settings.timeout_seconds = 100;
+    settings.run_request_limit = 10;
+    store
+        .save_ai_settings("accounting", settings.clone())
+        .unwrap();
+    let (skipped, execute) = store.begin_ai(request(&item, "skip")).unwrap();
+    assert!(!execute);
+    assert_eq!(skipped.phase, "skipped-unchanged-failure");
+    let peer = std::path::Path::new(&item.path).with_file_name("same-facts.nfo");
+    fs::write(&peer, RAW).unwrap();
+    store
+        .submit(ScanRequest {
+            operation_id: "scan-peer".into(),
+            space: Space::Movie,
+            root_ids: vec![item.root_id.clone()],
+        })
+        .unwrap();
+    store.run_next(|| false, |_| {}).unwrap();
+    let other = store
+        .all_items()
+        .unwrap()
+        .into_iter()
+        .find(|v| v.path == peer.to_string_lossy())
+        .unwrap();
+    assert!(store.begin_ai(request(&other, "peer")).unwrap().1);
+    store
+        .end_ai(
+            "peer",
+            AppError::new("cancelled", "Test ends before transport"),
+        )
+        .unwrap();
+    settings.credential_account = "new-credential-reference".into();
+    store.save_ai_settings("new-credential", settings).unwrap();
+    assert!(store.begin_ai(request(&item, "new-account")).unwrap().1);
+    store
+        .end_ai(
+            "new-account",
+            AppError::new("cancelled", "Test ends before transport"),
+        )
+        .unwrap();
+    let mut settings = store.ai_settings().unwrap();
+    settings.config.model.push_str("-changed");
+    store.save_ai_settings("new-model", settings).unwrap();
+    assert!(store.begin_ai(request(&item, "new-input")).unwrap().1);
+}
+
+// Recreate the immediately preceding rewrite database using actual request
+// records. The archived source bytes below must survive the v8 migration.
+fn simulate_v7(root: &std::path::Path) {
+    let mut db = rusqlite::Connection::open(root.join("state.sqlite")).unwrap();
+    let tx = db.transaction().unwrap();
+    let rows: Vec<(String, String)> = tx
+        .prepare("SELECT id,result FROM operations WHERE json_extract(result,'$.kind')='ai'")
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .collect::<std::result::Result<_, _>>()
+        .unwrap();
+    let mut failures = std::collections::BTreeMap::new();
+    for (id, body) in rows {
+        let OperationResult::Ai(mut record) = serde_json::from_str(&body).unwrap() else {
+            unreachable!()
+        };
+        let new_failure = ai::identity::record_keys(&record).unwrap().failure;
+        let old = hash(
+            &serde_json::to_vec(&(
+                "ai-runtime-1",
+                ai::failure_fingerprint(&record.settings.config, &record.specs, &record.existing)
+                    .unwrap(),
+                &record.settings,
+            ))
+            .unwrap(),
+        );
+        failures.insert(new_failure, old.clone());
+        record.fingerprint = old;
+        tx.execute(
+            "UPDATE operations SET result=?2 WHERE id=?1",
+            rusqlite::params![
+                id,
+                serde_json::to_string(&OperationResult::Ai(record)).unwrap()
+            ],
+        )
+        .unwrap();
+    }
+    let caches: Vec<String> = tx
+        .prepare("SELECT body FROM ai_cache")
+        .unwrap()
+        .query_map([], |r| r.get(0))
+        .unwrap()
+        .collect::<std::result::Result<_, _>>()
+        .unwrap();
+    tx.execute("DELETE FROM ai_cache", []).unwrap();
+    for body in caches {
+        let mut record: job::Record = serde_json::from_str(&body).unwrap();
+        record.fingerprint = hash(
+            &serde_json::to_vec(&(
+                "ai-runtime-1",
+                ai::failure_fingerprint(&record.settings.config, &record.specs, &record.existing)
+                    .unwrap(),
+                &record.settings,
+            ))
+            .unwrap(),
+        );
+        tx.execute(
+            "INSERT INTO ai_cache VALUES(?1,?2)",
+            rusqlite::params![record.fingerprint, serde_json::to_string(&record).unwrap()],
+        )
+        .unwrap();
+    }
+    for (new, old) in failures {
+        tx.execute(
+            "UPDATE ai_failures SET fingerprint=?2 WHERE fingerprint=?1",
+            rusqlite::params![new, old],
+        )
+        .unwrap();
+    }
+    tx.execute_batch(
+        "DROP TABLE ai_cache_v1_archive; DROP TABLE ai_failures_v1_archive; PRAGMA user_version=7;",
+    )
+    .unwrap();
+    tx.commit().unwrap();
+}
+
+#[test]
+fn v7_rekey_preserves_original_cache_and_history_and_keeps_failure_protection() {
+    let (_temp, store, item, root) = setup();
+    store.begin_ai(request(&item, "good")).unwrap();
+    let good = send(&store, "good", response("stop", &good(), 10, 5));
+    let mut settings = store.ai_settings().unwrap();
+    settings.config.model = "failed-model".into();
+    settings.retry_count = 0;
+    store
+        .save_ai_settings("failure-settings", settings)
+        .unwrap();
+    store.begin_ai(request(&item, "failure")).unwrap();
+    send(
+        &store,
+        "failure",
+        HttpResponse {
+            status: 418,
+            body: b"fixture".to_vec(),
+        },
+    );
+    drop(store);
+    simulate_v7(&root);
+    let db = rusqlite::Connection::open(root.join("state.sqlite")).unwrap();
+    let history: String = db
+        .query_row("SELECT result FROM operations WHERE id='good'", [], |r| {
+            r.get(0)
+        })
+        .unwrap();
+    let cache: String = db
+        .query_row("SELECT body FROM ai_cache", [], |r| r.get(0))
+        .unwrap();
+    let mut older: job::Record = serde_json::from_str(&cache).unwrap();
+    older.settings.input_price_per_million = 1.0;
+    older.cost = 9.9;
+    older.finished_at = Some("2000-01-01T00:00:00.000Z".into());
+    older.fingerprint = hash(
+        &serde_json::to_vec(&(
+            "ai-runtime-1",
+            ai::failure_fingerprint(&older.settings.config, &older.specs, &older.existing).unwrap(),
+            &older.settings,
+        ))
+        .unwrap(),
+    );
+    db.execute(
+        "INSERT INTO ai_cache VALUES(?1,?2)",
+        rusqlite::params![older.fingerprint, serde_json::to_string(&older).unwrap()],
+    )
+    .unwrap();
+    let store = Store::open(&root.join("state.sqlite")).unwrap();
+    assert_eq!(
+        db.pragma_query_value(None, "user_version", |r| r.get::<_, u32>(0))
+            .unwrap(),
+        8
+    );
+    assert_eq!(
+        db.query_row("SELECT result FROM operations WHERE id='good'", [], |r| {
+            r.get::<_, String>(0)
+        })
+        .unwrap(),
+        history
+    );
+    assert_eq!(
+        db.query_row(
+            "SELECT COUNT(*) FROM ai_cache_v1_archive WHERE body=?1",
+            [&cache],
+            |r| r.get::<_, u32>(0)
+        )
+        .unwrap(),
+        1
+    );
+    assert_eq!(
+        db.query_row("SELECT COUNT(*) FROM ai_cache", [], |r| r.get::<_, u32>(0))
+            .unwrap(),
+        1
+    );
+    let mut settings = store.ai_settings().unwrap();
+    settings.input_price_per_million = 999.0;
+    store
+        .save_ai_settings("price-only", settings.clone())
+        .unwrap();
+    assert_eq!(
+        store
+            .begin_ai(request(&item, "still-failed"))
+            .unwrap()
+            .0
+            .phase,
+        "skipped-unchanged-failure"
+    );
+    settings.config.model = "model".into();
+    store.save_ai_settings("original-model", settings).unwrap();
+    let (hit, execute) = store.begin_ai(request(&item, "hit")).unwrap();
+    assert!(!execute);
+    assert!(hit.cached);
+    assert_eq!(hit.historical_cost, good.cost);
+    drop(store);
+    let store = Store::open(&root.join("state.sqlite")).unwrap();
+    assert!(
+        store
+            .begin_ai(request(&item, "second-open"))
+            .unwrap()
+            .0
+            .cached
+    );
+    assert_eq!(fs::read(&item.path).unwrap(), RAW.as_bytes());
+}
+
+#[test]
+fn failed_v7_rekey_is_atomic_and_can_retry_after_destination_failure_is_removed() {
+    let (_temp, store, item, root) = setup();
+    store.begin_ai(request(&item, "good")).unwrap();
+    send(&store, "good", response("stop", &good(), 10, 5));
+    drop(store);
+    simulate_v7(&root);
+    let db = rusqlite::Connection::open(root.join("state.sqlite")).unwrap();
+    let original: String = db
+        .query_row("SELECT body FROM ai_cache", [], |r| r.get(0))
+        .unwrap();
+    db.execute_batch("CREATE TRIGGER reject_rekey BEFORE INSERT ON ai_cache BEGIN SELECT RAISE(ABORT,'injected destination failure'); END;").unwrap();
+    assert_eq!(
+        Store::open(&root.join("state.sqlite")).err().unwrap().code,
+        "ai-identity-migration"
+    );
+    assert_eq!(
+        db.pragma_query_value(None, "user_version", |r| r.get::<_, u32>(0))
+            .unwrap(),
+        7
+    );
+    assert_eq!(
+        db.query_row("SELECT body FROM ai_cache", [], |r| r.get::<_, String>(0))
+            .unwrap(),
+        original
+    );
+    assert_eq!(
+        db.query_row(
+            "SELECT COUNT(*) FROM sqlite_master WHERE name='ai_cache_v1_archive'",
+            [],
+            |r| r.get::<_, u32>(0)
+        )
+        .unwrap(),
+        0
+    );
+    db.execute_batch("DROP TRIGGER reject_rekey;").unwrap();
+    let store = Store::open(&root.join("state.sqlite")).unwrap();
+    assert!(store.begin_ai(request(&item, "hit")).unwrap().0.cached);
+}
+
+#[test]
+fn unmappable_v7_failure_blocks_migration_without_erasing_the_original_gate() {
+    let (_temp, store, _item, root) = setup();
+    drop(store);
+    simulate_v7(&root);
+    let db = rusqlite::Connection::open(root.join("state.sqlite")).unwrap();
+    let error = serde_json::to_string(&AppError::new("auth", "Historical error fixture")).unwrap();
+    db.execute("INSERT INTO ai_failures VALUES('unmapped',?1)", [&error])
+        .unwrap();
+    assert_eq!(
+        Store::open(&root.join("state.sqlite")).err().unwrap().code,
+        "ai-identity-migration"
+    );
+    assert_eq!(
+        db.query_row(
+            "SELECT error FROM ai_failures WHERE fingerprint='unmapped'",
+            [],
+            |r| r.get::<_, String>(0)
+        )
+        .unwrap(),
+        error
+    );
+    assert_eq!(
+        db.pragma_query_value(None, "user_version", |r| r.get::<_, u32>(0))
+            .unwrap(),
+        7
+    );
+}
 fn send(store: &Store, id: &str, response: HttpResponse) -> job::Record {
     let current = store.ai_record(id).unwrap();
     let (body, _) = job::next(&current).unwrap().unwrap();

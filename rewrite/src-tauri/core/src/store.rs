@@ -1,3 +1,4 @@
+mod ai_identity;
 mod inspector;
 mod legacy_ai_cache;
 mod legacy_ai_failure;
@@ -49,7 +50,7 @@ impl Store {
         let connection = Connection::open(path)?;
         connection.busy_timeout(std::time::Duration::from_secs(5))?;
         let version: u32 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 7 {
+        if version > 8 {
             return Err(AppError::new(
                 "newer-database",
                 "Database belongs to a newer application; refusing downgrade",
@@ -115,6 +116,14 @@ impl Store {
             }
             tx.pragma_update(None, "user_version", 7)?;
             tx.commit()?;
+        }
+        if version < 8 {
+            ai_identity::migrate(&connection).map_err(|e| {
+                AppError::new(
+                    "ai-identity-migration",
+                    format!("{}: {}", e.code, e.message),
+                )
+            })?;
         }
         let store = Self {
             connection: Mutex::new(connection),
