@@ -7,7 +7,7 @@
     "linux-x64",
     "linux-arm64"
   ],
-  "status": "partial-migration-steps-5-to-8-real-platform-and-semantic-acceptance-pending",
+  "status": "partial-functional-migration-with-native-and-cloud-slices-final-parity-pending",
   "features": [
     {
       "id": "ITM-OWNERSHIP",
@@ -35,7 +35,7 @@
       "test_mapping_status": "executed-slice-only-full-group-pending",
       "new_implementation": "partial",
       "platforms": {
-        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "macos-arm64": "partial-native-workflow-evidence-full-acceptance-pending",
         "windows-x64": "unverified",
         "windows-arm64": "unverified",
         "linux-x64": "unverified",
@@ -52,6 +52,19 @@
           ],
           "scope": "Read authoritative root tag ownership; mutations pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/tags.rs",
+            "rewrite/src-tauri/core/src/tags/sidecar.rs",
+            "rewrite/src/TagEditor.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/tag_writes.rs"
+          ],
+          "scope": "Authoritative generated/manual/external tag writes, Inspector edits, sidecar recovery and undo; legacy sidecar ingestion remains pending",
+          "evidence": "docs/rewrite/evidence/native-tag-edit.json",
+          "recorded_at": "2026-09-11"
         }
       ],
       "supplemental_evidence": [
@@ -59,7 +72,8 @@
           "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
-      ]
+      ],
+      "current_scope": "Authoritative generated/manual/external tag writes, Inspector edits, sidecar recovery and undo; legacy sidecar ingestion remains pending"
     },
     {
       "id": "ITM-TRANSACTION",
@@ -89,7 +103,7 @@
       "test_mapping_status": "executed-slice-only-full-group-pending",
       "new_implementation": "partial",
       "platforms": {
-        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "macos-arm64": "partial-native-workflow-evidence-full-acceptance-pending",
         "windows-x64": "unverified",
         "windows-arm64": "unverified",
         "linux-x64": "unverified",
@@ -105,6 +119,20 @@
           ],
           "scope": "Default-disabled write-prototype, isolated tests only; platform race guarantees pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/transaction.rs",
+            "rewrite/src-tauri/core/src/store/write_operations.rs",
+            "rewrite/src/SpecsEditor.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/tag_writes.rs",
+            "rewrite/src-tauri/core/tests/write_flow.rs"
+          ],
+          "scope": "Reviewed Specs/tag candidates, source CAS, backup, Windows DACL/ADS restoration, mirror recovery and exact undo; final cross-platform desktop acceptance remains pending",
+          "evidence": "docs/rewrite/evidence/native-tag-edit.json",
+          "recorded_at": "2026-09-11"
         }
       ],
       "supplemental_evidence": [
@@ -112,7 +140,8 @@
           "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
-      ]
+      ],
+      "current_scope": "Reviewed Specs/tag candidates, source CAS, backup, Windows DACL/ADS restoration, mirror recovery and exact undo; final cross-platform desktop acceptance remains pending"
     },
     {
       "id": "ITM-AI",
@@ -218,7 +247,7 @@
       "test_mapping_status": "executed-slice-only-full-group-pending",
       "new_implementation": "partial",
       "platforms": {
-        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "macos-arm64": "partial-native-workflow-evidence-full-acceptance-pending",
         "windows-x64": "unverified",
         "windows-arm64": "unverified",
         "linux-x64": "unverified",
@@ -237,6 +266,20 @@
           ],
           "scope": "Pure AI policies and local rules; actual requests, accounting persistence and orchestration pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/ai/job.rs",
+            "rewrite/src-tauri/core/src/store/ai_operations.rs",
+            "rewrite/src-tauri/src/ai_jobs.rs",
+            "rewrite/src/AiGenerator.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/ai_flow.rs"
+          ],
+          "scope": "Native provider requests, credentials, retry classification, usage, cache, explicit failure retry, rule fallback and review; legacy cache/history adapters remain pending",
+          "evidence": "docs/rewrite/evidence/native-ai-generation.json",
+          "recorded_at": "2026-09-11"
         }
       ],
       "supplemental_evidence": [
@@ -244,7 +287,8 @@
           "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
-      ]
+      ],
+      "current_scope": "Native provider requests, credentials, retry classification, usage, cache, explicit failure retry, rule fallback and review; legacy cache/history adapters remain pending"
     },
     {
       "id": "ITM-PREVIEW",
@@ -284,14 +328,31 @@
         "macos/tests/preview_write_cache_contract.py"
       ],
       "test_mapping_status": "candidate-references-not-proof",
-      "new_implementation": "not-implemented",
+      "new_implementation": "partial",
       "platforms": {
-        "macos-arm64": "not-implemented",
+        "macos-arm64": "partial-native-workflow-evidence-full-acceptance-pending",
         "windows-x64": "not-implemented",
         "windows-arm64": "not-implemented",
         "linux-x64": "not-implemented",
         "linux-arm64": "not-implemented"
-      }
+      },
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/src/batches.rs",
+            "rewrite/src/BatchPanel.vue",
+            "rewrite/src/AiGenerator.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/batches.rs",
+            "rewrite/src-tauri/core/tests/ai_flow.rs"
+          ],
+          "scope": "Single-item and selected/full-root reviewed scope; persisted candidates approved without another AI request; complete five-platform UI acceptance pending",
+          "evidence": "docs/rewrite/evidence/native-batch-generation.json",
+          "recorded_at": "2026-09-11"
+        }
+      ],
+      "current_scope": "Single-item and selected/full-root reviewed scope; persisted candidates approved without another AI request; complete five-platform UI acceptance pending"
     },
     {
       "id": "ITM-SPECS",
@@ -348,7 +409,7 @@
       "test_mapping_status": "executed-slice-only-full-group-pending",
       "new_implementation": "partial",
       "platforms": {
-        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "macos-arm64": "partial-native-workflow-evidence-full-acceptance-pending",
         "windows-x64": "unverified",
         "windows-arm64": "unverified",
         "linux-x64": "unverified",
@@ -365,6 +426,20 @@
           ],
           "scope": "Pure parsing/candidate validation; real acquisition and write flow pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/specs/source.rs",
+            "rewrite/src-tauri/src/acquisition.rs",
+            "rewrite/src-tauri/src/imdb_webview.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/source_specs.rs",
+            "rewrite/src-tauri/core/tests/acquisition.rs"
+          ],
+          "scope": "Real IMDb HTTP/system WebView acquisition, cache, confirmed-empty state, manual facts preserved during refresh, reviewed write/undo; auto scheduler and old cache adapter pending",
+          "evidence": "docs/rewrite/evidence/native-imdb-refresh.json",
+          "recorded_at": "2026-09-11"
         }
       ],
       "supplemental_evidence": [
@@ -372,7 +447,8 @@
           "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
-      ]
+      ],
+      "current_scope": "Real IMDb HTTP/system WebView acquisition, cache, confirmed-empty state, manual facts preserved during refresh, reviewed write/undo; auto scheduler and old cache adapter pending"
     },
     {
       "id": "ITM-INSPECTOR",
@@ -397,7 +473,7 @@
       "test_mapping_status": "executed-slice-only-full-group-pending",
       "new_implementation": "partial",
       "platforms": {
-        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "macos-arm64": "partial-native-workflow-evidence-full-acceptance-pending",
         "windows-x64": "unverified",
         "windows-arm64": "unverified",
         "linux-x64": "unverified",
@@ -414,6 +490,19 @@
           ],
           "scope": "Read inspector and reveal; edits pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "sources": [
+            "rewrite/src/SpecsEditor.vue",
+            "rewrite/src/TagEditor.vue",
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/tag_writes.rs"
+          ],
+          "scope": "Native Inspector write and ownership entrypoints with affected-file navigation and undo; all UI languages/edge states pending",
+          "evidence": "docs/rewrite/evidence/native-tag-edit.json",
+          "recorded_at": "2026-09-11"
         }
       ],
       "supplemental_evidence": [
@@ -421,7 +510,8 @@
           "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
-      ]
+      ],
+      "current_scope": "Native Inspector write and ownership entrypoints with affected-file navigation and undo; all UI languages/edge states pending"
     },
     {
       "id": "ITM-PROTOCOL",
@@ -598,14 +688,32 @@
       ],
       "baseline_test_candidates": [],
       "test_mapping_status": "candidate-references-not-proof",
-      "new_implementation": "not-implemented",
+      "new_implementation": "partial",
       "platforms": {
         "macos-arm64": "not-implemented",
         "windows-x64": "not-implemented",
         "windows-arm64": "not-implemented",
         "linux-x64": "not-implemented",
         "linux-arm64": "not-implemented"
-      }
+      },
+      "current_scope": "Snapshot import plus reviewed legacy AI profile adaptation and preserved native Keychain reference; other cache/history/backup/startup adapters and old component retirement remain pending",
+      "implementation_slices": [
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/migration/ai_profile.rs",
+            "rewrite/src-tauri/core/src/store.rs",
+            "rewrite/src-tauri/src/credentials.rs",
+            "rewrite/src/MigrationPanel.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/migration_ai.rs",
+            "rewrite/src-tauri/core/tests/migration.rs"
+          ],
+          "scope": "Legacy AI profile mapping, original custom prompt bytes, destination CAS, transaction rollback, credential boundary; native fixture import verified without reading actual legacy secrets",
+          "evidence": "docs/rewrite/evidence/native-ai-migration.json",
+          "recorded_at": "2026-09-11"
+        }
+      ]
     },
     {
       "id": "ITM-LOCALE",
@@ -850,7 +958,7 @@
       "test_mapping_status": "executed-slice-only-full-group-pending",
       "new_implementation": "partial",
       "platforms": {
-        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "macos-arm64": "partial-native-workflow-evidence-full-acceptance-pending",
         "windows-x64": "unverified",
         "windows-arm64": "unverified",
         "linux-x64": "unverified",
@@ -867,8 +975,22 @@
           ],
           "scope": "Durable scan tasks, operation IDs, progress, pause, resume and cancel; legacy jobs remain pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/batch.rs",
+            "rewrite/src-tauri/core/src/store/batches.rs",
+            "rewrite/src-tauri/src/desktop.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/batches.rs"
+          ],
+          "scope": "Durable per-file checkpoint, pause/cancel after current item, idempotent resume, explicit failure retry, whole-batch AI budget and schema 7 migration; automatic scheduling and old task import pending",
+          "evidence": "docs/rewrite/evidence/native-batch-generation.json",
+          "recorded_at": "2026-09-11"
         }
-      ]
+      ],
+      "current_scope": "Durable per-file checkpoint, pause/cancel after current item, idempotent resume, explicit failure retry, whole-batch AI budget and schema 7 migration; automatic scheduling and old task import pending"
     },
     {
       "id": "ITM-SCOPE",
@@ -934,7 +1056,7 @@
       "test_mapping_status": "executed-slice-only-full-group-pending",
       "new_implementation": "partial",
       "platforms": {
-        "macos-arm64": "partial-local-evidence-full-acceptance-pending",
+        "macos-arm64": "partial-native-workflow-evidence-full-acceptance-pending",
         "windows-x64": "unverified",
         "windows-arm64": "unverified",
         "linux-x64": "unverified",
@@ -951,6 +1073,19 @@
           ],
           "scope": "Explicit roots and Movie/TV scope; full legacy scope UI pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "sources": [
+            "rewrite/src/BatchPanel.vue",
+            "rewrite/src-tauri/core/src/store/batches.rs",
+            "rewrite/src-tauri/core/src/tv.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/batches.rs"
+          ],
+          "scope": "Movie/TV-separated selected items or explicitly selected entire roots with scope confirmation; TV season selections feed the same ID scope",
+          "evidence": "docs/rewrite/evidence/native-batch-generation.json",
+          "recorded_at": "2026-09-11"
         }
       ],
       "supplemental_evidence": [
@@ -958,7 +1093,8 @@
           "path": "docs/rewrite/evidence/simulated-nfo-acceptance.json",
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
-      ]
+      ],
+      "current_scope": "Movie/TV-separated selected items or explicitly selected entire roots with scope confirmation; TV season selections feed the same ID scope"
     },
     {
       "id": "ITM-CATALOG",

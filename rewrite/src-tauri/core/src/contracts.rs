@@ -206,6 +206,7 @@ pub fn typescript() -> String {
         MediaItem::decl(),
         CatalogQuery::decl(),
         CatalogPage::decl(),
+        crate::migration::AdapterPlan::decl(),
         crate::migration::LegacyFile::decl(),
         crate::migration::LegacyRoot::decl(),
         crate::migration::MigrationPlan::decl(),

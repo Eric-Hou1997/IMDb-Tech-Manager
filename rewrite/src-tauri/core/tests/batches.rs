@@ -269,7 +269,10 @@ fn crash_after_write_replays_receipt_without_rewriting_or_duplicating_backup() {
 #[test]
 fn ai_batch_locks_language_and_settings_and_counts_budget_across_files() {
     let (_tmp, store, items) = setup();
-    let mut settings = ai::job::Settings::default();
+    let mut settings = ai::job::Settings {
+        enabled: true,
+        ..Default::default()
+    };
     settings.config.model = "original-model".into();
     settings.config.base_url = "https://provider.example/v1".into();
     settings.run_request_limit = 1;

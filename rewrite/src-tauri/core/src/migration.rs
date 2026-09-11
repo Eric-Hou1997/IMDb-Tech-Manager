@@ -9,6 +9,16 @@ use std::{
     path::{Path, PathBuf},
 };
 use ts_rs::TS;
+pub mod ai_profile;
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct AdapterPlan {
+    pub source: String,
+    pub target: String,
+    pub before_hash: Option<String>,
+    pub value: Value,
+    pub warnings: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct LegacyFile {
     pub relative: String,
@@ -25,6 +35,8 @@ pub struct LegacyRoot {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct MigrationPlan {
+    #[serde(default)]
+    pub adapters: Vec<AdapterPlan>,
     pub id: String,
     pub source: String,
     pub source_kind: String,
@@ -37,6 +49,8 @@ pub struct MigrationPlan {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct MigrationReceipt {
+    #[serde(default)]
+    pub applied_adapters: Vec<String>,
     pub id: String,
     pub source: String,
     pub fingerprint: String,
@@ -179,7 +193,14 @@ fn malformed_secret_key(bytes: &[u8]) -> bool {
 fn secret_field(value: &Value) -> bool {
     match value {
         Value::Object(map) => map.iter().any(|(key, v)| {
-            secret_key(key) && !v.is_null() && v.as_str() != Some("") || secret_field(v)
+            secret_key(key) && !v.is_null() && v.as_str() != Some("")
+                || secret_field(v)
+                || key == "extra_body"
+                    && v.as_str().is_some_and(|text| {
+                        serde_json::from_str::<Value>(text)
+                            .map(|extra| secret_field(&extra))
+                            .unwrap_or_else(|_| malformed_secret_key(text.as_bytes()))
+                    })
         }),
         Value::Array(values) => values.iter().any(secret_field),
         _ => false,
@@ -296,6 +317,7 @@ pub fn prepare(
         current.revision,
     ))?);
     Ok(MigrationPlan {
+        adapters: vec![],
         id: id.into(),
         source: source.to_string_lossy().into(),
         source_kind: kind.into(),

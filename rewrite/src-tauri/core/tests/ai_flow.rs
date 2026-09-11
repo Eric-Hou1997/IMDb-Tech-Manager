@@ -38,7 +38,10 @@ fn setup() -> (tempfile::TempDir, Store, MediaItem, PathBuf) {
         })
         .unwrap();
     store.run_next(|| false, |_| {}).unwrap();
-    let mut settings = Settings::default();
+    let mut settings = Settings {
+        enabled: true,
+        ..Default::default()
+    };
     settings.config.base_url = "https://provider.example/v1".into();
     settings.config.model = "model".into();
     settings.config.temperature = 0.7;
@@ -367,4 +370,32 @@ fn credential_and_configuration_commit_failure_rolls_back_only_the_new_key() {
         vault.get(&saved.credential_account).unwrap().as_deref(),
         Some("non-secret-fixture")
     );
+}
+
+#[test]
+fn disabled_ai_blocks_new_requests_and_batches_but_keeps_prior_history_queryable() {
+    let (_temp, store, item, _) = setup();
+    store.begin_ai(request(&item, "previous")).unwrap();
+    store
+        .end_ai("previous", AppError::new("cancelled", "test finished"))
+        .unwrap();
+    let mut settings = store.ai_settings().unwrap();
+    settings.enabled = false;
+    store.save_ai_settings("disable", settings).unwrap();
+    assert_eq!(
+        store.begin_ai(request(&item, "disabled")).unwrap_err().code,
+        "ai-disabled"
+    );
+    assert_eq!(store.ai_record("previous").unwrap().phase, "cancelled");
+    let scope = batch::BatchRequest {
+        operation_id: "disabled-batch".into(),
+        space: Space::Movie,
+        item_ids: vec![item.id],
+        root_ids: vec![],
+        retry_failed: false,
+        engine: batch::BatchEngine::Ai,
+        mode: batch::BatchMode::Generate,
+    };
+    assert_eq!(store.plan_batch(scope).unwrap_err().code, "ai-disabled");
+    assert!(store.ai_record("disabled").is_err());
 }

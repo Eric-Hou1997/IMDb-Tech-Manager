@@ -1,4 +1,4 @@
-use crate::{credentials::NativeCredentials, desktop::Desktop};
+use crate::{credentials::AiCredentials, desktop::Desktop};
 use product_core::{
     ai::{
         self,
@@ -11,8 +11,8 @@ use product_core::{
 };
 use std::time::Duration;
 use tauri::{Emitter, Manager};
-fn credentials(app: &tauri::AppHandle) -> NativeCredentials {
-    NativeCredentials::new(app.config().identifier.clone())
+fn credentials(app: &tauri::AppHandle) -> AiCredentials {
+    AiCredentials::new(app.config().identifier.clone())
 }
 #[tauri::command]
 pub async fn ai_settings(app: tauri::AppHandle) -> Result<(Settings, bool)> {

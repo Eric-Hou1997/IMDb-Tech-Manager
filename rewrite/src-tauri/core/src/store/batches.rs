@@ -60,6 +60,12 @@ impl Store {
         let config = self.configuration()?;
         let settings = self.ai_settings()?;
         if request.engine == BatchEngine::Ai {
+            if !settings.enabled {
+                return Err(AppError::new(
+                    "ai-disabled",
+                    "Enable AI in settings before planning generation",
+                ));
+            }
             settings.validate()?;
         }
         let mut roots = vec![];

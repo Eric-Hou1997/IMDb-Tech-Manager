@@ -147,7 +147,50 @@ impl Store {
                 )),
             };
         }
-        let plan = crate::migration::prepare(id, &source, kind, &self.configuration()?)?;
+        let mut plan = crate::migration::prepare(id, &source, kind, &self.configuration()?)?;
+        if kind.starts_with("itm-") {
+            for file in &plan.files {
+                if file.category != "configuration" {
+                    continue;
+                }
+                let data = crate::migration::read_snapshot(&source, file)?;
+                let Ok(value) = serde_json::from_slice::<serde_json::Value>(&data) else {
+                    continue;
+                };
+                match crate::migration::ai_profile::adapt(&value) {
+                    Ok(Some(settings)) => {
+                        if !plan.adapters.is_empty() {
+                            return Err(AppError::new("migration-ambiguous-ai","Multiple AI profiles found; select the exact old engine data folder"));
+                        }
+                        let before: Option<String> = self
+                            .db()?
+                            .query_row(
+                                "SELECT body FROM preferences WHERE key='ai-settings'",
+                                [],
+                                |r| r.get(0),
+                            )
+                            .optional()?;
+                        let mut warnings=vec!["The existing macOS Keychain entry is retained and accessed through the native credential adapter; availability is checked when opening AI settings".into()];
+                        if settings.legacy_cleanup_mode == "inferred" {
+                            warnings.push("Historical inferred cleanup remains recorded; automated writes still require authoritative ownership and fail closed".into());
+                        }
+                        plan.adapters.push(crate::migration::AdapterPlan {
+                            source: file.relative.clone(),
+                            target: "ai-settings".into(),
+                            before_hash: before.map(|s| hash(s.as_bytes())),
+                            value: serde_json::to_value(settings)?,
+                            warnings,
+                        });
+                    }
+                    Ok(None) => {}
+                    Err(e) => plan.warnings.push(format!(
+                        "AI profile retained but requires configuration review: {} ({})",
+                        file.relative, e.code
+                    )),
+                }
+            }
+        }
+        plan.fingerprint = hash(&serde_json::to_vec(&(&plan.fingerprint, &plan.adapters))?);
         let db = self.db()?;
         self.writable()?;
         if db.query_row(
@@ -224,10 +267,38 @@ impl Store {
                 .checked_add(file.bytes)
                 .ok_or_else(|| AppError::new("migration-size", "Import byte count overflow"))?;
         }
+        let mut applied_adapters = vec![];
+        for adapter in &plan.adapters {
+            if adapter.target != "ai-settings" {
+                return Err(AppError::new(
+                    "migration-adapter",
+                    "Unsupported configuration adapter",
+                ));
+            }
+            let previous: Option<String> = tx
+                .query_row(
+                    "SELECT body FROM preferences WHERE key=?1",
+                    [&adapter.target],
+                    |r| r.get(0),
+                )
+                .optional()?;
+            if previous.map(|s| hash(s.as_bytes())) != adapter.before_hash {
+                return Err(AppError::new(
+                    "migration-configuration-conflict",
+                    "AI settings changed after the migration preview",
+                ));
+            }
+            let settings: crate::ai::job::Settings = serde_json::from_value(adapter.value.clone())?;
+            settings.validate()?;
+            tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&settings)?])?;
+            tx.execute("DELETE FROM preferences WHERE key='ai-paused'", [])?;
+            applied_adapters.push(adapter.target.clone());
+        }
         let preference_key = format!("legacy:{}", plan.source_kind);
         tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![preference_key,serde_json::to_string(&crate::migration::normalized_preferences(&preferences))?])?;
         tx.execute("INSERT INTO configuration(id,body) VALUES(1,?1) ON CONFLICT(id) DO UPDATE SET body=excluded.body",[serde_json::to_string(&configuration)?])?;
         let receipt = crate::migration::MigrationReceipt {
+            applied_adapters,
             id: id.into(),
             source: plan.source,
             fingerprint: plan.fingerprint,

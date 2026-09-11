@@ -177,6 +177,12 @@ impl Store {
         } else {
             self.ai_settings()?
         };
+        if !settings.enabled {
+            return Err(AppError::new(
+                "ai-disabled",
+                "Enable AI in settings before starting generation",
+            ));
+        }
         settings.validate()?;
         let item = self.item(&request.item_id)?;
         let configuration = self.configuration()?;

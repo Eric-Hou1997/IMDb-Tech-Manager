@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-11",
+  "platform": "macOS ARM64",
+  "source_base": "127416d",
+  "operation_id": "89bfb2f6-5c69-4d06-9d55-6499597a0baa",
+  "source_sha256": "28a4e1d6516ed87f488dc4882b357d0135d74a851073b480d3826873e9730e6c",
+  "native_scope_preview_without_applying_profile": true,
+  "native_confirmation_and_applied_feedback": true,
+  "custom_prompt_bytes_preserved": true,
+  "protocol_model_retry_budget_preserved": true,
+  "source_and_archived_bytes_identical": true,
+  "ai_remains_disabled": true,
+  "legacy_keychain_secret_accessed": false,
+  "scope": "Isolated credential-free legacy config fixture; actual legacy Keychain access permission is not claimed",
+  "test_profile_removed_after_exit": true,
+  "application_exited": true
+}
