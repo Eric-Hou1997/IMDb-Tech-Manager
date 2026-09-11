@@ -215,13 +215,19 @@ impl Writer {
             );
         }
         #[cfg(windows)]
-        crate::windows_replace::replace(
-            &path,
-            tmp.path(),
-            receipt.native_backup.as_ref().expect("Windows backup"),
-            expected,
-        )
-        .map_err(io)?;
+        {
+            // ReplaceFileW opens the replacement without sharing. Close our file
+            // handle first, while retaining ownership of the temporary pathname
+            // so a failed replacement still cleans up the candidate.
+            let candidate_path = tmp.into_temp_path();
+            crate::windows_replace::replace(
+                &path,
+                &candidate_path,
+                receipt.native_backup.as_ref().expect("Windows backup"),
+                expected,
+            )
+            .map_err(io)?;
+        }
         #[cfg(not(windows))]
         tmp.persist(&path).map_err(|e| io(e.error))?;
         sync_directory(parent)?;

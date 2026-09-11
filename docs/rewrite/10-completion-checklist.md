@@ -94,3 +94,5 @@ Movie/TV 独立的搜索、筛选、排序、根目录范围、选择、展开�
 - macOS 原生窗口实际操作了 Casino Royale 原始样本的隔离副本：预览不改文件，确认后 Camera 进入文件及 Inspector，Technical Specs 外字节和权限不变；从历史预览并确认撤销后整文件 SHA256 与原始样本完全相同。原始样本未修改。
 - 该实现目前覆盖手动规格编辑与撤销，不代表 IMDb 获取、标签写入、AI、批处理、sidecar 同步及第 9–12 步全部完成。
 - 上一提交 3afbefa 的五个构建/安装运行目标全部通过（34578464559），包括两个 Linux GIO 特殊路径登录回归。
+
+Windows 写入回归发现候选 NamedTempFile 仍持有打开句柄，导致 ReplaceFileW 以无共享方式打开候选时返回 sharing violation（运行 34582170365，两个 Windows 目标）。已将候选转为只拥有清理路径的 TempPath，先关闭句柄再替换；原有真实写入、撤销、崩溃恢复及 ACL/附加流测试继续作为回归，等待新云端结果。本地 16 项写入测试通过。
