@@ -46,7 +46,7 @@ impl Store {
         let connection = Connection::open(path)?;
         connection.busy_timeout(std::time::Duration::from_secs(5))?;
         let version: u32 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 3 {
+        if version > 4 {
             return Err(AppError::new(
                 "newer-database",
                 "Database belongs to a newer application; refusing downgrade",
@@ -63,7 +63,9 @@ impl Store {
           CREATE TABLE IF NOT EXISTS legacy_artifacts(import_id TEXT NOT NULL, path TEXT NOT NULL, category TEXT NOT NULL, sha256 TEXT NOT NULL, body BLOB NOT NULL, PRIMARY KEY(import_id,path));
           CREATE TABLE IF NOT EXISTS preferences(key TEXT PRIMARY KEY, body TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS write_candidates(id TEXT PRIMARY KEY,root_id TEXT NOT NULL,body BLOB NOT NULL);
-          PRAGMA user_version=3; COMMIT;")?;
+          CREATE TABLE IF NOT EXISTS imdb_cache(imdb TEXT PRIMARY KEY,parser_version INTEGER NOT NULL,body TEXT NOT NULL);
+          UPDATE operations SET result=json_set(result,'$.result.phase','interrupted') WHERE json_extract(result,'$.kind')='fetch' AND json_extract(result,'$.result.phase')='requested';
+          PRAGMA user_version=4; COMMIT;")?;
         let store = Self {
             connection: Mutex::new(connection),
             worker: Mutex::new(()),
@@ -1144,4 +1146,5 @@ impl Store {
     }
 }
 
+mod acquisition;
 mod write_operations;

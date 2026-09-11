@@ -1,6 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod acquisition;
 mod credentials;
 mod desktop;
+mod imdb_webview;
 mod lifecycle;
 mod migration;
 mod update;
@@ -159,6 +161,11 @@ fn main() {
         })
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
+            acquisition::fetch_specs,
+            acquisition::fetch_record,
+            acquisition::fetch_history,
+            acquisition::cancel_fetch,
+            acquisition::preview_source,
             writing::preview_specs,
             writing::apply_specs,
             writing::preview_undo,

@@ -170,6 +170,7 @@ pub struct CatalogPage {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(tag = "kind", content = "result", rename_all = "kebab-case")]
 pub enum OperationResult {
+    Fetch(crate::acquisition::FetchRecord),
     Write(crate::writing::WritePreview),
     Lifecycle(crate::lifecycle::SettingsOperation),
     Ui(crate::ui::UiReceipt),
@@ -215,6 +216,10 @@ pub fn typescript() -> String {
         crate::lifecycle::SettingsOperation::decl(),
         crate::writing::SpecsEdit::decl(),
         crate::writing::WritePreview::decl(),
+        crate::specs::SourceSpecs::decl(),
+        crate::acquisition::FetchRequest::decl(),
+        crate::acquisition::FetchAttempt::decl(),
+        crate::acquisition::FetchRecord::decl(),
         OperationResult::decl(),
     ];
     format!(

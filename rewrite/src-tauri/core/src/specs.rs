@@ -1,5 +1,7 @@
 use crate::{AppError, Result, Specs};
 use serde_json::Value;
+mod source;
+pub use source::{imdb_url, parse_page, source_candidate, SourceSpecs};
 pub const SECTIONS: [&str; 10] = [
     "Runtime",
     "Sound mix",
@@ -51,6 +53,52 @@ pub fn parse_next_data(value: &Value) -> Result<Specs> {
             "No structured IMDb technical title found",
         )
     })?;
+    for field in ["runtimes", "technicalSpecifications"] {
+        if !title[field].is_null() && !title[field].is_object() {
+            return Err(AppError::new(
+                "imdb-schema-invalid",
+                format!("Invalid {field} object"),
+            ));
+        }
+    }
+    if !title["runtimes"]["edges"].is_null() && !title["runtimes"]["edges"].is_array() {
+        return Err(AppError::new(
+            "imdb-schema-invalid",
+            "Invalid runtime edges",
+        ));
+    }
+    for (group, key) in [
+        ("soundMixes", "text"),
+        ("colorations", "text"),
+        ("aspectRatios", "aspectRatio"),
+        ("cameras", "camera"),
+        ("laboratories", "laboratory"),
+        ("negativeFormats", "negativeFormat"),
+        ("processes", "process"),
+        ("printedFormats", "printedFormat"),
+        ("filmLengths", "displayableProperty"),
+    ] {
+        let section = &title["technicalSpecifications"][group];
+        if section.is_null() {
+            continue;
+        }
+        let items = section["items"].as_array().ok_or_else(|| {
+            AppError::new("imdb-schema-invalid", format!("Invalid {group} items"))
+        })?;
+        for item in items {
+            let valid = if key == "displayableProperty" {
+                item[key]["value"]["plainText"].is_string()
+            } else {
+                item[key].is_string()
+            };
+            if !valid || (!item["attributes"].is_null() && !item["attributes"].is_array()) {
+                return Err(AppError::new(
+                    "imdb-schema-invalid",
+                    format!("Invalid {group} value"),
+                ));
+            }
+        }
+    }
     let mut out: Specs = SECTIONS.into_iter().map(|s| (s.into(), vec![])).collect();
     for edge in title["runtimes"]["edges"].as_array().into_iter().flatten() {
         let node = &edge["node"];
@@ -165,11 +213,18 @@ pub fn validate_specs_only(before: &[u8], after: &[u8]) -> Result<()> {
             .children()
             .filter(|n| n.has_tag_name("technicalspecs"))
             .collect();
-        if nodes.len() != 1 || nodes[0].attribute("source") != Some("IMDb") {
+        if nodes.len() > 1
+            || nodes
+                .first()
+                .is_some_and(|n| n.attribute("source") != Some("IMDb"))
+        {
             return Err(AppError::new(
                 "unsafe-skip",
                 "Ambiguous Technical Specs ownership",
             ));
+        }
+        if nodes.is_empty() {
+            return Ok((raw.to_vec(), Vec::new()));
         }
         let node = nodes[0];
         let range = node.range();
@@ -303,6 +358,9 @@ pub fn manual_candidate(raw: &[u8], specs: &Specs) -> Result<Vec<u8>> {
     let mut source_sections = String::new();
     let mut has_snapshot = false;
     for child in tech.children() {
+        if child.is_text() && child.text().is_some_and(|text| text.trim().is_empty()) {
+            continue;
+        }
         if child.has_tag_name("section") {
             source_sections.push_str(&source[child.range()]);
             if !SECTIONS.contains(&child.attribute("name").unwrap_or("")) {

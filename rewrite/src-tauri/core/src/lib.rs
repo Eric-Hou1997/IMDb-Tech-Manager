@@ -1,3 +1,4 @@
+pub mod acquisition;
 pub mod ai;
 pub mod contracts;
 pub mod install;

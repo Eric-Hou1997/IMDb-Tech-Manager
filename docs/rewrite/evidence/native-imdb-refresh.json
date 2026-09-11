@@ -1,0 +1,19 @@
+{
+  "source": "real-imdb-system-webview",
+  "before_sha256": "7b4ed64e8b34a35649b1e6e0789fe807a556c94d30cf1659d73dd1f99a028b60",
+  "after_sha256": "2091aea2b3b95f81661aa9c3b623fa0f004903c99790768ed0ef8b02ee2d7100",
+  "outside_specs_identical": true,
+  "mode_preserved": true,
+  "valid_xml": true,
+  "original_fixture_unchanged": true,
+  "undo_exact_bytes": true,
+  "undo_mode_preserved": true,
+  "real_native_ui": true,
+  "ordinary_http_status": "imdb-waf-challenge",
+  "fallback": "system-webview",
+  "fallback_result": "completed",
+  "cached_repeat": "completed without another network attempt",
+  "cancelled_refresh": "cancelled; HTTP WAF and cancelled system-webview attempts retained",
+  "write_operation_id": "1fd0bea1-18b3-43d9-90ba-badba9b32cb7",
+  "scope": "macOS ARM64; isolated copy of Casino Royale fixture; no other platform implied"
+}

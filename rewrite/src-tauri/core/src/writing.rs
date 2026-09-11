@@ -24,4 +24,8 @@ pub struct WritePreview {
     pub phase: String,
     pub undo_of: Option<String>,
     pub error: Option<crate::AppError>,
+    #[serde(default)]
+    pub before_xml: String,
+    #[serde(default)]
+    pub after_xml: String,
 }

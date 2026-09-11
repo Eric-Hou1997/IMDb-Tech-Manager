@@ -1,4 +1,16 @@
 use super::*;
+fn technical_xml(raw: &[u8]) -> Result<String> {
+    let text = std::str::from_utf8(raw)
+        .map_err(|e| AppError::new("invalid-encoding", e))?
+        .trim_start_matches('\u{feff}');
+    let doc = roxmltree::Document::parse(text).map_err(|e| AppError::new("invalid-xml", e))?;
+    Ok(doc
+        .root_element()
+        .children()
+        .find(|n| n.has_tag_name("technicalspecs"))
+        .map(|n| text[n.range()].into())
+        .unwrap_or_default())
+}
 
 impl Store {
     pub fn preview_specs(
@@ -41,6 +53,46 @@ impl Store {
             None,
         )
     }
+    pub fn preview_source(&self, id: &str, fetch_id: &str) -> Result<crate::writing::WritePreview> {
+        valid_id(id)?;
+        let fingerprint = hash(&serde_json::to_vec(&("imdb-write", fetch_id))?);
+        if let Some(body) = self.operation(id, &fingerprint)? {
+            return match serde_json::from_str(&body)? {
+                OperationResult::Write(value) => Ok(value),
+                _ => Err(AppError::new(
+                    "operation-conflict",
+                    "Operation belongs to another action",
+                )),
+            };
+        }
+        let fetched = self.fetch_record(fetch_id)?;
+        if fetched.phase != "completed" {
+            return Err(AppError::new(
+                "fetch-incomplete",
+                "Fetch must complete before previewing a write",
+            ));
+        }
+        let source = fetched
+            .source
+            .ok_or_else(|| AppError::new("fetch-incomplete", "Fetched source data is missing"))?;
+        let item = self.item(&fetched.request.item_id)?;
+        let config = self.configuration()?;
+        let root = config
+            .roots
+            .iter()
+            .find(|r| r.id == item.root_id)
+            .ok_or_else(|| AppError::new("invalid-root", "Root is no longer configured"))?;
+        let (_, raw) = library::read_bytes(root, Path::new(&item.path))?;
+        if hash(&raw) != fetched.request.expected_hash {
+            return Err(AppError::new(
+                "source-conflict",
+                "NFO changed during acquisition; reload before creating another preview",
+            )
+            .at(&item.path));
+        }
+        let candidate = crate::specs::source_candidate(&raw, &source)?;
+        self.save_write_preview(id, &fingerprint, &item, root, (&raw, &candidate), None)
+    }
     fn save_write_preview(
         &self,
         id: &str,
@@ -74,6 +126,8 @@ impl Store {
             .into(),
             undo_of,
             error: None,
+            before_xml: technical_xml(original)?,
+            after_xml: technical_xml(candidate)?,
         };
         let mut db = self.db()?;
         self.writable()?;
