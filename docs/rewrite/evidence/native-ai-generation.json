@@ -1,0 +1,45 @@
+{
+  "ai_id": "59d049d6-4669-4ae7-b487-cc97687327bd",
+  "attempts": 2,
+  "usage": {
+    "input": 20,
+    "output": 40,
+    "total": 60
+  },
+  "cost": 0.0002,
+  "input_limits": [
+    2000,
+    10000
+  ],
+  "candidate_without_write": true,
+  "source_hash": "7b4ed64e8b34a35649b1e6e0789fe807a556c94d30cf1659d73dd1f99a028b60",
+  "write_operation": "0df7465a-b17f-4855-8f10-6b7fb86e0726",
+  "after_hash": "447d614cb75858e10c48e1a586fb388cddb6340365a6863380bb062f1e2dda1a",
+  "owned_count": 3,
+  "external_tags_preserved": true,
+  "facts_preserved": true,
+  "sidecar_matches_embedded_ids": true,
+  "undo_restored_hash": "7b4ed64e8b34a35649b1e6e0789fe807a556c94d30cf1659d73dd1f99a028b60",
+  "cache_hit_zero_attempts": true,
+  "cache_historical_usage": {
+    "input": 20,
+    "output": 40,
+    "total": 60
+  },
+  "cache_historical_cost": 0.0002,
+  "cancel_id": "560bbde6-8e3e-42cb-b28f-2940032d9b13",
+  "cancelled_usage_unknown_visible": true,
+  "transport_attempts": 4,
+  "provider": "isolated loopback fixture, no paid provider requests",
+  "platform": "macOS ARM64",
+  "date": "2026-09-11",
+  "source_base": "f710e9a",
+  "rules_write_operation": "02c5b64c-417d-40be-b9e5-bcd7243cf7d6",
+  "rules_undo_restored": true,
+  "restart_preserves_cancelled_record_and_four_requests": true,
+  "test_credential_removed": true,
+  "temporary_provider_stopped": true,
+  "application_exited": true,
+  "test_provider_configuration_removed": true,
+  "scope": "Native single-item AI and rules flows using isolated HTTP fixture; not paid provider or batch acceptance"
+}

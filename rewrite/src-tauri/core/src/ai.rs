@@ -1,17 +1,21 @@
-//! Request/response policy only. Provider credentials, durable billing and approval UI are not wired yet.
+//! Provider request and response policy shared by durable jobs and differential tests.
 use crate::{hash, specs::TAG_SECTIONS, AppError, Result, Specs};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
+use ts_rs::TS;
+pub mod job;
 pub const DEFAULT_PROMPT: &str = include_str!("../assets/default-ai-prompt.txt");
 pub const LANGUAGE_BOUNDARY: &str = include_str!("../assets/language-boundary.txt");
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
+#[ts(rename = "AiProtocol")]
 pub enum Protocol {
     Openai,
     Anthropic,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(rename = "AiConfig")]
 pub struct Config {
     pub protocol: Protocol,
     pub provider: String,
@@ -186,15 +190,22 @@ pub fn http_failure(status: u16, detail: &str) -> AppError {
     };
     AppError::new(code, format!("Provider HTTP {status}"))
 }
-#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(rename = "AiUsage")]
 pub struct Usage {
+    #[ts(type = "number")]
     pub input: u64,
+    #[ts(type = "number")]
     pub output: u64,
+    #[ts(type = "number")]
     pub total: u64,
 }
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, TS)]
+#[ts(rename = "AiMeter")]
 pub struct Meter {
+    #[ts(type = "number")]
     pub attempts: u64,
+    #[ts(type = "number")]
     pub successful_http: u64,
     pub current: Usage,
     pub historical_cache: Usage,
@@ -214,6 +225,16 @@ impl Meter {
     ) -> Result<Value> {
         self.attempts += 1;
         let response = transport()?;
+        self.observe(protocol, specs, response)
+    }
+    /// Durable callers reserve an attempt before transport, then record its
+    /// response and usage before validating model output.
+    pub fn observe(
+        &mut self,
+        protocol: &Protocol,
+        specs: &Specs,
+        response: HttpResponse,
+    ) -> Result<Value> {
         if !(200..300).contains(&response.status) {
             return Err(http_failure(
                 response.status,

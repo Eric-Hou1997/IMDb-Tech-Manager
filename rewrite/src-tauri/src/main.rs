@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod acquisition;
+mod ai_jobs;
 mod credentials;
 mod desktop;
 mod imdb_webview;
@@ -169,6 +170,13 @@ fn main() {
             writing::preview_specs,
             writing::preview_tags,
             writing::preview_rules,
+            ai_jobs::ai_settings,
+            ai_jobs::save_ai_settings,
+            ai_jobs::generate_ai,
+            ai_jobs::ai_record,
+            ai_jobs::cancel_ai,
+            ai_jobs::ai_history,
+            ai_jobs::preview_ai,
             writing::apply_specs,
             writing::preview_undo,
             writing::write_history,

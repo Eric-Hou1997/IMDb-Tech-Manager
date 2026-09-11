@@ -3,10 +3,11 @@ import { computed, onUnmounted, ref, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import type { Action, AppError, FetchRecord, MediaItem, SpecsEdit, WritePreview } from './contracts';
 import TagEditor from './TagEditor.vue';
+import AiGenerator from './AiGenerator.vue';
 const props=defineProps<{item:MediaItem}>();
 const emit=defineEmits<{changed:[]}>();
 const fields=['Runtime','Sound mix','Color','Aspect ratio','Camera','Laboratory','Film Length','Negative Format','Cinematographic Process','Printed Film Format'];
-const editing=ref(false),busy=ref(false),error=ref('');
+const editing=ref(false),busy=ref(false),aiBusy=ref(false),error=ref('');
 const completed=ref<WritePreview|null>(null), fetched=ref<FetchRecord|null>(null), fetchingId=ref('');
 function current(token:number){return !disposed&&token===generation;}
 const draft=ref<Record<string,string>>({});
@@ -18,7 +19,7 @@ async function reloadHistory(){const token=generation;const [rows,requests]=awai
 function resetDraft(){draft.value=Object.fromEntries(fields.map(field=>[field,(props.item.specs[field]||[]).join('\n')]));preview.value=null;request=null;error.value='';}
 watch(()=>[props.item.id,props.item.source_hash],(value,previous)=>{if(value[0]!==previous?.[0]){completed.value=null;fetched.value=null;}generation++;editing.value=false;resetDraft();void reloadHistory().catch(report);},{immediate:true});
 onUnmounted(()=>{disposed=true;generation++;});
-async function run(work:(token:number)=>Promise<void>){if(busy.value)return;const token=generation;busy.value=true;error.value='';try{await work(token);}catch(e){if(current(token))report(e);}finally{busy.value=false;}}
+async function run(work:(token:number)=>Promise<void>){if(busy.value||aiBusy.value)return;const token=generation;busy.value=true;error.value='';try{await work(token);}catch(e){if(current(token))report(e);}finally{busy.value=false;}}
 function draftChanged(){request=null;preview.value=null;}
 async function fetchSpecs(refresh:boolean){await run(async(token)=>{
  const id=crypto.randomUUID();fetchingId.value=id;
@@ -51,7 +52,8 @@ async function reload(){await run(async()=>{resetDraft();emit('changed');});}
    <fieldset :disabled="busy"><legend>当前文件的规格</legend><label v-for="field in fields" :key="field">{{ field }}<textarea v-model="draft[field]" rows="2" @input="draftChanged" /></label></fieldset>
    <div class="actions"><button :disabled="busy" @click="prepare">预览更改</button><button :disabled="busy" @click="editing=false;preview=null;request=null">取消编辑</button><button :disabled="busy" @click="reload">重新读取文件</button></div>
   </div>
-  <TagEditor :item="item" :busy="busy" @preview="tagPreview" />
+  <AiGenerator :item="item" :blocked="busy" @busy="aiBusy=$event" @preview="preview=$event;reloadHistory().catch(report)" />
+  <TagEditor :item="item" :busy="busy||aiBusy" @preview="tagPreview" />
   <section v-if="preview" aria-label="写入预览" class="write-preview">
    <h5>{{ preview.undo_of?'撤销预览':'写入预览' }} · {{ preview.title }} {{ preview.year }}</h5>
    <p>{{ preview.imdb }} · {{ preview.media_kind }}</p><pre>{{ preview.path }}</pre>

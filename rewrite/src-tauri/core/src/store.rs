@@ -46,7 +46,7 @@ impl Store {
         let connection = Connection::open(path)?;
         connection.busy_timeout(std::time::Duration::from_secs(5))?;
         let version: u32 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 4 {
+        if version > 5 {
             return Err(AppError::new(
                 "newer-database",
                 "Database belongs to a newer application; refusing downgrade",
@@ -54,7 +54,7 @@ impl Store {
         }
         connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.pragma_update(None, "synchronous", "FULL")?;
-        connection.execute_batch("BEGIN IMMEDIATE;
+        connection.execute_batch(r#"BEGIN IMMEDIATE;
           CREATE TABLE IF NOT EXISTS configuration (id INTEGER PRIMARY KEY CHECK(id=1), body TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS operations (id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, result TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, body TEXT NOT NULL);
@@ -64,8 +64,11 @@ impl Store {
           CREATE TABLE IF NOT EXISTS preferences(key TEXT PRIMARY KEY, body TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS write_candidates(id TEXT PRIMARY KEY,root_id TEXT NOT NULL,body BLOB NOT NULL);
           CREATE TABLE IF NOT EXISTS imdb_cache(imdb TEXT PRIMARY KEY,parser_version INTEGER NOT NULL,body TEXT NOT NULL);
+          CREATE TABLE IF NOT EXISTS ai_cache(fingerprint TEXT PRIMARY KEY,body TEXT NOT NULL);
+          CREATE TABLE IF NOT EXISTS ai_failures(fingerprint TEXT PRIMARY KEY,error TEXT NOT NULL);
           UPDATE operations SET result=json_set(result,'$.result.phase','interrupted') WHERE json_extract(result,'$.kind')='fetch' AND json_extract(result,'$.result.phase')='requested';
-          PRAGMA user_version=4; COMMIT;")?;
+          UPDATE operations SET result=json_set(result,'$.result.phase','interrupted','$.result.error',json('{"code":"interrupted","message":"Request outcome may be unknown after interruption; no automatic replay","retryable":false,"path":null,"operation_id":null}')) WHERE json_extract(result,'$.kind')='ai' AND json_extract(result,'$.result.phase') IN ('requested','running');
+          PRAGMA user_version=5; COMMIT;"#)?;
         let store = Self {
             connection: Mutex::new(connection),
             worker: Mutex::new(()),
@@ -1145,6 +1148,7 @@ impl Store {
         Ok(Some(result))
     }
 }
+mod ai_operations;
 
 mod acquisition;
 mod write_operations;

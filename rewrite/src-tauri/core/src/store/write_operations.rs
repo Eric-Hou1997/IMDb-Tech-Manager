@@ -168,7 +168,7 @@ impl Store {
                 field: e.field,
                 source_indexes: e.source_indexes,
                 confidence: "high".into(),
-                operation: String::new(),
+                operation: "local-rule".into(),
             })
             .collect();
         self.tag_preview(
@@ -179,12 +179,12 @@ impl Store {
             crate::tags::Action::Generate {
                 entries,
                 engine: "local-rules".into(),
-                model: String::new(),
+                model: "4.0.0".into(),
                 prompt_hash: String::new(),
             },
         )
     }
-    fn tag_preview(
+    pub(super) fn tag_preview(
         &self,
         id: &str,
         fingerprint: &str,

@@ -578,6 +578,19 @@ pub fn candidate(raw: &[u8], plan: &Plan) -> Result<Vec<u8>> {
         }
         additions = values.collect();
     }
+    if change_generated && generated.node.is_none() {
+        for (key, value) in [
+            ("engine", "preserved".into()),
+            ("generated", plan.timestamp.clone()),
+            (
+                "specHash",
+                crate::specs::fingerprint(&effective_specs(raw)?)?,
+            ),
+            ("state", "current".into()),
+        ] {
+            generated.attrs.entry(key.into()).or_insert(value);
+        }
+    }
     let mut append = String::new();
     for (name, m, changed) in [
         ("generatedtags", &generated, change_generated),

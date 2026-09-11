@@ -64,7 +64,7 @@ jobs:
         run: python tools/rewrite/inventory.py
       - name: Independent Rust business contracts
         working-directory: rewrite/src-tauri
-        run: cargo test --locked -p itm-core --features write-prototype --target ${{ matrix.target }}
+        run: cargo test --locked --workspace --features write-prototype --target ${{ matrix.target }}
       - name: Generated TypeScript contract drift
         working-directory: rewrite/src-tauri
         run: cargo run --locked -q -p itm-core --example export_types -- --check ../src/contracts.ts
