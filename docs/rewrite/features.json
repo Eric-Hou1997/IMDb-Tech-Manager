@@ -448,7 +448,23 @@
           "scope": "101 maintainer simulated NFO samples; listed read/pure-policy/copy-only slices; full feature acceptance remains pending"
         }
       ],
-      "current_scope": "Real IMDb HTTP/system WebView acquisition, cache, confirmed-empty state, manual facts preserved during refresh, reviewed write/undo; auto scheduler and old cache adapter pending"
+      "current_scope": "Real IMDb HTTP/system WebView acquisition, cache, confirmed-empty state, manual facts preserved during refresh, reviewed write/undo; auto scheduler and old cache adapter pending",
+      "current_slices": [
+        {
+          "slice": "automatic-specs-and-startup-preference",
+          "implementation": [
+            "rewrite/src-tauri/core/src/automatic.rs",
+            "rewrite/src-tauri/core/src/store/automatic.rs",
+            "rewrite/src/AutomaticPanel.vue"
+          ],
+          "evidence": [
+            "rewrite/src-tauri/core/tests/automatic.rs",
+            "tools/rewrite/itm_behavior.py",
+            "docs/rewrite/evidence/native-automatic.json"
+          ],
+          "status": "local-core-and-native-macos-passed-cloud-pending"
+        }
+      ]
     },
     {
       "id": "ITM-INSPECTOR",
@@ -713,6 +729,22 @@
           "evidence": "docs/rewrite/evidence/native-ai-migration.json",
           "recorded_at": "2026-09-11"
         }
+      ],
+      "current_slices": [
+        {
+          "slice": "automatic-specs-and-startup-preference",
+          "implementation": [
+            "rewrite/src-tauri/core/src/automatic.rs",
+            "rewrite/src-tauri/core/src/store/automatic.rs",
+            "rewrite/src/AutomaticPanel.vue"
+          ],
+          "evidence": [
+            "rewrite/src-tauri/core/tests/automatic.rs",
+            "tools/rewrite/itm_behavior.py",
+            "docs/rewrite/evidence/native-automatic.json"
+          ],
+          "status": "local-core-and-native-macos-passed-cloud-pending"
+        }
       ]
     },
     {
@@ -916,6 +948,22 @@
           "scope": "Owned scan worker and shutdown; all platform lifecycle paths pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
         }
+      ],
+      "current_slices": [
+        {
+          "slice": "automatic-specs-and-startup-preference",
+          "implementation": [
+            "rewrite/src-tauri/core/src/automatic.rs",
+            "rewrite/src-tauri/core/src/store/automatic.rs",
+            "rewrite/src/AutomaticPanel.vue"
+          ],
+          "evidence": [
+            "rewrite/src-tauri/core/tests/automatic.rs",
+            "tools/rewrite/itm_behavior.py",
+            "docs/rewrite/evidence/native-automatic.json"
+          ],
+          "status": "local-core-and-native-macos-passed-cloud-pending"
+        }
       ]
     },
     {
@@ -990,7 +1038,23 @@
           "recorded_at": "2026-09-11"
         }
       ],
-      "current_scope": "Durable per-file checkpoint, pause/cancel after current item, idempotent resume, explicit failure retry, whole-batch AI budget and schema 7 migration; automatic scheduling and old task import pending"
+      "current_scope": "Durable per-file checkpoint, pause/cancel after current item, idempotent resume, explicit failure retry, whole-batch AI budget and schema 7 migration; automatic scheduling and old task import pending",
+      "current_slices": [
+        {
+          "slice": "automatic-specs-and-startup-preference",
+          "implementation": [
+            "rewrite/src-tauri/core/src/automatic.rs",
+            "rewrite/src-tauri/core/src/store/automatic.rs",
+            "rewrite/src/AutomaticPanel.vue"
+          ],
+          "evidence": [
+            "rewrite/src-tauri/core/tests/automatic.rs",
+            "tools/rewrite/itm_behavior.py",
+            "docs/rewrite/evidence/native-automatic.json"
+          ],
+          "status": "local-core-and-native-macos-passed-cloud-pending"
+        }
+      ]
     },
     {
       "id": "ITM-SCOPE",

@@ -4,7 +4,7 @@ use std::io::Read;
 use std::{collections::BTreeMap, path::Path};
 pub const MAX_NFO_BYTES: u64 = 32 * 1024 * 1024;
 // Bump whenever parsing/ownership semantics change, including validation builds.
-pub const PARSER_REVISION: u32 = 2;
+pub const PARSER_REVISION: u32 = 3;
 fn text(node: Node<'_, '_>) -> String {
     node.descendants()
         .filter(|n| n.is_text())
@@ -105,6 +105,26 @@ pub fn parse(root: &LibraryRoot, path: &Path, raw: &[u8]) -> Result<MediaItem> {
                 crate::collect_specs(&mut item.specs, key, values);
             }
         }
+        let status = tech
+            .attribute("status")
+            .unwrap_or("ok")
+            .trim()
+            .to_ascii_lowercase();
+        if !item.imdb.is_empty()
+            && (!item.specs.is_empty() || ["empty", "no-tech"].contains(&status.as_str()))
+        {
+            item.spec_status = if tech
+                .attribute("modified")
+                .is_some_and(|v| v.trim().eq_ignore_ascii_case("manual"))
+            {
+                "manual"
+            } else if status == "empty" {
+                "empty"
+            } else {
+                "ready"
+            }
+            .into();
+        }
         for (name, ownership) in [
             ("manualtags", Ownership::Manual),
             ("generatedtags", Ownership::Generated),
@@ -151,6 +171,8 @@ pub fn parse(root: &LibraryRoot, path: &Path, raw: &[u8]) -> Result<MediaItem> {
 pub fn empty(root: &LibraryRoot, path: &Path) -> MediaItem {
     let path = path.to_string_lossy().into_owned();
     MediaItem {
+        modified_at: 0,
+        spec_status: "missing".into(),
         parser_revision: PARSER_REVISION,
         id: hash(path.as_bytes()),
         root_id: root.id.clone(),
@@ -170,7 +192,14 @@ pub fn empty(root: &LibraryRoot, path: &Path) -> MediaItem {
 }
 pub fn read(root: &LibraryRoot, path: &Path) -> Result<MediaItem> {
     let (real, raw) = read_bytes(root, path)?;
-    parse(root, &real, &raw)
+    let mut item = parse(root, &real, &raw)?;
+    item.modified_at = std::fs::metadata(&real)
+        .and_then(|m| m.modified())
+        .map_err(|e| AppError::new("read-failed", e).at(path.display()))?
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0);
+    Ok(item)
 }
 pub fn read_bytes(root: &LibraryRoot, path: &Path) -> Result<(std::path::PathBuf, Vec<u8>)> {
     let real = crate::paths::within(Path::new(&root.path), path)?;

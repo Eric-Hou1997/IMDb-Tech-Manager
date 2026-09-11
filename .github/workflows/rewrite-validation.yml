@@ -86,7 +86,7 @@ jobs:
           cargo clippy --workspace --all-targets --all-features --locked --target ${{ matrix.target }} -- -D warnings
       - name: Build isolated validation bundles
         working-directory: rewrite
-        run: npm run tauri build -- --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} -- --locked
+        run: npm run tauri build -- --verbose --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} -- --locked
       - name: Validate required package inventory
         run: python tools/rewrite/check_artifacts.py --target ${{ matrix.target }}
       - name: macOS installed DMG startup and cleanup

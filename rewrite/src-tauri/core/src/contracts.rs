@@ -110,6 +110,8 @@ pub struct TaskControl {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct Task {
     #[serde(default)]
+    pub automatic: bool,
+    #[serde(default)]
     pub batch: Option<crate::batch::Batch>,
     pub id: String,
     pub state: TaskState,
@@ -139,6 +141,11 @@ pub struct Tag {
 pub type Specs = BTreeMap<String, Vec<String>>;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct MediaItem {
+    #[serde(default)]
+    #[ts(type = "number")]
+    pub modified_at: i64,
+    #[serde(default)]
+    pub spec_status: String,
     #[serde(default)]
     pub parser_revision: u32,
     pub id: String,
@@ -172,6 +179,7 @@ pub struct CatalogPage {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(tag = "kind", content = "result", rename_all = "kebab-case")]
 pub enum OperationResult {
+    Automatic(crate::automatic::Status),
     Fetch(crate::acquisition::FetchRecord),
     Write(crate::writing::WritePreview),
     Ai(Box<crate::ai::job::Record>),
@@ -196,6 +204,8 @@ pub fn typescript() -> String {
         ScanRequest::decl(),
         TaskControl::decl(),
         Task::decl(),
+        crate::automatic::Settings::decl(),
+        crate::automatic::Status::decl(),
         crate::batch::BatchEngine::decl(),
         crate::batch::BatchMode::decl(),
         crate::batch::BatchRequest::decl(),

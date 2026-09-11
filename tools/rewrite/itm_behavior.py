@@ -90,4 +90,18 @@ class WriterBaseline(unittest.TestCase):
                 eng.edit_nfo({'path':str(outside),'expected_source_hash':eng._source_hash(self.raw),'operation':'edit-tag','target':{'root_index':0},'value':'new'})
             self.assertEqual(outside.read_bytes(),self.raw)
 
+    def test_resident_auto_prioritizes_recent_then_one_backfill_without_tags(self):
+        now=eng.time.time()
+        entries={}
+        paths={}
+        for name,age in [('recent-a',120),('recent-b',150),('old-a',2000),('old-b',3000)]:
+            path=self.root/(name+'.nfo');path.write_bytes(self.raw);paths[name]=path
+            entries[str(path.resolve())]={'summary':{'nfo_mtime':now-age,'media_type':'movie','spec_status':'missing','imdb':'tt0064757'}}
+        with patch.object(eng,'_catalog_ensure'), patch.object(eng,'_LIBRARY_CATALOG',{'items':entries}), patch.object(eng,'get_specs',return_value=self.obj), patch.object(eng,'_manual_task_requested',return_value=False), patch.object(eng.time,'time',return_value=now):
+            self.assertEqual(eng.run('auto'),0)
+        changed=[name for name,path in paths.items() if path.read_bytes()!=self.raw]
+        self.assertEqual(changed,['recent-a','recent-b','old-a'])
+        for path in paths.values():
+            self.assertEqual([tag.text for tag in ET.fromstring(path.read_bytes()).findall('tag')],['外部标签'])
+
 if __name__=='__main__': unittest.main(verbosity=2)

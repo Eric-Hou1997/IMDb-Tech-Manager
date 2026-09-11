@@ -200,6 +200,8 @@ fn main() {
             update::update_install,
             update::update_cancel,
             desktop::configuration,
+            desktop::automatic_status,
+            desktop::automatic_apply,
             desktop::operation_result,
             desktop::add_library_root,
             batches::plan_batch,

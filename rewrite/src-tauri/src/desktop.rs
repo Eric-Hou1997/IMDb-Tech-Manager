@@ -10,6 +10,12 @@ use std::{
 use tauri::{Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 
+fn unix_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0)
+}
 pub struct Desktop {
     pub store: Arc<Store>,
     pub(crate) write_gate: Mutex<()>,
@@ -24,6 +30,7 @@ impl Desktop {
             .map_err(|e| AppError::new("data-directory", e))?;
         std::fs::create_dir_all(&path).map_err(|e| AppError::new("data-directory", e))?;
         let store = Arc::new(Store::open(&path.join("workspace.sqlite"))?);
+        store.automatic_startup(unix_now())?;
         let stop = Arc::new(AtomicBool::new(false));
         let desktop = Self {
             store,
@@ -49,7 +56,21 @@ impl Desktop {
             std::thread::Builder::new()
                 .name("library-worker".into())
                 .spawn(move || {
+                    let mut auto_check = std::time::Instant::now() - Duration::from_secs(1);
                     while !worker_stop.load(Ordering::SeqCst) {
+                        if auto_check.elapsed() >= Duration::from_secs(1) {
+                            auto_check = std::time::Instant::now();
+                            match worker_store.automatic_tick(unix_now()) {
+                                Ok(tasks) => {
+                                    for task in tasks {
+                                        let _ = handle.emit("task-changed", task);
+                                    }
+                                }
+                                Err(error) => {
+                                    let _ = handle.emit("worker-failed", &error);
+                                }
+                            }
+                        }
                         match worker_store.run_batch_next(
                             || worker_stop.load(Ordering::SeqCst),
                             |task| {
@@ -100,6 +121,21 @@ impl Desktop {
         }
         let _writes = self.write_gate.lock();
     }
+}
+#[tauri::command]
+pub fn automatic_status(state: State<'_, Desktop>) -> Result<automatic::Status> {
+    state.store.automatic_status()
+}
+#[tauri::command]
+pub fn automatic_apply(
+    id: String,
+    settings: automatic::Settings,
+    enabled: bool,
+    state: State<'_, Desktop>,
+) -> Result<automatic::Status> {
+    state
+        .store
+        .set_automatic(&id, settings, enabled, unix_now())
 }
 impl Drop for Desktop {
     fn drop(&mut self) {

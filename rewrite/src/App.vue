@@ -5,6 +5,7 @@ import LibraryPanel from './LibraryPanel.vue';
 import LifecyclePanel from './LifecyclePanel.vue';
 import UpdatePanel from './UpdatePanel.vue';
 import MigrationPanel from './MigrationPanel.vue';
+import AutomaticPanel from './AutomaticPanel.vue';
 const product = 'ITM';
 const status = ref('正在连接桌面核心…');
 const busy = ref(false);
@@ -32,6 +33,7 @@ onMounted(async () => {
     <header><span class="mark">{{ product }}</span><div><h1>IMDb Tech Manager</h1><p>媒体库与 Technical Specs</p></div></header>
     <p class="status" role="status">{{ status }}</p>
     <LibraryPanel />
+    <AutomaticPanel />
     <LifecyclePanel />
     <UpdatePanel />
     <MigrationPanel :product="product" />

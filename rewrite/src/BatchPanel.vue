@@ -30,7 +30,7 @@ async function apply(){if(!review.value||!pending.value)return;const value=revie
  <pre v-if="error" role="alert">{{error}}</pre>
  <article v-if="active?.batch&&!active.batch.approved"><h4>确认批量范围</h4><p>{{active.batch.engine}} · {{active.batch.mode}} · {{active.batch.items.length}} 项 · {{active.locale}}</p><p v-if="active.batch.engine==='ai'">AI 将按保存的配置发出请求并可能产生费用；需要审核的结果保留为候选。</p><p v-if="active.batch.mode!=='preview'">确认后允许写入上述范围；每项使用校验备份，外部修改会阻止写入。</p><div class="scope"><p v-for="row in active.batch.items" :key="row.item.id">{{row.item.title}} · {{row.item.year}} · {{row.item.imdb}}<br>{{row.item.path}}</p></div><button :disabled="busy" @click="approve(active)">确认此范围并开始</button></article>
  <article v-for="task in tasks.filter(t=>t.space===space&&t.batch)" :key="task.id">
- <h4>{{task.batch!.engine}} · {{task.batch!.mode}} · {{task.processed}} / {{task.batch!.total}}</h4>
+ <h4>{{task.automatic?'自动补全 · ':''}}{{task.batch!.engine}} · {{task.batch!.mode}} · {{task.processed}} / {{task.batch!.total}}</h4>
  <p v-if="task.batch!.pause_requested&&task.state==='running'">已请求暂停，当前 NFO 完成后停止取下一项。</p><p v-if="task.batch!.cancel_requested&&task.state==='running'">已请求取消，正在完成当前 NFO 的事务收尾。</p>
  <button v-if="!task.batch!.approved&&task.state==='paused'" @click="run(async()=>{active=await invoke<Task>('batch_detail',{id:task.id});})">查看待确认范围</button>
  <button v-if="['completed','failed','paused','interrupted','cancelled'].includes(task.state)&&(task.errors>0||task.batch!.engine==='ai')" :disabled="busy" @click="plan(task.batch!.engine,task)">仅重试失败项（先确认范围）</button>

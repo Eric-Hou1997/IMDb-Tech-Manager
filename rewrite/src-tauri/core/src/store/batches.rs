@@ -1,9 +1,20 @@
 use super::*;
 use crate::batch::*;
 impl Store {
-    pub fn plan_batch(&self, mut request: BatchRequest) -> Result<Task> {
+    pub fn plan_batch(&self, request: BatchRequest) -> Result<Task> {
+        self.plan_batch_context(request, false)
+    }
+    pub(super) fn plan_batch_context(
+        &self,
+        mut request: BatchRequest,
+        automatic: bool,
+    ) -> Result<Task> {
         valid_id(&request.operation_id)?;
-        let fingerprint = hash(&serde_json::to_vec(&("batch", &request))?);
+        let fingerprint = if automatic {
+            hash(&serde_json::to_vec(&("automatic-batch", &request))?)
+        } else {
+            hash(&serde_json::to_vec(&("batch", &request))?)
+        };
         if let Ok(task) = self.task(&request.operation_id) {
             let old: String = self.db()?.query_row(
                 "SELECT fingerprint FROM tasks WHERE id=?1",
@@ -104,7 +115,7 @@ impl Store {
             engine: request.engine,
             mode: request.mode,
             plan_hash: String::new(),
-            approved: false,
+            approved: automatic,
             retry_failed: request.retry_failed,
             pause_requested: false,
             cancel_requested: false,
@@ -114,8 +125,13 @@ impl Store {
         };
         batch.plan_hash = hash(&serde_json::to_vec(&(&batch, &config.locale))?);
         let task = Task {
+            automatic,
             id: request.operation_id,
-            state: TaskState::Paused,
+            state: if automatic {
+                TaskState::Requested
+            } else {
+                TaskState::Paused
+            },
             locale: config.locale.clone(),
             space: request.space,
             roots,
@@ -129,6 +145,9 @@ impl Store {
         let mut db = self.db()?;
         self.writable()?;
         let tx = db.transaction()?;
+        if automatic {
+            super::automatic::planned(&tx)?;
+        }
         let latest: String =
             tx.query_row("SELECT body FROM configuration WHERE id=1", [], |r| {
                 r.get(0)
@@ -216,12 +235,23 @@ impl Store {
             .worker
             .try_lock()
             .map_err(|_| AppError::new("worker-busy", "Another task owns the worker"))?;
-        let selected = self.tasks()?.into_iter().rev().find(|t| {
+        let mut pending = self.tasks()?;
+        pending.reverse();
+        pending.sort_by_key(|t| t.automatic);
+        let selected = pending.into_iter().find(|t| {
             t.state == TaskState::Requested && t.batch.as_ref().is_some_and(|b| b.approved)
         });
         let Some(mut task) = selected else {
             return Ok(None);
         };
+        if task.automatic
+            && self
+                .tasks()?
+                .iter()
+                .any(|t| !t.state.terminal() && !t.automatic)
+        {
+            return Ok(None);
+        }
         // A paused/interrupted scan still owns its unfinished index scope.
         if self
             .tasks()?
@@ -246,11 +276,20 @@ impl Store {
         progress(&task);
         loop {
             let stopped = stop();
+            let yield_manual = task.automatic
+                && self
+                    .tasks()?
+                    .iter()
+                    .any(|t| !t.state.terminal() && !t.automatic);
             let mut selected = None;
             task=self.update_batch(&task.id,|t,db|{
                 let b=t.batch.as_ref().unwrap();
                 if stopped||b.pause_requested||b.cancel_requested {
                     t.state=if b.cancel_requested{TaskState::Cancelled}else if stopped{TaskState::Interrupted}else{TaskState::Paused};t.current_path=None;
+                } else if t.automatic && !super::automatic::enabled(db)? {
+                    t.state=TaskState::Cancelled;t.current_path=None;
+                } else if yield_manual {
+                    t.state=TaskState::Requested;t.current_path=None;
                 } else {
                     let next:Option<(u32,String)>=db.query_row("SELECT ordinal,body FROM batch_items WHERE task_id=?1 AND phase IN ('pending','running') ORDER BY ordinal LIMIT 1",[&t.id],|r|Ok((r.get(0)?,r.get(1)?))).optional()?;
                     if let Some((index,body))=next {

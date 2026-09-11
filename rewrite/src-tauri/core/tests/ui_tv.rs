@@ -38,6 +38,8 @@ fn view_state_restarts_replays_and_rejects_stale_writes_without_cross_space_loss
 }
 fn item(id: &str, path: &str, kind: &str, season: &str, episode: &str) -> MediaItem {
     MediaItem {
+        modified_at: 0,
+        spec_status: "missing".into(),
         parser_revision: 1,
         id: id.into(),
         root_id: "tv-root".into(),

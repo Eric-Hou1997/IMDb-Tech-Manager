@@ -1,0 +1,127 @@
+{
+  "date": "2026-09-11",
+  "product": "ITM",
+  "target": "macos-arm64",
+  "environment": "independent native Tauri validation app and isolated temporary media root",
+  "base_commit": "0d79c74",
+  "root": "/private/tmp/itm-auto-native-20260911/media",
+  "checks": [
+    "native-folder-selection-configures-only-isolated-root",
+    "empty-index-creates-readonly-owned-scan",
+    "automatic-specs-fetch-through-http-and-isolated-system-webview",
+    "actual-nfo-write-and-ui-completed-result",
+    "external-tag-and-unknown-xml-bom-crlf-preserved",
+    "stop-separate-from-application-start-preference",
+    "restart-enables-automatic-without-refetching-ready-item",
+    "system-login-item-remains-disabled",
+    "native-history-undo-restores-exact-original-bytes",
+    "automatic-and-startup-preference-disabled-at-close"
+  ],
+  "fetch": {
+    "request": {
+      "operation_id": "batch-46bdd9ee4348a92ba3c652f4c8ee92e538faf39d80a2fb3f9b5f5e7b88875200",
+      "item_id": "516395bea586c88a75c9438fc7f6b13af83a990fedd2635a3965d46bc9e0ebeb",
+      "expected_hash": "8e014a4bf11b88e9de273c78318386ebe10e04946ed38c0356bfe9f4dae3eb10",
+      "refresh": false
+    },
+    "imdb": "tt0061452",
+    "path": "/private/tmp/itm-auto-native-20260911/media/自动补全验收.nfo",
+    "locale": "zh-CN",
+    "phase": "completed",
+    "cached": false,
+    "started_at": "2026-09-11T14:31:11Z",
+    "finished_at": "2026-09-11T14:31:33Z",
+    "source": {
+      "status": "ok",
+      "imdb": "tt0061452",
+      "specs": {
+        "Aspect ratio": [
+          "2.39 : 1"
+        ],
+        "Camera": [
+          "Panavision Lenses"
+        ],
+        "Cinematographic Process": [
+          "Panavision (anamorphic)"
+        ],
+        "Color": [
+          "Color",
+          "Black and White (archive footage: Keystone Cops)"
+        ],
+        "Film Length": [
+          "3,547 m (Norway)",
+          "3,598 m"
+        ],
+        "Laboratory": [
+          "Technicolor, London, UK (colour)"
+        ],
+        "Negative Format": [
+          "35 mm"
+        ],
+        "Printed Film Format": [
+          "35 mm"
+        ],
+        "Runtime": [
+          "2h 11m (131 min)"
+        ],
+        "Sound mix": [
+          "70 mm 6-Track (Westrex Recording System, 70 mm prints)",
+          "Mono (35 mm prints)",
+          "Dolby Digital (5.1 Surround Sound)"
+        ]
+      },
+      "fetched_at": "2026-09-11T14:31:33Z",
+      "parser": "next-data"
+    },
+    "error": null,
+    "attempts": [
+      {
+        "transport": "http",
+        "finished_at": "2026-09-11T14:31:15Z",
+        "error": {
+          "code": "imdb-waf-challenge",
+          "message": "IMDb returned HTTP 202",
+          "path": null,
+          "operation_id": null,
+          "retryable": true
+        }
+      },
+      {
+        "transport": "system-webview",
+        "finished_at": "2026-09-11T14:31:33Z",
+        "error": null
+      }
+    ]
+  },
+  "writes": [
+    {
+      "id": "batch-3597883d0fb5143ffebf9a764855094610ee89fd41cae1536f2a92e55b748789",
+      "phase": "committed",
+      "before_hash": "8e014a4bf11b88e9de273c78318386ebe10e04946ed38c0356bfe9f4dae3eb10",
+      "after_hash": "cdd87faf32bc8b0ab9186109bf69bf29c6e8cab71f4cbd4bc9421840ad999dd9",
+      "undo_of": null
+    },
+    {
+      "id": "e4e66cbc-78a3-40c0-8a7a-f702983c82a2",
+      "phase": "committed",
+      "before_hash": "cdd87faf32bc8b0ab9186109bf69bf29c6e8cab71f4cbd4bc9421840ad999dd9",
+      "after_hash": "8e014a4bf11b88e9de273c78318386ebe10e04946ed38c0356bfe9f4dae3eb10",
+      "undo_of": "batch-3597883d0fb5143ffebf9a764855094610ee89fd41cae1536f2a92e55b748789"
+    }
+  ],
+  "final_automatic_state": {
+    "settings": {
+      "interval_seconds": 30,
+      "on_app_start": false
+    },
+    "enabled": false,
+    "cycle": 4,
+    "next_due": 1789137286,
+    "task_ids": []
+  },
+  "restored_sha256": "8e014a4bf11b88e9de273c78318386ebe10e04946ed38c0356bfe9f4dae3eb10",
+  "limits": [
+    "Windows and Linux native automatic workflow remains subject to cloud and full desktop acceptance",
+    "No production media or paid AI provider used"
+  ]
+}

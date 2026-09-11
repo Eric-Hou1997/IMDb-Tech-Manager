@@ -157,9 +157,36 @@ impl Store {
                 let Ok(value) = serde_json::from_slice::<serde_json::Value>(&data) else {
                     continue;
                 };
+                match crate::automatic::legacy_settings(&value) {
+                    Ok(Some(settings)) => {
+                        if plan.adapters.iter().any(|a| a.target == "automatic") {
+                            return Err(AppError::new(
+                                "ambiguous-legacy-settings",
+                                "Select one historical automatic settings source",
+                            ));
+                        }
+                        let before: Option<String> = self
+                            .db()?
+                            .query_row(
+                                "SELECT body FROM preferences WHERE key='automatic'",
+                                [],
+                                |r| r.get(0),
+                            )
+                            .optional()?;
+                        plan.adapters.push(crate::migration::AdapterPlan {
+                            source: file.relative.clone(), target: "automatic".into(), before_hash: before.map(|s| hash(s.as_bytes())), value: serde_json::to_value(settings)?,
+                            warnings: vec!["Import preserves the application-start preference; it does not start automatic work or change the system login item".into()],
+                        });
+                    }
+                    Ok(None) => {}
+                    Err(e) => plan.warnings.push(format!(
+                        "Automatic settings retained for review: {} ({})",
+                        file.relative, e.code
+                    )),
+                }
                 match crate::migration::ai_profile::adapt(&value) {
                     Ok(Some(settings)) => {
-                        if !plan.adapters.is_empty() {
+                        if plan.adapters.iter().any(|a| a.target == "ai-settings") {
                             return Err(AppError::new("migration-ambiguous-ai","Multiple AI profiles found; select the exact old engine data folder"));
                         }
                         let before: Option<String> = self
@@ -269,7 +296,7 @@ impl Store {
         }
         let mut applied_adapters = vec![];
         for adapter in &plan.adapters {
-            if adapter.target != "ai-settings" {
+            if !["ai-settings", "automatic"].contains(&adapter.target.as_str()) {
                 return Err(AppError::new(
                     "migration-adapter",
                     "Unsupported configuration adapter",
@@ -285,13 +312,18 @@ impl Store {
             if previous.map(|s| hash(s.as_bytes())) != adapter.before_hash {
                 return Err(AppError::new(
                     "migration-configuration-conflict",
-                    "AI settings changed after the migration preview",
+                    "Settings changed after the migration preview",
                 ));
             }
-            let settings: crate::ai::job::Settings = serde_json::from_value(adapter.value.clone())?;
-            settings.validate()?;
-            tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&settings)?])?;
-            tx.execute("DELETE FROM preferences WHERE key='ai-paused'", [])?;
+            if adapter.target == "automatic" {
+                automatic::import_settings(&tx, serde_json::from_value(adapter.value.clone())?)?;
+            } else {
+                let settings: crate::ai::job::Settings =
+                    serde_json::from_value(adapter.value.clone())?;
+                settings.validate()?;
+                tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&settings)?])?;
+                tx.execute("DELETE FROM preferences WHERE key='ai-paused'", [])?;
+            }
             applied_adapters.push(adapter.target.clone());
         }
         let preference_key = format!("legacy:{}", plan.source_kind);
@@ -600,6 +632,9 @@ impl Store {
         }
     }
     pub fn submit(&self, request: ScanRequest) -> Result<Task> {
+        self.submit_context(request, false)
+    }
+    pub(super) fn submit_context(&self, request: ScanRequest, automatic: bool) -> Result<Task> {
         valid_id(&request.operation_id)?;
         if request.root_ids.is_empty() {
             return Err(AppError::new(
@@ -607,7 +642,11 @@ impl Store {
                 "Explicitly select library roots",
             ));
         }
-        let fingerprint = hash(serde_json::to_string(&request)?.as_bytes());
+        let fingerprint = if automatic {
+            hash(&serde_json::to_vec(&("automatic-scan", &request))?)
+        } else {
+            hash(serde_json::to_string(&request)?.as_bytes())
+        };
         if let Some((old, body)) = self
             .db()?
             .query_row(
@@ -644,6 +683,7 @@ impl Store {
             roots.push(root.clone());
         }
         let task = Task {
+            automatic,
             batch: None,
             id: request.operation_id.clone(),
             state: TaskState::Requested,
@@ -658,6 +698,12 @@ impl Store {
         };
         let db = self.db()?;
         self.writable()?;
+        if automatic && !automatic::enabled(&db)? {
+            return Err(AppError::new(
+                "automatic-stopped",
+                "Automatic mode stopped before indexing",
+            ));
+        }
         let latest: String =
             db.query_row("SELECT body FROM configuration WHERE id=1", [], |r| {
                 r.get(0)
@@ -775,6 +821,12 @@ impl Store {
             return Err(AppError::new(
                 "invalid-transition",
                 "Task cannot enter the requested state",
+            ));
+        }
+        if task.automatic && state == TaskState::Requested && !automatic::enabled(&tx)? {
+            return Err(AppError::new(
+                "automatic-stopped",
+                "Start automatic mode before resuming its task",
             ));
         }
         if let Some(batch) = task.batch.as_mut() {
@@ -1127,7 +1179,7 @@ impl Store {
         let task = {
             let mut db = self.db()?;
             let tx = db.transaction()?;
-            let mut stmt = tx.prepare("SELECT body FROM tasks ORDER BY rowid")?;
+            let mut stmt = tx.prepare("SELECT body FROM tasks ORDER BY CASE WHEN json_extract(body,'$.automatic')=1 THEN 1 ELSE 0 END,rowid")?;
             let mut selected = None;
             for row in stmt.query_map([], |r| r.get::<_, String>(0))? {
                 let t: Task = serde_json::from_str(&row?)?;
@@ -1186,7 +1238,7 @@ impl Store {
                     }
                     let (real, raw) = library::read_bytes(root, &real)?;
                     let previous = self.item(&hash(real.to_string_lossy().as_bytes()));
-                    let item = match previous {
+                    let mut item = match previous {
                         Ok(item)
                             if item.parser_revision == library::PARSER_REVISION
                                 && item.source_hash == hash(&raw)
@@ -1198,6 +1250,12 @@ impl Store {
                         }
                         _ => library::parse(root, &real, &raw)?,
                     };
+                    item.modified_at = std::fs::metadata(&real)
+                        .and_then(|m| m.modified())
+                        .map_err(|e| AppError::new("read-failed", e).at(real.display()))?
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map(|d| d.as_secs() as i64)
+                        .unwrap_or(0);
                     let relevant = match item.kind.as_str() {
                         "Movie" => root.space == Space::Movie,
                         "Series" | "Season" | "Episode" => root.space == Space::Tv,
@@ -1282,4 +1340,5 @@ mod ai_operations;
 mod acquisition;
 mod write_operations;
 
+mod automatic;
 mod batches;
