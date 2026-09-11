@@ -39,6 +39,7 @@ fn setup() -> (tempfile::TempDir, Store, MediaItem, FetchRequest) {
 }
 fn source() -> SourceSpecs {
     SourceSpecs {
+        status: Default::default(),
         imdb: "tt1234567".into(),
         specs: Specs::from([("Camera".into(), vec!["Example".into()])]),
         fetched_at: "2026-09-11T00:00:00Z".into(),
@@ -159,4 +160,41 @@ fn each_http_failure_retains_its_category() {
         assert_eq!(error.code, code);
         assert_eq!(error.retryable, retry);
     }
+}
+
+#[test]
+fn confirmed_empty_cache_write_restart_and_undo_preserve_original_tags() {
+    let (temp, store, item, request) = setup();
+    let before = fs::read(&item.path).unwrap();
+    store.begin_fetch(request.clone()).unwrap();
+    let mut empty = source();
+    empty.status = specs::SourceStatus::Empty;
+    empty.specs.clear();
+    store.finish_fetch("fetch", Ok(empty)).unwrap();
+    let preview = store.preview_source("write", "fetch").unwrap();
+    let journal = temp.path().canonicalize().unwrap().join("journal");
+    store
+        .apply_specs("write", &preview.after_hash, &journal, || false)
+        .unwrap();
+    assert!(fs::read_to_string(&item.path)
+        .unwrap()
+        .contains("status=\"empty\""));
+    assert_eq!(store.item(&item.id).unwrap().tags, item.tags);
+    drop(store);
+    let store = Store::open(&temp.path().canonicalize().unwrap().join("state.sqlite")).unwrap();
+    let (cached, execute) = store
+        .begin_fetch(FetchRequest {
+            operation_id: "after-restart".into(),
+            expected_hash: store.item(&item.id).unwrap().source_hash,
+            ..request
+        })
+        .unwrap();
+    assert!(!execute);
+    assert!(cached.cached);
+    assert_eq!(cached.source.unwrap().status, specs::SourceStatus::Empty);
+    let undo = store.preview_undo("undo", "write", &journal).unwrap();
+    store
+        .apply_specs("undo", &undo.after_hash, &journal, || false)
+        .unwrap();
+    assert_eq!(fs::read(&item.path).unwrap(), before);
 }

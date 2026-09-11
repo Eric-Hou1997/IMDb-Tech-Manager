@@ -2,6 +2,27 @@ use super::*;
 use crate::acquisition::{FetchRecord, FetchRequest};
 impl Store {
     pub fn begin_fetch(&self, request: FetchRequest) -> Result<(FetchRecord, bool)> {
+        self.begin_fetch_context(request, None)
+    }
+    pub fn begin_batch_fetch(
+        &self,
+        request: FetchRequest,
+        task_id: &str,
+    ) -> Result<(FetchRecord, bool)> {
+        let task = self.batch_context(
+            task_id,
+            &request.operation_id,
+            &request.item_id,
+            &request.expected_hash,
+            crate::batch::BatchEngine::Specs,
+        )?;
+        self.begin_fetch_context(request, Some(task.locale))
+    }
+    fn begin_fetch_context(
+        &self,
+        request: FetchRequest,
+        locale: Option<Locale>,
+    ) -> Result<(FetchRecord, bool)> {
         valid_id(&request.operation_id)?;
         let fingerprint = hash(&serde_json::to_vec(&("imdb-fetch", &request))?);
         if let Some(body) = self.operation(&request.operation_id, &fingerprint)? {
@@ -77,7 +98,7 @@ impl Store {
             request,
             imdb: current.imdb,
             path: current.path,
-            locale: configuration.locale,
+            locale: locale.unwrap_or(configuration.locale),
             phase: if cached.is_some() {
                 "completed"
             } else {

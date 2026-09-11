@@ -109,6 +109,8 @@ pub struct TaskControl {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct Task {
+    #[serde(default)]
+    pub batch: Option<crate::batch::Batch>,
     pub id: String,
     pub state: TaskState,
     pub locale: Locale,
@@ -194,6 +196,11 @@ pub fn typescript() -> String {
         ScanRequest::decl(),
         TaskControl::decl(),
         Task::decl(),
+        crate::batch::BatchEngine::decl(),
+        crate::batch::BatchMode::decl(),
+        crate::batch::BatchRequest::decl(),
+        crate::batch::BatchItem::decl(),
+        crate::batch::Batch::decl(),
         Ownership::decl(),
         Tag::decl(),
         MediaItem::decl(),
@@ -232,6 +239,7 @@ pub fn typescript() -> String {
         crate::ai::job::Request::decl(),
         crate::ai::job::Attempt::decl(),
         crate::ai::job::Record::decl(),
+        crate::specs::SourceStatus::decl(),
         crate::specs::SourceSpecs::decl(),
         crate::acquisition::FetchRequest::decl(),
         crate::acquisition::FetchAttempt::decl(),

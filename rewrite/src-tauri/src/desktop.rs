@@ -31,7 +31,6 @@ impl Desktop {
             stop,
             worker: Mutex::new(None),
         };
-        desktop.resume(app)?;
         Ok(desktop)
     }
     pub fn resume(&self, app: &tauri::AppHandle) -> Result<()> {
@@ -51,6 +50,20 @@ impl Desktop {
                 .name("library-worker".into())
                 .spawn(move || {
                     while !worker_stop.load(Ordering::SeqCst) {
+                        match worker_store.run_batch_next(
+                            || worker_stop.load(Ordering::SeqCst),
+                            |task| {
+                                let _ = handle.emit("task-changed", task);
+                            },
+                            |task, row| crate::batches::execute(&handle, task, row),
+                        ) {
+                            Ok(Some(_)) => continue,
+                            Ok(None) => {}
+                            Err(error) => {
+                                let _ = handle.emit("worker-failed", &error);
+                                break;
+                            }
+                        }
                         match worker_store.run_next(
                             || worker_stop.load(Ordering::SeqCst),
                             |task| {
@@ -78,7 +91,6 @@ impl Desktop {
     }
     pub fn shutdown(&self) {
         self.stop.store(true, Ordering::SeqCst);
-        let _writes = self.write_gate.lock();
         if let Ok(mut worker) = self.worker.lock() {
             if let Some(worker) = worker.take() {
                 if worker.join().is_err() {
@@ -86,6 +98,7 @@ impl Desktop {
                 }
             }
         }
+        let _writes = self.write_gate.lock();
     }
 }
 impl Drop for Desktop {

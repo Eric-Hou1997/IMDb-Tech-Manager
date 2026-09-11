@@ -352,7 +352,7 @@ impl Store {
         if preview.phase == "committed" || preview.phase == "unchanged" {
             return Ok(preview);
         }
-        if db.query_row("SELECT EXISTS(SELECT 1 FROM tasks WHERE json_extract(body,'$.state') IN ('requested','running','paused','interrupted'))",[],|r|r.get::<_,bool>(0))? {return Err(AppError::new("active-task","Finish or cancel scans before editing NFO"));}
+        if db.query_row("SELECT EXISTS(SELECT 1 FROM tasks WHERE json_extract(body,'$.state') IN ('requested','running','paused','interrupted') AND json_extract(body,'$.batch') IS NULL)",[],|r|r.get::<_,bool>(0))? {return Err(AppError::new("active-task","Finish or cancel scans before editing NFO"));}
         let configuration: Configuration = serde_json::from_str(&db.query_row(
             "SELECT body FROM configuration WHERE id=1",
             [],

@@ -1,6 +1,7 @@
 use itm_core::{specs::*, Specs};
 fn fetched() -> SourceSpecs {
     SourceSpecs {
+        status: Default::default(),
         imdb: "tt1234567".into(),
         specs: Specs::from([("Camera".into(), vec!["New & Camera".into()])]),
         fetched_at: "2026-09-11T01:02:03Z".into(),
@@ -104,8 +105,8 @@ fn structured_page_identity_empty_and_invalid_json_are_distinct() {
     );
     let empty = page.replace("{\"camera\":\" A \"},{\"camera\":\"a\"}", "");
     assert_eq!(
-        parse_page("tt1234567", &empty).unwrap_err().code,
-        "imdb-no-tech"
+        parse_page("tt1234567", &empty).unwrap().status,
+        SourceStatus::Empty
     );
 }
 
@@ -142,4 +143,45 @@ fn repeated_cached_source_does_not_grow_whitespace_or_create_another_change() {
     let first = source_candidate(raw, &fetched()).unwrap();
     let second = source_candidate(&first, &fetched()).unwrap();
     assert_eq!(first, second);
+}
+
+#[test]
+fn confirmed_empty_is_a_persisted_fact_state_but_incomplete_payloads_are_not() {
+    let page = |title: serde_json::Value| format!("<script id='__NEXT_DATA__'>{title}</script>");
+    let empty = parse_page("tt1234567", &page(serde_json::json!({"id":"tt1234567", "runtimes":{"edges":[]}, "technicalSpecifications":{"cameras":{"items":[]}}}))).unwrap();
+    assert_eq!(empty.status, SourceStatus::Empty);
+    for technical in [
+        serde_json::Value::Null,
+        serde_json::json!({}),
+        serde_json::json!({"unknownNewField":[]}),
+    ] {
+        assert_eq!(parse_page("tt1234567", &page(serde_json::json!({"id":"tt1234567","runtimes":{"edges":[]},"technicalSpecifications":technical}))).unwrap_err().code, "imdb-empty-unconfirmed");
+    }
+    let raw = br#"<movie><tag>External</tag><technicalspecs source="IMDb"><section name="Camera"><item>Old</item></section></technicalspecs></movie>"#;
+    let after = source_candidate(raw, &empty).unwrap();
+    validate_specs_only(raw, &after).unwrap();
+    assert!(std::str::from_utf8(&after)
+        .unwrap()
+        .contains("status=\"empty\""));
+    assert!(!std::str::from_utf8(&after).unwrap().contains("<section"));
+    assert_eq!(source_candidate(&after, &empty).unwrap(), after);
+    let manual = String::from_utf8(raw.to_vec())
+        .unwrap()
+        .replace("source=\"IMDb\"", "source=\"IMDb\" modified=\"manual\"");
+    let kept = source_candidate(manual.as_bytes(), &empty).unwrap();
+    let doc = roxmltree::Document::parse(std::str::from_utf8(&kept).unwrap()).unwrap();
+    let tech = doc
+        .descendants()
+        .find(|n| n.has_tag_name("technicalspecs"))
+        .unwrap();
+    assert_eq!(tech.attribute("status"), Some("ok"));
+    assert!(tech.children().any(|n| n.has_tag_name("section")));
+    let mut corrupt = empty;
+    corrupt
+        .specs
+        .insert("Camera".into(), vec!["Unexpected".into()]);
+    assert_eq!(
+        source_candidate(raw, &corrupt).unwrap_err().code,
+        "invalid-source-specs"
+    );
 }

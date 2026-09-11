@@ -1,5 +1,6 @@
 pub mod acquisition;
 pub mod ai;
+pub mod batch;
 pub mod contracts;
 pub mod install;
 pub mod library;

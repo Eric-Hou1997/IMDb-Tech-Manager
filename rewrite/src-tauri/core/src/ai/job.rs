@@ -134,6 +134,8 @@ pub struct Attempt {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(rename = "AiRecord")]
 pub struct Record {
+    #[serde(default)]
+    pub batch_id: Option<String>,
     #[serde(default = "default_engine")]
     pub engine: String,
     pub request: Request,

@@ -1,0 +1,21 @@
+{
+  "task_id": "c9c4c357-dfd7-4334-81fd-811db1160de5",
+  "write_id": "batch-fa7e068aeb07fa27696a15da8ee4a0800cb9df209be0ed422f64a58ee33fdcdf",
+  "before_hash": "7b4ed64e8b34a35649b1e6e0789fe807a556c94d30cf1659d73dd1f99a028b60",
+  "after_hash": "c3a48052f2879196837fce0d650047874783dbdcfe6527c330926ec660ecd003",
+  "phase": "committed",
+  "scope_path": "/private/tmp/itm-native-write-20260911/media/GUI-验收副本.nfo",
+  "scope_reviewed_before_write": true,
+  "platform": "macOS ARM64",
+  "date": "2026-09-11",
+  "undo_restored_hash": "7b4ed64e8b34a35649b1e6e0789fe807a556c94d30cf1659d73dd1f99a028b60",
+  "full_root_preview_task": "4e5c6b96-3588-4b9d-90bd-828084e4b18e",
+  "preview_preserved_source_bytes": true,
+  "preview_review_approved_without_regeneration": true,
+  "preview_write_id": "batch-90536e80ba2969f73fa5308e4007a5a85eae844e6bd46eede8665067cbe5669e",
+  "both_tasks_completed": true,
+  "schema_6_to_7_restart_preserves_both_task_details": true,
+  "paged_results_opened_in_native_ui": true,
+  "application_exited": true,
+  "source_base": "513e13d"
+}

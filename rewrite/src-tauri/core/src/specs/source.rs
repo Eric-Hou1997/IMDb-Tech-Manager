@@ -2,8 +2,17 @@ use super::*;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[serde(rename_all = "kebab-case")]
+pub enum SourceStatus {
+    #[default]
+    Ok,
+    Empty,
+}
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct SourceSpecs {
+    #[serde(default)]
+    pub status: SourceStatus,
     pub imdb: String,
     pub specs: Specs,
     pub fetched_at: String,
@@ -51,13 +60,40 @@ pub fn parse_page(imdb: &str, page: &str) -> Result<SourceSpecs> {
         ));
     }
     let specs = parse_next_data(&value)?;
-    if !specs.values().any(|values| !values.is_empty()) {
-        return Err(AppError::new(
-            "imdb-no-tech",
-            "IMDb returned a technical title with no specifications",
-        ));
-    }
+    let status = if specs.values().any(|values| !values.is_empty()) {
+        SourceStatus::Ok
+    } else {
+        // An absent or unfamiliar payload is not proof that IMDb has no facts.
+        let explicit_empty = title["runtimes"]["edges"]
+            .as_array()
+            .is_some_and(Vec::is_empty)
+            && title["technicalSpecifications"]
+                .as_object()
+                .is_some_and(|sections| {
+                    [
+                        "soundMixes",
+                        "colorations",
+                        "aspectRatios",
+                        "cameras",
+                        "laboratories",
+                        "negativeFormats",
+                        "processes",
+                        "printedFormats",
+                        "filmLengths",
+                    ]
+                    .iter()
+                    .any(|key| sections.get(*key).is_some_and(|v| v["items"].is_array()))
+                });
+        if !explicit_empty {
+            return Err(AppError::new(
+                "imdb-empty-unconfirmed",
+                "IMDb payload does not prove an empty technical result",
+            ));
+        }
+        SourceStatus::Empty
+    };
     Ok(SourceSpecs {
+        status,
         imdb: imdb.into(),
         specs,
         fetched_at: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
@@ -96,15 +132,16 @@ pub fn source_candidate(raw: &[u8], fetched: &SourceSpecs) -> Result<Vec<u8>> {
         .specs
         .keys()
         .any(|k| !SECTIONS.contains(&k.as_str()))
-        || !fetched
-            .specs
-            .values()
-            .flatten()
-            .any(|v| !v.trim().is_empty())
+        || (fetched.status == SourceStatus::Empty)
+            == fetched
+                .specs
+                .values()
+                .flatten()
+                .any(|v| !v.trim().is_empty())
     {
         return Err(AppError::new(
             "invalid-source-specs",
-            "Unknown or empty source specifications",
+            "Source status does not match the validated specifications",
         ));
     }
     let mut normalized = Specs::new();
@@ -284,7 +321,21 @@ pub fn source_candidate(raw: &[u8], fetched: &SourceSpecs) -> Result<Vec<u8>> {
         ("specHash".into(), effective_hash),
         ("sourceSpecHash".into(), source_hash),
         ("factOrigin".into(), "imdb".into()),
-        ("status".into(), "ok".into()),
+        (
+            "status".into(),
+            if manual {
+                if old_specs.values().flatten().any(|v| !v.trim().is_empty()) {
+                    "ok"
+                } else {
+                    "empty"
+                }
+            } else if fetched.status == SourceStatus::Empty {
+                "empty"
+            } else {
+                "ok"
+            }
+            .into(),
+        ),
     ]);
     let replacement = element("technicalspecs", attrs, &body);
     let range = if let Some(tech) = tech {

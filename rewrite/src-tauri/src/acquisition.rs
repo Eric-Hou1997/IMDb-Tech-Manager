@@ -62,12 +62,22 @@ async fn fetch_page(imdb: &str) -> Result<SourceSpecs> {
 }
 #[tauri::command]
 pub async fn fetch_specs(request: FetchRequest, app: tauri::AppHandle) -> Result<FetchRecord> {
+    run_fetch(request, None, app).await
+}
+pub(crate) async fn run_fetch(
+    request: FetchRequest,
+    batch_id: Option<String>,
+    app: tauri::AppHandle,
+) -> Result<FetchRecord> {
     tauri::async_runtime::spawn_blocking(move || {
         let desktop = app.state::<Desktop>();
         if desktop.stopping() {
             return Err(AppError::new("shutting-down", "Application is stopping"));
         }
-        let (record, execute) = desktop.store.begin_fetch(request)?;
+        let (record, execute) = match batch_id {
+            Some(id) => desktop.store.begin_batch_fetch(request, &id)?,
+            None => desktop.store.begin_fetch(request)?,
+        };
         if !execute {
             return Ok(record);
         }

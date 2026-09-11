@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch, nextTick } from 'vue';
+import { computed, shallowRef, onMounted, onUnmounted, reactive, ref, watch, nextTick } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import SpecsEditor from './SpecsEditor.vue';
+import BatchPanel from './BatchPanel.vue';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import type { AppError, CatalogPage, Configuration, MediaItem, Space, Task, TaskState, LibraryView, UiState, UiReceipt, TvPage, TvRow } from './contracts';
 
@@ -30,7 +31,7 @@ const view = computed(() => views[space.value]);
 const roots = computed(() => configuration.value.roots.filter(r => r.space === space.value));
 const page = ref<CatalogPage>({ total: 0, items: [] });
 const tvPage=ref<TvPage>({total:0,rows:[]});
-const tasks = ref<Task[]>([]);
+const tasks = shallowRef<Task[]>([]);
 const detail = ref<MediaItem | null>(null);
 const error = ref('');
 const busy = ref(false);
@@ -141,6 +142,7 @@ onUnmounted(() => { disposed = true; ++refreshToken; clearTimeout(timer); unlist
     <p v-if="space==='tv'">季复选框选择该季全部已索引剧集，包括筛选或分页未显示的剧集。展开、选择和当前分页分别保存。</p>
     <p v-if="!page.total">没有符合条件的已索引条目。</p>
     <div class="actions"><button :disabled="view.offset === 0" @click="view.offset = Math.max(0, view.offset - 100); refresh()">上一页</button><button :disabled="view.offset + 100 >= page.total" @click="view.offset += 100; refresh()">下一页</button></div>
+    <BatchPanel :space="space" :selected="view.selected" :roots="view.roots" :tasks="tasks" @refresh="refresh" @inspect="id=>action(async()=>{detail=await invoke<MediaItem>('inspector',{id});})" />
     <aside v-if="detail" class="inspector"><h3>{{ detail.title || '异常条目' }} · Inspector</h3><p>{{ detail.year }} · {{ detail.imdb }} · {{ detail.kind }}</p><pre>{{ detail.path }}</pre><pre v-if="detail.error" role="alert">{{ detail.error.code }}：{{ detail.error.message }}</pre>
       <button :disabled="busy" @click="action(async () => { await invoke('reveal_item', { id: detail!.id }); })">在文件管理器中定位</button>
       <h4>Technical Specs</h4><dl><template v-for="(values, field) in detail.specs" :key="field"><dt>{{ field }}</dt><dd v-for="(value, index) in values" :key="index">{{ value }}</dd></template></dl>
@@ -149,7 +151,7 @@ onUnmounted(() => { disposed = true; ++refreshToken; clearTimeout(timer); unlist
       <button @click="detail = null">关闭检查器</button>
     </aside>
     <h3>当前空间任务</h3><article v-for="task in tasks.filter(t => t.space === space)" :key="task.id"><p>{{ task.state }} · {{ task.processed }} 项 · {{ task.errors }} 个异常</p><p class="task-id">{{ task.id }} · {{ task.locale }}</p><pre v-if="task.current_path">{{ task.current_path }}</pre><pre v-if="task.failure" role="alert">{{ task.failure.code }}：{{ task.failure.message }}\n{{ task.failure.path }}</pre><button v-if="task.errors" @click="view.errors=true;view.offset=0;refresh()">查看异常条目</button>
-      <div class="actions"><button v-if="['requested', 'running'].includes(task.state)" :disabled="busy" @click="control(task, 'paused')">暂停</button><button v-if="['paused', 'interrupted'].includes(task.state)" :disabled="busy" @click="control(task, 'requested')">恢复</button><button v-if="!['completed', 'failed', 'cancelled'].includes(task.state)" :disabled="busy" @click="control(task, 'cancelled')">取消</button></div>
+      <div class="actions"><button v-if="['requested', 'running'].includes(task.state)" :disabled="busy" @click="control(task, 'paused')">暂停</button><button v-if="['paused', 'interrupted'].includes(task.state)&&(!task.batch||task.batch.approved)" :disabled="busy" @click="control(task, 'requested')">恢复</button><button v-if="!['completed', 'failed', 'cancelled'].includes(task.state)" :disabled="busy" @click="control(task, 'cancelled')">取消</button></div>
     </article>
   </section>
 </template>

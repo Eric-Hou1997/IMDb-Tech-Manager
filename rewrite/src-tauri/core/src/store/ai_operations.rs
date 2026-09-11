@@ -148,6 +148,19 @@ impl Store {
         record(&*self.db()?, id)
     }
     pub fn begin_ai(&self, request: Request) -> Result<(Record, bool)> {
+        self.begin_ai_context(request, None)
+    }
+    pub fn begin_batch_ai(&self, request: Request, task_id: &str) -> Result<(Record, bool)> {
+        let task = self.batch_context(
+            task_id,
+            &request.operation_id,
+            &request.item_id,
+            &request.expected_hash,
+            crate::batch::BatchEngine::Ai,
+        )?;
+        self.begin_ai_context(request, Some(task))
+    }
+    fn begin_ai_context(&self, request: Request, task: Option<Task>) -> Result<(Record, bool)> {
         valid_id(&request.operation_id)?;
         let identity = hash(&serde_json::to_vec(&("ai-generate", &request))?);
         if let Some(body) = self.operation(&request.operation_id, &identity)? {
@@ -159,11 +172,19 @@ impl Store {
                 )),
             };
         }
-        let mut settings = self.ai_settings()?;
+        let mut settings: Settings = if let Some(task) = &task {
+            serde_json::from_value(task.batch.as_ref().unwrap().settings.clone())?
+        } else {
+            self.ai_settings()?
+        };
         settings.validate()?;
         let item = self.item(&request.item_id)?;
         let configuration = self.configuration()?;
-        settings.config.output_language = serde_json::to_value(&configuration.locale)?
+        let locale = task
+            .as_ref()
+            .map(|t| t.locale.clone())
+            .unwrap_or_else(|| configuration.locale.clone());
+        settings.config.output_language = serde_json::to_value(&locale)?
             .as_str()
             .expect("locale string")
             .into();
@@ -201,6 +222,7 @@ impl Store {
             &settings,
         ))?);
         let mut value = Record {
+            batch_id: task.map(|t| t.id),
             engine: "ai".into(),
             request,
             path: item.path,
@@ -208,7 +230,7 @@ impl Store {
             year: item.year,
             imdb: item.imdb,
             media_kind: item.kind,
-            locale: configuration.locale,
+            locale,
             settings,
             specs,
             existing,
@@ -254,7 +276,7 @@ impl Store {
                 }
             }
         }
-        if !value.cached && !value.request.retry_failed && !value.request.force {
+        if !value.cached && !value.request.retry_failed {
             if let Some(error) = tx
                 .query_row(
                     "SELECT error FROM ai_failures WHERE fingerprint=?1",
@@ -268,7 +290,9 @@ impl Store {
                 value.finished_at = Some(job::now());
             }
         }
-        if value.phase == "requested" && !value.request.retry_failed {
+        if ["requested", "skipped-unchanged-failure"].contains(&value.phase.as_str())
+            && !value.request.retry_failed
+        {
             if let Some(error) = tx
                 .query_row(
                     "SELECT body FROM preferences WHERE key='ai-paused'",
@@ -309,6 +333,19 @@ impl Store {
                 .optional()?
             {
                 return Err(serde_json::from_str(&error)?);
+            }
+        }
+        if let Some(batch_id) = &value.batch_id {
+            let (attempts,tokens,cost):(u64,u64,f64)=db.query_row("SELECT COALESCE(SUM(json_extract(result,'$.result.meter.attempts')),0),COALESCE(SUM(json_extract(result,'$.result.meter.current.total')),0),COALESCE(SUM(json_extract(result,'$.result.cost')),0.0) FROM operations WHERE json_extract(result,'$.kind')='ai' AND json_extract(result,'$.result.batch_id')=?1",[batch_id],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?)))?;
+            let s = &value.settings;
+            if s.run_request_limit > 0 && attempts >= s.run_request_limit
+                || s.run_token_limit > 0 && tokens >= s.run_token_limit
+                || s.run_cost_limit > 0.0 && cost >= s.run_cost_limit
+            {
+                return Err(AppError::new(
+                    "budget-exhausted",
+                    "The complete batch reached its configured budget",
+                ));
             }
         }
         let Some((expected, _)) = job::next(&value)? else {

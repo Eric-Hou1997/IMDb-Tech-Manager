@@ -140,7 +140,9 @@ fn failures_skip_unchanged_and_explicit_retry_retains_each_attempt() {
     assert_eq!(failed.meter.attempts, 1);
     let (skipped, execute) = store.begin_ai(request(&item, "skip")).unwrap();
     assert!(!execute);
-    assert_eq!(skipped.phase, "skipped-unchanged-failure");
+    assert_eq!(skipped.phase, "paused");
+    assert_eq!(skipped.error.unwrap().code, "auth");
+    assert_eq!(skipped.meter.attempts, 0);
     let mut retry = request(&item, "retry");
     retry.retry_failed = true;
     assert!(store.begin_ai(retry.clone()).unwrap().1);

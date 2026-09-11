@@ -114,12 +114,22 @@ fn emit(app: &tauri::AppHandle, value: &Record) {
 }
 #[tauri::command]
 pub async fn generate_ai(request: Request, app: tauri::AppHandle) -> Result<Record> {
+    run_ai(request, None, app).await
+}
+pub(crate) async fn run_ai(
+    request: Request,
+    batch_id: Option<String>,
+    app: tauri::AppHandle,
+) -> Result<Record> {
     tauri::async_runtime::spawn_blocking(move || {
         let desktop = app.state::<Desktop>();
         if desktop.stopping() {
             return Err(AppError::new("shutting-down", "Application is stopping"));
         }
-        let (mut value, execute) = desktop.store.begin_ai(request)?;
+        let (mut value, execute) = match batch_id {
+            Some(id) => desktop.store.begin_batch_ai(request, &id)?,
+            None => desktop.store.begin_ai(request)?,
+        };
         if !execute {
             return Ok(value);
         }

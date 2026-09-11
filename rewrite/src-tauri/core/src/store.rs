@@ -46,7 +46,7 @@ impl Store {
         let connection = Connection::open(path)?;
         connection.busy_timeout(std::time::Duration::from_secs(5))?;
         let version: u32 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 5 {
+        if version > 7 {
             return Err(AppError::new(
                 "newer-database",
                 "Database belongs to a newer application; refusing downgrade",
@@ -68,7 +68,42 @@ impl Store {
           CREATE TABLE IF NOT EXISTS ai_failures(fingerprint TEXT PRIMARY KEY,error TEXT NOT NULL);
           UPDATE operations SET result=json_set(result,'$.result.phase','interrupted') WHERE json_extract(result,'$.kind')='fetch' AND json_extract(result,'$.result.phase')='requested';
           UPDATE operations SET result=json_set(result,'$.result.phase','interrupted','$.result.error',json('{"code":"interrupted","message":"Request outcome may be unknown after interruption; no automatic replay","retryable":false,"path":null,"operation_id":null}')) WHERE json_extract(result,'$.kind')='ai' AND json_extract(result,'$.result.phase') IN ('requested','running');
-          PRAGMA user_version=5; COMMIT;"#)?;
+          CREATE TABLE IF NOT EXISTS batch_items(task_id TEXT NOT NULL, ordinal INTEGER NOT NULL, request_id TEXT NOT NULL UNIQUE, phase TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(task_id,ordinal));
+          CREATE INDEX IF NOT EXISTS batch_pending ON batch_items(task_id,phase,ordinal);
+          CREATE INDEX IF NOT EXISTS ai_batch_operations ON operations(json_extract(result,'$.result.batch_id')) WHERE json_extract(result,'$.kind')='ai';
+          COMMIT;"#)?;
+        // Upgrade early rewrite batch snapshots before the worker can resume.
+        if version < 7 {
+            let tx = connection.unchecked_transaction()?;
+            let bodies: Vec<(String, String)> = tx
+                .prepare("SELECT id,body FROM tasks")?
+                .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?
+                .collect::<std::result::Result<_, _>>()?;
+            for (id, body) in bodies {
+                let mut task: Task = serde_json::from_str(&body)?;
+                if let Some(batch) = task.batch.as_mut() {
+                    batch.total = batch.items.len() as u32;
+                    for (ordinal, row) in batch.items.drain(..).enumerate() {
+                        tx.execute(
+                            "INSERT INTO batch_items VALUES(?1,?2,?3,?4,?5)",
+                            params![
+                                id,
+                                ordinal as u32,
+                                row.request_id,
+                                row.phase,
+                                serde_json::to_string(&row)?
+                            ],
+                        )?;
+                    }
+                    tx.execute(
+                        "UPDATE tasks SET body=?2 WHERE id=?1",
+                        params![id, serde_json::to_string(&task)?],
+                    )?;
+                }
+            }
+            tx.pragma_update(None, "user_version", 7)?;
+            tx.commit()?;
+        }
         let store = Self {
             connection: Mutex::new(connection),
             worker: Mutex::new(()),
@@ -538,6 +573,7 @@ impl Store {
             roots.push(root.clone());
         }
         let task = Task {
+            batch: None,
             id: request.operation_id.clone(),
             state: TaskState::Requested,
             locale: config.locale,
@@ -613,7 +649,11 @@ impl Store {
         let body: String =
             self.db()?
                 .query_row("SELECT body FROM tasks WHERE id=?1", [id], |r| r.get(0))?;
-        Ok(serde_json::from_str(&body)?)
+        let mut task: Task = serde_json::from_str(&body)?;
+        if let Some(batch) = task.batch.as_mut() {
+            batch.items = self.batch_items(id)?;
+        }
+        Ok(task)
     }
     pub fn control(&self, request: TaskControl) -> Result<Task> {
         valid_id(&request.operation_id)?;
@@ -666,7 +706,25 @@ impl Store {
                 "Task cannot enter the requested state",
             ));
         }
-        task.state = state;
+        if let Some(batch) = task.batch.as_mut() {
+            if state == TaskState::Requested && !batch.approved {
+                return Err(AppError::new(
+                    "scope-unapproved",
+                    "Confirm the batch scope before starting",
+                ));
+            }
+            if task.state == TaskState::Running && state == TaskState::Paused {
+                batch.pause_requested = true;
+            } else if task.state == TaskState::Running && state == TaskState::Cancelled {
+                batch.cancel_requested = true;
+            } else {
+                batch.pause_requested = false;
+                batch.cancel_requested = false;
+                task.state = state;
+            }
+        } else {
+            task.state = state;
+        }
         let body = serde_json::to_string(&task)?;
         tx.execute("UPDATE tasks SET body=?2 WHERE id=?1", params![id, body])?;
         tx.execute(
@@ -1002,7 +1060,7 @@ impl Store {
             let mut selected = None;
             for row in stmt.query_map([], |r| r.get::<_, String>(0))? {
                 let t: Task = serde_json::from_str(&row?)?;
-                if t.state == TaskState::Requested {
+                if t.state == TaskState::Requested && t.batch.is_none() {
                     selected = Some(t);
                     break;
                 }
@@ -1152,3 +1210,5 @@ mod ai_operations;
 
 mod acquisition;
 mod write_operations;
+
+mod batches;

@@ -1,7 +1,7 @@
 use crate::{AppError, Result, Specs};
 use serde_json::Value;
 mod source;
-pub use source::{imdb_url, parse_page, source_candidate, SourceSpecs};
+pub use source::{imdb_url, parse_page, source_candidate, SourceSpecs, SourceStatus};
 pub const SECTIONS: [&str; 10] = [
     "Runtime",
     "Sound mix",

@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod acquisition;
 mod ai_jobs;
+mod batches;
 mod credentials;
 mod desktop;
 mod imdb_webview;
@@ -201,6 +202,10 @@ fn main() {
             desktop::configuration,
             desktop::operation_result,
             desktop::add_library_root,
+            batches::plan_batch,
+            batches::batch_detail,
+            batches::apply_batch_item,
+            batches::approve_batch_scope,
             desktop::scan_library,
             desktop::task_control,
             desktop::task_history,
@@ -216,6 +221,7 @@ fn main() {
         ])
         .setup(|app| {
             app.manage(desktop::Desktop::start(app.handle())?);
+            app.state::<desktop::Desktop>().resume(app.handle())?;
             app.manage(lifecycle::Lifecycle::default());
             lifecycle::initialize(app.handle());
             app.manage(update::Updates::default());
