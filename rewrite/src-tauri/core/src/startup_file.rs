@@ -20,16 +20,18 @@ fn quoted(value: &str) -> Result<String> {
             "Login path contains unsupported control characters",
         ));
     }
-    // Desktop Entry general escaping is applied before Exec argument quoting.
-    Ok(format!(
+    // First quote the Exec argument, then escape its backslashes for the
+    // desktop-entry value parser. These are two distinct decoding stages.
+    let argument = format!(
         "\"{}\"",
         value
-            .replace('\\', "\\\\\\\\")
-            .replace('"', "\\\"")
-            .replace('`', "\\`")
-            .replace('$', "\\$")
+            .replace('\\', r"\\")
+            .replace('"', r#"\""#)
+            .replace('`', r"\`")
+            .replace('$', r"\$")
             .replace('%', "%%")
-    ))
+    );
+    Ok(argument.replace('\\', r"\\"))
 }
 impl StartupFile {
     pub fn new(

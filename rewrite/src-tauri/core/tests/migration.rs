@@ -115,3 +115,24 @@ fn malformed_json_and_disabled_tcm_roots_remain_recoverable() {
         b"{interrupted"
     );
 }
+
+#[test]
+fn truncated_escaped_credential_json_stays_outside_generic_archive() {
+    let (_t, old, store) = setup();
+    for (index, bytes) in [
+        br#"{"api_key":"test-only-sentinel", "rest": "#.as_slice(),
+        br#"{"api\u005fkey":"test-only-sentinel" "#.as_slice(),
+        br#"{"authorization":123}"#.as_slice(),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        fs::write(old.join("config.json"), bytes).unwrap();
+        let error = store
+            .prepare_migration(&format!("secret-{index}"), &old, "itm-engine")
+            .unwrap_err();
+        assert_eq!(error.code, "migration-credential-boundary");
+        assert!(!error.message.contains("sentinel"));
+        assert_eq!(fs::read(old.join("config.json")).unwrap(), bytes);
+    }
+}

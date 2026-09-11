@@ -8,8 +8,18 @@ use std::{
 pub struct Store {
     connection: Mutex<Connection>,
     worker: Mutex<()>,
-    _owner: std::fs::File,
+    _owner: DatabaseLease,
     maintenance: std::sync::atomic::AtomicBool,
+}
+// Explicit unlock prevents an unrelated concurrently spawned child from
+// retaining a fork-inherited lease until its exec closes inherited descriptors.
+struct DatabaseLease(std::fs::File);
+impl Drop for DatabaseLease {
+    fn drop(&mut self) {
+        if let Err(error) = self.0.unlock() {
+            eprintln!("database-unlock: {error}");
+        }
+    }
 }
 fn valid_id(id: &str) -> Result<()> {
     if id.is_empty() || id.len() > 96 || !id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
@@ -56,7 +66,7 @@ impl Store {
         let store = Self {
             connection: Mutex::new(connection),
             worker: Mutex::new(()),
-            _owner: owner,
+            _owner: DatabaseLease(owner),
             maintenance: std::sync::atomic::AtomicBool::new(false),
         };
         for mut task in store.tasks()? {

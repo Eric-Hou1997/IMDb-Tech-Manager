@@ -133,9 +133,14 @@ fn walk(
                         return Err(error("migration-credential-boundary","Credential-bearing JSON needs native credential migration before import",&path));
                     }
                 }
-                Err(_) => warnings.push(format!(
-                    "Malformed JSON retained as original bytes: {relative}"
-                )),
+                Err(_) => {
+                    if malformed_secret_key(&bytes) {
+                        return Err(error("migration-credential-boundary", "Interrupted credential-bearing JSON requires credential recovery before import", &path));
+                    }
+                    warnings.push(format!(
+                        "Malformed JSON retained as original bytes: {relative}"
+                    ));
+                }
             }
         }
         out.push(LegacyFile {
@@ -147,20 +152,40 @@ fn walk(
     }
     Ok(())
 }
+fn secret_key(key: &str) -> bool {
+    let key = key.to_ascii_lowercase().replace(['-', '_'], "");
+    matches!(
+        key.as_str(),
+        "apikey"
+            | "accesstoken"
+            | "refreshtoken"
+            | "authtoken"
+            | "password"
+            | "secret"
+            | "authorization"
+    )
+}
+fn malformed_secret_key(bytes: &[u8]) -> bool {
+    // A truncated document can still contain complete credential keys. Decode
+    // quoted keys separately, including Unicode escapes, before archiving bytes.
+    let text = String::from_utf8_lossy(bytes);
+    let keys = regex::Regex::new(r#""(?:\\.|[^"\\])*"\s*:"#).expect("constant JSON key pattern");
+    let found = keys.find_iter(&text).any(|matched| {
+        let token = matched.as_str().trim_end_matches(':').trim_end();
+        serde_json::from_str::<String>(token).is_ok_and(|key| secret_key(&key))
+    });
+    found
+}
 fn secret_field(value: &Value) -> bool {
     match value {
         Value::Object(map) => map.iter().any(|(key, v)| {
-            let key = key.to_ascii_lowercase().replace(['-', '_'], "");
-            matches!(
-                key.as_str(),
-                "apikey" | "accesstoken" | "password" | "secret" | "authorization"
-            ) && v.as_str().is_some_and(|s| !s.is_empty())
-                || secret_field(v)
+            secret_key(key) && !v.is_null() && v.as_str() != Some("") || secret_field(v)
         }),
         Value::Array(values) => values.iter().any(secret_field),
         _ => false,
     }
 }
+
 pub fn prepare(
     id: &str,
     source: &Path,
