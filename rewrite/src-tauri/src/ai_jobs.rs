@@ -15,14 +15,9 @@ fn credentials(app: &tauri::AppHandle) -> AiCredentials {
     AiCredentials::new(app.config().identifier.clone())
 }
 #[tauri::command]
-pub async fn ai_settings(app: tauri::AppHandle) -> Result<(Settings, bool)> {
+pub async fn ai_settings(app: tauri::AppHandle) -> Result<ai::job::Profile> {
     tauri::async_runtime::spawn_blocking(move || {
-        let settings = app.state::<Desktop>().store.ai_settings()?;
-        let configured = !settings.credential_account.is_empty()
-            && credentials(&app)
-                .get(&settings.credential_account)?
-                .is_some();
-        Ok((settings, configured))
+        app.state::<Desktop>().store.ai_profile(&credentials(&app))
     })
     .await
     .map_err(|e| AppError::new("ai-worker", e))?
@@ -111,6 +106,37 @@ fn emit(app: &tauri::AppHandle, value: &Record) {
     if let Err(e) = app.emit("ai-changed", value) {
         eprintln!("ai-event: {e}");
     }
+    match app.state::<Desktop>().store.ai_runtime() {
+        Ok(state) => {
+            if let Err(error) = app.emit("ai-runtime-changed", state) {
+                eprintln!("ai-runtime-event: {error}");
+            }
+        }
+        Err(error) => eprintln!("ai-runtime-state: {error}"),
+    }
+}
+#[tauri::command]
+pub fn ai_runtime(state: tauri::State<'_, Desktop>) -> Result<ai::runtime::State> {
+    state.store.ai_runtime()
+}
+#[tauri::command]
+pub fn resume_ai_runtime(id: String, app: tauri::AppHandle) -> Result<ai::runtime::State> {
+    let result = app.state::<Desktop>().store.resume_ai_runtime(&id)?;
+    if let Err(error) = app.emit(
+        "ai-runtime-changed",
+        app.state::<Desktop>().store.ai_runtime()?,
+    ) {
+        eprintln!("ai-runtime-event: {error}");
+    }
+    Ok(result)
+}
+enum Start {
+    Generate(Request, Option<String>),
+    ConnectionTest(String),
+}
+#[tauri::command]
+pub async fn test_ai_connection(id: String, app: tauri::AppHandle) -> Result<Record> {
+    run(Start::ConnectionTest(id), app).await
 }
 #[tauri::command]
 pub async fn generate_ai(request: Request, app: tauri::AppHandle) -> Result<Record> {
@@ -121,14 +147,18 @@ pub(crate) async fn run_ai(
     batch_id: Option<String>,
     app: tauri::AppHandle,
 ) -> Result<Record> {
+    run(Start::Generate(request, batch_id), app).await
+}
+async fn run(start: Start, app: tauri::AppHandle) -> Result<Record> {
     tauri::async_runtime::spawn_blocking(move || {
         let desktop = app.state::<Desktop>();
         if desktop.stopping() {
             return Err(AppError::new("shutting-down", "Application is stopping"));
         }
-        let (mut value, execute) = match batch_id {
-            Some(id) => desktop.store.begin_batch_ai(request, &id)?,
-            None => desktop.store.begin_ai(request)?,
+        let (mut value, execute) = match start {
+            Start::Generate(request, Some(id)) => desktop.store.begin_batch_ai(request, &id)?,
+            Start::Generate(request, None) => desktop.store.begin_ai(request)?,
+            Start::ConnectionTest(id) => desktop.store.begin_ai_test(&id)?,
         };
         if !execute {
             return Ok(value);

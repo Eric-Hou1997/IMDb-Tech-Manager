@@ -1,4 +1,5 @@
 mod ai_identity;
+mod ai_runtime;
 mod inspector;
 mod legacy_ai_cache;
 mod legacy_ai_failure;
@@ -240,6 +241,7 @@ impl Store {
         }
         self.prepare_annotation_migration(&mut plan)?;
         self.prepare_failure_migration(&mut plan)?;
+        self.prepare_runtime_migration(&mut plan)?;
         self.prepare_cache_migration(&mut plan)?;
         plan.fingerprint = hash(&serde_json::to_vec(&(
             &plan.fingerprint,
@@ -325,7 +327,7 @@ impl Store {
         let mut applied_adapters = vec![];
         let applied_cache_entries = cache_migration::apply(&tx, id, &plan.cache_entries)?;
         for adapter in &plan.adapters {
-            if !["ai-settings", "automatic"].contains(&adapter.target.as_str())
+            if !["ai-settings", "automatic", "ai-runtime"].contains(&adapter.target.as_str())
                 && !adapter.target.starts_with("inspector:")
                 && !adapter.target.starts_with("legacy-ai-failure:")
             {
@@ -347,7 +349,9 @@ impl Store {
                     "Settings changed after the migration preview",
                 ));
             }
-            if adapter.target == "automatic" {
+            if adapter.target == "ai-runtime" {
+                ai_runtime::write(&tx, &serde_json::from_value(adapter.value.clone())?)?;
+            } else if adapter.target == "automatic" {
                 automatic::import_settings(&tx, serde_json::from_value(adapter.value.clone())?)?;
             } else if adapter.target.starts_with("inspector:") {
                 let annotation: crate::inspector::Annotation =
@@ -372,7 +376,6 @@ impl Store {
                     serde_json::from_value(adapter.value.clone())?;
                 settings.validate()?;
                 tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&settings)?])?;
-                tx.execute("DELETE FROM preferences WHERE key='ai-paused'", [])?;
             }
             applied_adapters.push(adapter.target.clone());
         }

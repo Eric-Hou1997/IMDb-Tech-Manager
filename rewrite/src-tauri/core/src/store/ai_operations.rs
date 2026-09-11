@@ -108,6 +108,25 @@ impl Store {
             .map(|s| serde_json::from_str(&s).map_err(Into::into))
             .unwrap_or_else(|| Ok(Settings::default()))
     }
+    pub fn ai_profile(
+        &self,
+        credentials: &dyn crate::services::CredentialStore,
+    ) -> Result<job::Profile> {
+        let settings = self.ai_settings()?;
+        let (credential_ready, credential_error) = if settings.credential_account.is_empty() {
+            (false, None)
+        } else {
+            match credentials.get(&settings.credential_account) {
+                Ok(value) => (value.is_some(), None),
+                Err(error) => (false, Some(error)),
+            }
+        };
+        Ok(job::Profile {
+            settings,
+            credential_ready,
+            credential_error,
+        })
+    }
     pub fn save_ai_settings(&self, id: &str, settings: Settings) -> Result<Settings> {
         valid_id(id)?;
         settings.validate()?;
@@ -140,7 +159,6 @@ impl Store {
             ],
         )?;
         tx.execute("INSERT INTO preferences VALUES('ai-settings',?1) ON CONFLICT(key) DO UPDATE SET body=excluded.body",[serde_json::to_string(&settings)?])?;
-        tx.execute("DELETE FROM preferences WHERE key='ai-paused'", [])?;
         tx.commit()?;
         Ok(settings)
     }
@@ -223,8 +241,9 @@ impl Store {
             .filter(|t| t.ownership == Ownership::Generated)
             .map(|t| json!({"value":t.value,"source":if t.engine=="ai" {"ai"}else{"rules"}}))
             .collect::<Vec<_>>();
-        let keys = ai::identity::keys(&settings, &specs, &existing, &item.path)?;
-        let mut value = Record {
+        let value = Record {
+            purpose: job::Purpose::Generate,
+            resolved_model: String::new(),
             batch_id: task.map(|t| t.id),
             engine: "ai".into(),
             request,
@@ -237,7 +256,7 @@ impl Store {
             settings,
             specs,
             existing,
-            fingerprint: keys.cache,
+            fingerprint: String::new(),
             phase: "requested".into(),
             cached: false,
             legacy_cache: None,
@@ -251,6 +270,69 @@ impl Store {
             started_at: job::now(),
             finished_at: None,
         };
+        self.start_ai(identity, value)
+    }
+    pub fn begin_ai_test(&self, id: &str) -> Result<(Record, bool)> {
+        valid_id(id)?;
+        let identity = hash(b"ai-connection-test");
+        if let Some(body) = self.operation(id, &identity)? {
+            return match serde_json::from_str(&body)? {
+                OperationResult::Ai(value) if value.purpose == job::Purpose::ConnectionTest => {
+                    Ok((*value, false))
+                }
+                _ => Err(AppError::new(
+                    "operation-conflict",
+                    "ID belongs to another action",
+                )),
+            };
+        }
+        let mut settings = self.ai_settings()?;
+        settings.validate()?;
+        let locale = self.configuration()?.locale;
+        settings.config.output_language = serde_json::to_value(&locale)?
+            .as_str()
+            .expect("locale string")
+            .into();
+        let value = Record {
+            purpose: job::Purpose::ConnectionTest,
+            resolved_model: String::new(),
+            batch_id: None,
+            engine: "ai".into(),
+            request: Request {
+                operation_id: id.into(),
+                item_id: job::CONNECTION_TEST_ITEM.into(),
+                expected_hash: String::new(),
+                force: true,
+                retry_failed: true,
+            },
+            path: String::new(),
+            title: String::new(),
+            year: String::new(),
+            imdb: String::new(),
+            media_kind: String::new(),
+            locale,
+            settings,
+            specs: job::connection_specs(),
+            existing: vec![],
+            fingerprint: String::new(),
+            phase: "requested".into(),
+            cached: false,
+            legacy_cache: None,
+            legacy_failure: None,
+            meter: Meter::default(),
+            cost: 0.0,
+            historical_cost: 0.0,
+            result: None,
+            error: None,
+            attempts: vec![],
+            started_at: job::now(),
+            finished_at: None,
+        };
+        self.start_ai(identity, value)
+    }
+    fn start_ai(&self, identity: String, mut value: Record) -> Result<(Record, bool)> {
+        let keys = ai::identity::record_keys(&value)?;
+        value.fingerprint = keys.cache;
         let mut db = self.db()?;
         self.writable()?;
         let tx = db.transaction()?;
@@ -261,7 +343,20 @@ impl Store {
         )? {
             return Err(AppError::new("operation-conflict", "ID belongs to a task"));
         }
-        super::legacy_ai_failure::inspect(&tx, &mut value)?;
+        if !value.request.retry_failed {
+            if let Some(mut error) = super::ai_runtime::read(&tx)?.error() {
+                error.operation_id = Some(value.request.operation_id.clone());
+                if !value.path.is_empty() {
+                    error.path = Some(value.path.clone());
+                }
+                value.phase = "paused".into();
+                value.error = Some(error);
+                value.finished_at = Some(job::now());
+            }
+        }
+        if value.phase == "requested" {
+            super::legacy_ai_failure::inspect(&tx, &mut value)?;
+        }
         if value.phase == "requested" && !value.request.force {
             if let Some(body) = tx
                 .query_row(
@@ -273,6 +368,7 @@ impl Store {
             {
                 let cached: Record = serde_json::from_str(&body)?;
                 if let Some(result) = cached.result {
+                    value.resolved_model = cached.resolved_model;
                     value.result = Some(ai::validate(&result, &value.specs)?);
                     value.cached = true;
                     value.phase = "review-ready".into();
@@ -299,22 +395,6 @@ impl Store {
                 value.finished_at = Some(job::now());
             }
         }
-        if ["requested", "skipped-unchanged-failure"].contains(&value.phase.as_str())
-            && !value.request.retry_failed
-        {
-            if let Some(error) = tx
-                .query_row(
-                    "SELECT body FROM preferences WHERE key='ai-paused'",
-                    [],
-                    |r| r.get::<_, String>(0),
-                )
-                .optional()?
-            {
-                value.phase = "paused".into();
-                value.error = Some(serde_json::from_str(&error)?);
-                value.finished_at = Some(job::now());
-            }
-        }
         if value.cached {
             super::legacy_ai_failure::resolve(&tx, &value.path)?;
         }
@@ -336,15 +416,8 @@ impl Store {
         self.writable()?;
         let mut value = record(&db, id)?;
         if !value.request.retry_failed {
-            if let Some(error) = db
-                .query_row(
-                    "SELECT body FROM preferences WHERE key='ai-paused'",
-                    [],
-                    |r| r.get::<_, String>(0),
-                )
-                .optional()?
-            {
-                return Err(serde_json::from_str(&error)?);
+            if let Some(error) = super::ai_runtime::read(&db)?.error() {
+                return Err(error);
             }
         }
         if let Some(batch_id) = &value.batch_id {
@@ -382,6 +455,7 @@ impl Store {
             finished_at: None,
             http_status: None,
             raw_usage: None,
+            model: None,
             error: None,
             retry_after_seconds: 0.0,
         });
@@ -409,9 +483,13 @@ impl Store {
             })?;
         if let Ok(response) = &response {
             attempt.http_status = Some(response.status);
-            attempt.raw_usage = serde_json::from_slice::<Value>(&response.body)
-                .ok()
-                .and_then(|v| v.get("usage").cloned());
+            if let Ok(payload) = serde_json::from_slice::<Value>(&response.body) {
+                attempt.raw_usage = payload.get("usage").cloned();
+                attempt.model = payload["model"]
+                    .as_str()
+                    .filter(|s| !s.is_empty() && s.len() <= 4096)
+                    .map(str::to_owned);
+            }
         }
         let parsed = response.and_then(|response| {
             value
@@ -426,11 +504,13 @@ impl Store {
         } else {
             0.0
         };
+        let response_model = attempt.model.clone();
         value.cost = value.settings.cost(&value.meter.current);
         // A completed HTTP response still contributes usage when cancellation races its arrival.
         if value.phase != "cancelled" {
             match parsed {
                 Ok(result) => {
+                    value.resolved_model = response_model.unwrap_or_default();
                     value.result = Some(result);
                     value.error = None;
                     value.phase = "review-ready".into();
@@ -440,14 +520,11 @@ impl Store {
                         "DELETE FROM ai_failures WHERE fingerprint=?1",
                         [ai::identity::record_keys(&value)?.failure],
                     )?;
-                    tx.execute("DELETE FROM preferences WHERE key='ai-paused'", [])?;
+                    super::ai_runtime::success(&tx, value.purpose == job::Purpose::ConnectionTest)?;
                     super::legacy_ai_failure::resolve(&tx, &value.path)?;
                 }
                 Err(error) => {
                     let cancelled = error.code == "cancelled";
-                    if ["auth", "quota"].contains(&error.code.as_str()) {
-                        tx.execute("INSERT INTO preferences VALUES('ai-paused',?1) ON CONFLICT(key) DO UPDATE SET body=excluded.body",[serde_json::to_string(&error)?])?;
-                    }
                     value.error = Some(error);
                     let next = job::next(&value);
                     if cancelled || !matches!(next, Ok(Some(_))) {
@@ -456,11 +533,18 @@ impl Store {
                         if let Err(error) = next {
                             value.error = Some(error);
                         }
+                        if let Some(error) = value
+                            .error
+                            .as_ref()
+                            .filter(|e| ["auth", "quota", "rate-limit"].contains(&e.code.as_str()))
+                        {
+                            super::ai_runtime::pause(&tx, error)?;
+                        }
                         if !cancelled
-                            && value
-                                .error
-                                .as_ref()
-                                .is_none_or(|e| e.code != "budget-exhausted")
+                            && value.error.as_ref().is_none_or(|e| {
+                                !["budget-exhausted", "auth", "quota", "rate-limit"]
+                                    .contains(&e.code.as_str())
+                            })
                         {
                             tx.execute("INSERT INTO ai_failures VALUES(?1,?2) ON CONFLICT(fingerprint) DO UPDATE SET error=excluded.error",params![ai::identity::record_keys(&value)?.failure,serde_json::to_string(&value.error)?])?;
                         }
@@ -503,6 +587,12 @@ impl Store {
     pub fn preview_ai(&self, id: &str, ai_id: &str) -> Result<crate::writing::WritePreview> {
         valid_id(id)?;
         let value = self.ai_record(ai_id)?;
+        if value.purpose != job::Purpose::Generate {
+            return Err(AppError::new(
+                "ai-test-not-writable",
+                "Connection test results cannot write media files",
+            ));
+        }
         if value.phase != "review-ready" {
             return Err(AppError::new(
                 "ai-result-unavailable",
@@ -542,6 +632,8 @@ impl Store {
                 engine: value.engine.clone(),
                 model: if value.engine == "local-rules" {
                     "4.0.0".into()
+                } else if !value.resolved_model.is_empty() {
+                    value.resolved_model
                 } else {
                     value
                         .legacy_cache

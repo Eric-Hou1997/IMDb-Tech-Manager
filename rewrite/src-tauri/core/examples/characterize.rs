@@ -21,6 +21,7 @@ fn main() {
             )
             .unwrap()
         }
+        "connection-specs" => serde_json::to_value(ai::job::connection_specs()).unwrap(),
         "request" => {
             let cfg: ai::Config = serde_json::from_value(value["config"].clone()).unwrap();
             let input = serde_json::from_value(value["specs"].clone()).unwrap();

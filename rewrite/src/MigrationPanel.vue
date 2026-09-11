@@ -6,7 +6,7 @@ const props=defineProps<{product:'ITM'|'TCM'}>();
 const plan=shallowRef<MigrationPlan|null>(null),receipt=shallowRef<MigrationReceipt|null>(null),busy=ref(false),error=ref('');
 const adapterPage=ref(0);
 watch(plan,()=>adapterPage.value=0);
-function targetName(target:string){return target==='automatic'?'自动模式设置':target.startsWith('inspector:')?'问题确认与手动状态':target.startsWith('legacy-ai-failure:')?'旧 AI 失败队列':'AI 设置';}
+function targetName(target:string){return target==='ai-runtime'?'AI 暂停与运行状态':target==='automatic'?'自动模式设置':target.startsWith('inspector:')?'问题确认与手动状态':target.startsWith('legacy-ai-failure:')?'旧 AI 失败队列':'AI 设置';}
 function appliedSummary(targets:string[]){const counts=new Map<string,number>();for(const target of targets){const name=targetName(target);counts.set(name,(counts.get(name)||0)+1);}return [...counts].map(([name,count])=>`${name} ${count} 项`).join('、');}
 async function inspect(kind:string){if(busy.value)return;busy.value=true;error.value='';try{plan.value=await invoke<MigrationPlan|null>('migration_plan',{id:crypto.randomUUID(),sourceKind:kind});receipt.value=null;}catch(e){error.value=JSON.stringify(e);}finally{busy.value=false;}}
 async function apply(){if(!plan.value||busy.value)return;busy.value=true;error.value='';try{receipt.value=await invoke<MigrationReceipt>('migration_apply',{id:plan.value.id,fingerprint:plan.value.fingerprint});plan.value=null;}catch(e){error.value=JSON.stringify(e);}finally{busy.value=false;}}

@@ -74,6 +74,7 @@ pub(super) fn reuse(db: &Connection, record: &mut Record) -> Result<()> {
     let hit =
         legacy_cache::validate(&raw, &record.settings, &record.specs).map_err(|e| e.at(&source))?;
     record.result = Some(hit.result);
+    record.resolved_model = hit.model.clone();
     record.cached = true;
     record.phase = "review-ready".into();
     record.meter.cache_hit(hit.usage);

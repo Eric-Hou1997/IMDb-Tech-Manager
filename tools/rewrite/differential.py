@@ -90,3 +90,7 @@ for protocol in ("openai", "anthropic"):
         assert actual_failure==expected_failure,(protocol,temperature,actual_failure,expected_failure)
     print("PASS exact legacy AI cache key: protocol, Unicode, floats and raw extra_body:", protocol)
     print("PASS exact legacy AI failure fingerprint: full specs, endpoint and retry parameters:",protocol)
+
+connection_specs=json.loads((ROOT/'rewrite/src-tauri/core/assets/ai-connection-test-specs.json').read_text())
+assert rust({'mode':'connection-specs'})=={k:connection_specs.get(k,[]) for k in legacy.SECTIONS}
+print('PASS connection-test specs: same ten-field sample as actual legacy ai_test characterization')

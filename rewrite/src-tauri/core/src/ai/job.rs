@@ -78,6 +78,13 @@ impl Settings {
             + usage.output as f64 * self.output_price_per_million / 1_000_000.0
     }
 }
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(rename = "AiProfile")]
+pub struct Profile {
+    pub settings: Settings,
+    pub credential_ready: bool,
+    pub credential_error: Option<AppError>,
+}
 pub fn endpoint(config: &Config) -> Result<String> {
     let mut url = url::Url::parse(config.base_url.trim())
         .map_err(|e| AppError::new("invalid-ai-endpoint", e))?;
@@ -128,12 +135,36 @@ pub struct Attempt {
     pub finished_at: Option<String>,
     pub http_status: Option<u16>,
     pub raw_usage: Option<Value>,
+    #[serde(default)]
+    pub model: Option<String>,
     pub error: Option<AppError>,
     pub retry_after_seconds: f64,
+}
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[serde(rename_all = "kebab-case")]
+#[ts(rename = "AiPurpose")]
+pub enum Purpose {
+    #[default]
+    Generate,
+    ConnectionTest,
+}
+pub const CONNECTION_TEST_ITEM: &str = "__connection_test__";
+pub fn connection_specs() -> Specs {
+    let mut specs: Specs =
+        serde_json::from_str(include_str!("../../assets/ai-connection-test-specs.json"))
+            .expect("verified connection test fixture");
+    for section in crate::specs::SECTIONS {
+        specs.entry(section.into()).or_default();
+    }
+    specs
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(rename = "AiRecord")]
 pub struct Record {
+    #[serde(default)]
+    pub purpose: Purpose,
+    #[serde(default)]
+    pub resolved_model: String,
     #[serde(default)]
     pub batch_id: Option<String>,
     #[serde(default = "default_engine")]
@@ -178,12 +209,16 @@ pub fn needs_review(record: &Record) -> bool {
 /// Explicitly configured fallback preserves the failed AI request and its cost.
 /// Account, budget, pause and cancellation failures never become rule output.
 pub fn fallback(record: &mut Record) {
+    if record.purpose == Purpose::ConnectionTest {
+        return;
+    }
     let Some(error) = &record.error else { return };
     if record.settings.fallback_mode != "local-rules"
         || !["failed", "skipped-unchanged-failure"].contains(&record.phase.as_str())
         || [
             "auth",
             "quota",
+            "rate-limit",
             "paused",
             "budget-exhausted",
             "cancelled",

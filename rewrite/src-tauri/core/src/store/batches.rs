@@ -322,8 +322,16 @@ impl Store {
                     t.failure = row.error.clone();
                 }
                 if row.error.as_ref().is_some_and(|e| {
-                    ["auth", "quota", "paused", "budget-exhausted", "interrupted"]
-                        .contains(&e.code.as_str())
+                    [
+                        "auth",
+                        "quota",
+                        "rate-limit",
+                        "paused",
+                        "budget-exhausted",
+                        "interrupted",
+                        "legacy-runtime-unverified",
+                    ]
+                    .contains(&e.code.as_str())
                 }) {
                     t.batch.as_mut().unwrap().pause_requested = true;
                 }

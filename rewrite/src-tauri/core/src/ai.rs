@@ -8,6 +8,7 @@ pub mod identity;
 pub mod job;
 pub mod legacy_cache;
 pub mod legacy_failure;
+pub mod runtime;
 pub const DEFAULT_PROMPT: &str = include_str!("../assets/default-ai-prompt.txt");
 pub const LANGUAGE_BOUNDARY: &str = include_str!("../assets/language-boundary.txt");
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]

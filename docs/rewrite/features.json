@@ -280,6 +280,22 @@
           "scope": "Native provider requests, credentials, retry classification, usage, cache, explicit failure retry, rule fallback and review; legacy cache/history adapters remain pending",
           "evidence": "docs/rewrite/evidence/native-ai-generation.json",
           "recorded_at": "2026-09-11"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/ai/runtime.rs",
+            "rewrite/src-tauri/core/src/store/ai_runtime.rs",
+            "rewrite/src-tauri/core/src/store/ai_operations.rs",
+            "rewrite/src-tauri/src/ai_jobs.rs",
+            "rewrite/src/AiGenerator.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/ai_flow.rs",
+            "tools/rewrite/itm_behavior.py",
+            "tools/rewrite/differential.py"
+          ],
+          "scope": "Preserve imported global pause and timestamps; explicit idempotent resume; original connection-test sample with no media write or rule fallback; bounded account retry gates; reported response model and readable settings when credentials fail. Native UI acceptance pending unlock.",
+          "evidence": "docs/rewrite/10-completion-checklist.md"
         }
       ],
       "supplemental_evidence": [
@@ -772,6 +788,22 @@
           "scope": "Legacy AI profile mapping, original custom prompt bytes, destination CAS, transaction rollback, credential boundary; native fixture import verified without reading actual legacy secrets",
           "evidence": "docs/rewrite/evidence/native-ai-migration.json",
           "recorded_at": "2026-09-11"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/ai/runtime.rs",
+            "rewrite/src-tauri/core/src/store/ai_runtime.rs",
+            "rewrite/src-tauri/core/src/store/ai_operations.rs",
+            "rewrite/src-tauri/src/ai_jobs.rs",
+            "rewrite/src/AiGenerator.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/ai_flow.rs",
+            "tools/rewrite/itm_behavior.py",
+            "tools/rewrite/differential.py"
+          ],
+          "scope": "Preserve imported global pause and timestamps; explicit idempotent resume; original connection-test sample with no media write or rule fallback; bounded account retry gates; reported response model and readable settings when credentials fail. Native UI acceptance pending unlock.",
+          "evidence": "docs/rewrite/10-completion-checklist.md"
         }
       ],
       "current_slices": [

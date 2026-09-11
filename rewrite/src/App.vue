@@ -5,6 +5,7 @@ import LibraryPanel from './LibraryPanel.vue';
 import LifecyclePanel from './LifecyclePanel.vue';
 import UpdatePanel from './UpdatePanel.vue';
 import MigrationPanel from './MigrationPanel.vue';
+import AiGenerator from './AiGenerator.vue';
 import AutomaticPanel from './AutomaticPanel.vue';
 const product = 'ITM';
 const status = ref('正在连接桌面核心…');
@@ -34,6 +35,7 @@ onMounted(async () => {
     <p class="status" role="status">{{ status }}</p>
     <LibraryPanel />
     <AutomaticPanel />
+    <AiGenerator :blocked="false" />
     <LifecyclePanel />
     <UpdatePanel />
     <MigrationPanel :product="product" />

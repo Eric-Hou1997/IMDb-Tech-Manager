@@ -754,3 +754,336 @@ fn disabled_ai_blocks_new_requests_and_batches_but_keeps_prior_history_queryable
     assert_eq!(store.plan_batch(scope).unwrap_err().code, "ai-disabled");
     assert!(store.ai_record("disabled").is_err());
 }
+
+fn import_runtime(store: &Store, root: &std::path::Path, id: &str, state: Value) {
+    let legacy = root.join(id);
+    fs::create_dir(&legacy).unwrap();
+    fs::write(
+        legacy.join("ai-runtime.json"),
+        serde_json::to_vec(&state).unwrap(),
+    )
+    .unwrap();
+    let plan = store.prepare_migration(id, &legacy, "itm-engine").unwrap();
+    assert!(plan.adapters.iter().any(|a| a.target == "ai-runtime"));
+    store.apply_migration(id, &plan.fingerprint).unwrap();
+}
+fn paused(kind: &str) -> Value {
+    json!({"paused":true,"reason_kind":kind,"reason":"旧错误原因","paused_at":"2026-09-01T12:00:00+00:00","last_success_at":"2026-08-31T12:00:00+00:00","last_error_at":"2026-09-01T12:00:00+00:00","updated_at":"2026-09-01T12:00:00+00:00"})
+}
+fn connection_good() -> String {
+    serde_json::to_string(&json!({"tags":[{"value":"Dolby Atmos","field":"Sound mix","source_indexes":[1],"confidence":"high"}],"warnings":[]})).unwrap()
+}
+#[test]
+fn imported_pause_precedes_cache_survives_settings_and_resumes_only_explicitly() {
+    let (_temp, store, item, root) = setup();
+    let before = fs::metadata(&item.path).unwrap().modified().unwrap();
+    store.begin_ai(request(&item, "cached-source")).unwrap();
+    send(&store, "cached-source", response("stop", &good(), 10, 5));
+    import_runtime(&store, &root, "import-pause", paused("auth"));
+    assert_eq!(
+        serde_json::to_value(store.ai_runtime().unwrap()).unwrap(),
+        paused("auth")
+    );
+    let mut settings = store.ai_settings().unwrap();
+    settings.config.model = "changed".into();
+    store
+        .save_ai_settings("save-while-paused", settings)
+        .unwrap();
+    assert!(store.ai_runtime().unwrap().paused);
+    let (blocked, execute) = store.begin_ai(request(&item, "blocked")).unwrap();
+    assert!(!execute);
+    assert_eq!(blocked.phase, "paused");
+    assert_eq!(blocked.meter.attempts, 0);
+    let mut settings = store.ai_settings().unwrap();
+    settings.config.model = "model".into();
+    store
+        .save_ai_settings("restore-settings", settings)
+        .unwrap();
+    assert_eq!(
+        store
+            .begin_ai(request(&item, "blocked-cache"))
+            .unwrap()
+            .0
+            .phase,
+        "paused"
+    );
+    store.resume_ai_runtime("resume").unwrap();
+    let cached = store.begin_ai(request(&item, "after-resume")).unwrap().0;
+    assert!(cached.cached);
+    assert_eq!(cached.meter.attempts, 0);
+    import_runtime(&store, &root, "pause-again", paused("quota"));
+    // Re-delivery of an old resume receipt cannot resume a newer pause.
+    assert!(!store.resume_ai_runtime("resume").unwrap().paused);
+    assert!(store.ai_runtime().unwrap().paused);
+    assert_eq!(
+        store.resume_ai_runtime("scan").unwrap_err().code,
+        "operation-conflict"
+    );
+    drop(store);
+    let store = Store::open(&root.join("state.sqlite")).unwrap();
+    assert_eq!(store.ai_runtime().unwrap().reason_kind, "quota");
+    assert_eq!(fs::read(&item.path).unwrap(), RAW.as_bytes());
+    assert_eq!(
+        fs::metadata(&item.path).unwrap().modified().unwrap(),
+        before
+    );
+}
+#[test]
+fn malformed_runtime_and_changed_import_destination_fail_closed() {
+    let (_temp, store, item, root) = setup();
+    import_runtime(
+        &store,
+        &root,
+        "malformed",
+        json!({"paused":"not-a-boolean"}),
+    );
+    assert_eq!(
+        store.ai_runtime().unwrap().reason_kind,
+        "legacy-runtime-unverified"
+    );
+    assert!(!store.begin_ai(request(&item, "guarded")).unwrap().1);
+    let legacy = root.join("next-import");
+    fs::create_dir(&legacy).unwrap();
+    fs::write(
+        legacy.join("ai-runtime.json"),
+        serde_json::to_vec(&paused("auth")).unwrap(),
+    )
+    .unwrap();
+    let plan = store
+        .prepare_migration("next-import", &legacy, "itm-engine")
+        .unwrap();
+    store.resume_ai_runtime("manual-resume").unwrap();
+    assert_eq!(
+        store
+            .apply_migration("next-import", &plan.fingerprint)
+            .unwrap_err()
+            .code,
+        "migration-configuration-conflict"
+    );
+    assert!(store
+        .legacy_artifact("next-import", "ai-runtime.json")
+        .is_err());
+    assert!(!store.ai_runtime().unwrap().paused);
+}
+#[test]
+fn connection_test_works_without_enabled_ai_or_library_and_never_becomes_a_write() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    let store = Store::open(&root.join("state.sqlite")).unwrap();
+    let mut settings = Settings::default();
+    settings.config.model = "alias".into();
+    settings.config.base_url = "https://provider.example/v1".into();
+    store.save_ai_settings("profile", settings).unwrap();
+    assert!(!store.ai_settings().unwrap().enabled);
+    import_runtime(&store, &root, "old-runtime", paused("auth"));
+    let (test, execute) = store.begin_ai_test("test").unwrap();
+    assert!(execute);
+    assert_eq!(test.purpose, job::Purpose::ConnectionTest);
+    assert!(test.path.is_empty());
+    assert_eq!(test.specs.len(), 10);
+    assert_eq!(test.specs["Sound mix"], vec!["DTS (DTS: X)", "Dolby Atmos"]);
+    let mut reply: Value =
+        serde_json::from_slice(&response("stop", &connection_good(), 10, 5).body).unwrap();
+    reply["model"] = "resolved-model-202609".into();
+    let done = send(
+        &store,
+        "test",
+        HttpResponse {
+            status: 200,
+            body: serde_json::to_vec(&reply).unwrap(),
+        },
+    );
+    assert_eq!(done.phase, "review-ready");
+    assert_eq!(done.meter.current.total, 15);
+    assert_eq!(done.resolved_model, "resolved-model-202609");
+    assert_eq!(
+        done.attempts[0].model.as_deref(),
+        Some("resolved-model-202609")
+    );
+    assert!(!store.ai_runtime().unwrap().paused);
+    assert!(!store.ai_runtime().unwrap().last_success_at.is_empty());
+    assert_eq!(
+        store.preview_ai("unsafe-write", "test").unwrap_err().code,
+        "ai-test-not-writable"
+    );
+    assert!(store.all_items().unwrap().is_empty());
+    assert!(!store.begin_ai_test("test").unwrap().1);
+    let (fresh, execute) = store.begin_ai_test("test-again").unwrap();
+    assert!(execute);
+    assert!(!fresh.cached);
+    store
+        .end_ai("test-again", AppError::new("cancelled", "fixture"))
+        .unwrap();
+    assert_eq!(
+        store
+            .ai_history(Some(job::CONNECTION_TEST_ITEM))
+            .unwrap()
+            .len(),
+        2
+    );
+}
+#[test]
+fn failed_cancelled_or_interrupted_connection_tests_cannot_clear_pause_or_use_rule_fallback() {
+    let (_temp, store, _item, root) = setup();
+    let mut settings = store.ai_settings().unwrap();
+    settings.retry_count = 0;
+    settings.fallback_mode = "local-rules".into();
+    store.save_ai_settings("fallback", settings).unwrap();
+    import_runtime(&store, &root, "old-runtime", paused("quota"));
+    store.begin_ai_test("bad-json").unwrap();
+    send(&store, "bad-json", response("stop", "not-json", 10, 5));
+    let failed = send(&store, "bad-json", response("stop", "not-json", 10, 5));
+    assert_eq!(failed.phase, "failed");
+    assert!(failed.result.is_none());
+    assert_eq!(failed.engine, "ai");
+    assert_eq!(failed.meter.current.total, 30);
+    assert!(store.ai_runtime().unwrap().paused);
+    store.begin_ai_test("cancel").unwrap();
+    let (body, _) = job::next(&store.ai_record("cancel").unwrap())
+        .unwrap()
+        .unwrap();
+    store.reserve_ai_attempt("cancel", body).unwrap();
+    store
+        .end_ai("cancel", AppError::new("cancelled", "fixture"))
+        .unwrap();
+    let cancelled = store
+        .observe_ai_attempt(
+            "cancel",
+            Ok(response("stop", &connection_good(), 10, 5)),
+            0.0,
+        )
+        .unwrap();
+    assert_eq!(cancelled.meter.current.total, 15);
+    assert!(cancelled.result.is_none());
+    assert!(store.ai_runtime().unwrap().paused);
+    store.begin_ai_test("interrupted").unwrap();
+    let (body, _) = job::next(&store.ai_record("interrupted").unwrap())
+        .unwrap()
+        .unwrap();
+    store.reserve_ai_attempt("interrupted", body).unwrap();
+    drop(store);
+    let store = Store::open(&root.join("state.sqlite")).unwrap();
+    let (interrupted, execute) = store.begin_ai_test("interrupted").unwrap();
+    assert!(!execute);
+    assert_eq!(interrupted.phase, "interrupted");
+    assert_eq!(interrupted.meter.attempts, 1);
+    assert!(store.ai_runtime().unwrap().paused);
+}
+#[test]
+fn connection_test_preserves_budget_and_unknown_pause_while_normal_success_preserves_auth() {
+    let (_temp, store, item, root) = setup();
+    for (i, kind) in ["budget", "legacy-runtime-unverified"].iter().enumerate() {
+        import_runtime(&store, &root, &format!("import-{i}"), paused(kind));
+        let id = format!("test-{i}");
+        store.begin_ai_test(&id).unwrap();
+        send(&store, &id, response("stop", &connection_good(), 10, 5));
+        assert_eq!(store.ai_runtime().unwrap().reason_kind, *kind);
+        assert!(store.ai_runtime().unwrap().paused);
+    }
+    import_runtime(&store, &root, "import-auth", paused("auth"));
+    let mut req = request(&item, "normal-explicit-retry");
+    req.retry_failed = true;
+    store.begin_ai(req).unwrap();
+    send(
+        &store,
+        "normal-explicit-retry",
+        response("stop", &good(), 10, 5),
+    );
+    assert!(store.ai_runtime().unwrap().paused);
+}
+#[test]
+fn bounded_rate_limit_retries_finish_before_global_pause_and_do_not_fall_back() {
+    let (_temp, store, item, root) = setup();
+    let mut settings = store.ai_settings().unwrap();
+    settings.retry_count = 1;
+    settings.fallback_mode = "local-rules".into();
+    store.save_ai_settings("retry-once", settings).unwrap();
+    store.begin_ai(request(&item, "limited")).unwrap();
+    let limited = || HttpResponse {
+        status: 429,
+        body: br#"{"error":{"type":"rate_limit_error","message":"fixture"}}"#.to_vec(),
+    };
+    let first = send(&store, "limited", limited());
+    assert_eq!(first.phase, "running");
+    assert!(!store.ai_runtime().unwrap().paused);
+    let exhausted = send(&store, "limited", limited());
+    assert_eq!(exhausted.phase, "failed");
+    assert_eq!(exhausted.error.unwrap().code, "rate-limit");
+    assert!(exhausted.result.is_none());
+    assert_eq!(exhausted.meter.attempts, 2);
+    assert_eq!(
+        store.begin_ai(request(&item, "blocked")).unwrap().0.phase,
+        "paused"
+    );
+    drop(store);
+    let store = Store::open(&root.join("state.sqlite")).unwrap();
+    assert_eq!(store.ai_runtime().unwrap().reason_kind, "rate-limit");
+    store.resume_ai_runtime("resume").unwrap();
+    assert!(store.begin_ai(request(&item, "fresh")).unwrap().1);
+}
+#[test]
+fn response_model_survives_cache_and_generated_ownership_without_inventing_missing_model() {
+    let (_temp, store, item, root) = setup();
+    store.begin_ai(request(&item, "model-response")).unwrap();
+    let mut reply: Value = serde_json::from_slice(&response("stop", &good(), 10, 5).body).unwrap();
+    reply["model"] = "resolved-version".into();
+    send(
+        &store,
+        "model-response",
+        HttpResponse {
+            status: 200,
+            body: serde_json::to_vec(&reply).unwrap(),
+        },
+    );
+    let cached = store.begin_ai(request(&item, "cached-model")).unwrap().0;
+    assert_eq!(cached.resolved_model, "resolved-version");
+    let preview = store.preview_ai("write-model", "cached-model").unwrap();
+    assert!(preview.after_xml.contains("resolved-version"));
+    assert!(!preview
+        .after_xml
+        .contains("&quot;model&quot;:&quot;model&quot;"));
+    store
+        .apply_specs(
+            "write-model",
+            &preview.after_hash,
+            &root.join("journal"),
+            || false,
+        )
+        .unwrap();
+    let changed = store.item(&item.id).unwrap();
+    let mut req = request(&changed, "missing-model");
+    req.force = true;
+    store.begin_ai(req).unwrap();
+    let unknown = send(&store, "missing-model", response("stop", &good(), 10, 5));
+    assert!(unknown.resolved_model.is_empty());
+    assert!(unknown.attempts[0].model.is_none());
+}
+#[test]
+fn inaccessible_credentials_do_not_hide_the_saved_ai_settings() {
+    struct Denied;
+    impl itm_core::services::CredentialStore for Denied {
+        fn get(&self, account: &str) -> Result<Option<String>> {
+            assert_eq!(account, "denied-account");
+            Err(AppError::new(
+                "credential-read",
+                "fixture permission denied",
+            ))
+        }
+        fn put(&self, _: &str, _: &str) -> Result<()> {
+            panic!("read-only profile")
+        }
+        fn delete(&self, _: &str) -> Result<()> {
+            panic!("read-only profile")
+        }
+    }
+    let (_temp, store, _item, _root) = setup();
+    let mut settings = store.ai_settings().unwrap();
+    settings.credential_account = "denied-account".into();
+    store
+        .save_ai_settings("credential-reference", settings)
+        .unwrap();
+    let profile = store.ai_profile(&Denied).unwrap();
+    assert_eq!(profile.settings.config.model, "model");
+    assert!(!profile.credential_ready);
+    assert_eq!(profile.credential_error.unwrap().code, "credential-read");
+}

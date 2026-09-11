@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """Execute the original ITM engine against isolated fixtures; no production data."""
+import contextlib
+import io
+import json
 import importlib.util
 import pathlib
 import tempfile
@@ -200,5 +203,40 @@ class WriterBaseline(unittest.TestCase):
             raw='<movie><uniqueid type="imdb">tt1234567</uniqueid>'+('<tag>Camera: Arri Alexa</tag>' if tag else '')+'<technicalspecs source="IMDb" imdbid="tt1234567"><section name="Camera"><item>Arri Alexa</item></section><generatedtags owner="IMDb Tech Manager" schema="2" engine="'+engine+'" specHash="'+fingerprint+'" state="'+state+'"><tag>Camera: Arri Alexa</tag></generatedtags></technicalspecs></movie>'
             self.nfo.write_text(raw,encoding='utf-8')
             self.assertEqual(eng.inspector_detail(str(self.nfo))['lifecycle'],want)
+
+    def test_ai_runtime_pause_success_and_explicit_resume_match_original_boundaries(self):
+        before=self.nfo.stat().st_mtime_ns
+        for kind in ('auth','quota','budget','transient','rate-limit'):
+            eng.ai_pause(kind,'原错误原因')
+            paused=eng._load_ai_runtime()
+            cfg=eng.load_json(eng.CFG,{})
+            cfg['ai']={'model':'changed-model'}
+            eng.save_json(eng.CFG,cfg)
+            self.assertEqual(eng._load_ai_runtime(),paused)
+            eng._record_ai_success()
+            state=eng._load_ai_runtime()
+            self.assertEqual(state['paused'],kind not in ('transient','rate-limit'))
+            self.assertTrue(state['last_success_at'])
+            eng.ai_resume()
+            self.assertFalse(eng._load_ai_runtime()['paused'])
+            self.assertEqual(eng._load_ai_runtime()['last_error_at'],paused['last_error_at'])
+        self.assertEqual(self.nfo.read_bytes(),self.raw)
+        self.assertEqual(self.nfo.stat().st_mtime_ns,before)
+
+    def test_connection_test_uses_original_sample_bypasses_pause_and_clears_only_account_errors(self):
+        sample=json.loads((ROOT/'rewrite/src-tauri/core/assets/ai-connection-test-specs.json').read_text())
+        sample={k:sample.get(k,[]) for k in eng.SECTIONS}
+        for kind in ('auth','quota','transient','rate-limit','budget'):
+            eng.ai_pause(kind,'fixture pause')
+            with patch.object(eng,'ai_ready',return_value=(True,'')) as ready, patch.object(eng,'ai_generate_tags',return_value={'tags':[]}) as generate,contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(eng.ai_test(),0)
+            ready.assert_called_once_with(require_enabled=False,allow_paused=True)
+            generate.assert_called_once_with(sample,force=True,ignore_pause=True)
+            self.assertEqual(eng._load_ai_runtime()['paused'],kind=='budget')
+        eng.ai_pause('auth','fixture pause')
+        with patch.object(eng,'ai_ready',return_value=(True,'')),patch.object(eng,'ai_generate_tags',side_effect=ValueError('invalid result')),contextlib.redirect_stdout(io.StringIO()),contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(eng.ai_test(),3)
+        self.assertTrue(eng._load_ai_runtime()['paused'])
+        self.assertEqual(self.nfo.read_bytes(),self.raw)
 
 if __name__=='__main__': unittest.main(verbosity=2)
