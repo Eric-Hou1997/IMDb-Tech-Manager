@@ -262,3 +262,277 @@ fn unknown_versions_identity_and_invalid_data_are_archived_without_becoming_fact
         assert!(store.begin_fetch(request(&item, "fetch", false)).unwrap().1);
     }
 }
+
+fn raw_page(legacy: &std::path::Path, age: i64, page: &str) -> (Vec<u8>, Vec<u8>) {
+    use std::io::Write;
+    let mut gzip = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    gzip.write_all(page.as_bytes()).unwrap();
+    let packed = gzip.finish().unwrap();
+    let metadata=serde_json::to_vec(&json!({"url":"https://www.imdb.com/title/tt1234567/technical/","fetched_at":(chrono::Utc::now()-chrono::Duration::seconds(age)).to_rfc3339(),"body_hash":hash(page.as_bytes()),"bytes":page.chars().count()})).unwrap();
+    fs::write(legacy.join("cache/raw-tt1234567.json"), &metadata).unwrap();
+    fs::write(legacy.join("cache/raw-tt1234567.html.gz"), &packed).unwrap();
+    (metadata, packed)
+}
+fn html() -> String {
+    format!(
+        "<script id='__NEXT_DATA__'>{}</script>",
+        json!({"props":{"title":{"id":"tt1234567","runtimes":{"edges":[]},"technicalSpecifications":{"cameras":{"items":[{"camera":"合成相机"}]}}}}})
+    )
+}
+#[test]
+fn original_gzip_pair_is_reused_without_http_reparsed_after_parser_change_and_undoable() {
+    let (tmp, store, item, legacy) = setup();
+    let (meta, packed) = raw_page(&legacy, 60, &html());
+    let original = fs::read(&item.path).unwrap();
+    let plan = store
+        .prepare_migration("raw-import", &legacy, "itm-engine")
+        .unwrap();
+    assert_eq!(plan.cache_entries[0].state, "raw-source");
+    assert_eq!(
+        store
+            .apply_migration("raw-import", &plan.fingerprint)
+            .unwrap()
+            .applied_cache_entries,
+        1
+    );
+    assert_eq!(
+        store
+            .legacy_artifact("raw-import", "cache/raw-tt1234567.html.gz")
+            .unwrap(),
+        packed
+    );
+    assert_eq!(
+        store
+            .legacy_artifact("raw-import", "cache/raw-tt1234567.json")
+            .unwrap(),
+        meta
+    );
+    assert_eq!(fs::read(&item.path).unwrap(), original);
+    let (record, send) = store
+        .begin_fetch(request(&item, "from-raw", false))
+        .unwrap();
+    assert!(!send);
+    assert!(record.cached && record.attempts.is_empty());
+    assert_eq!(
+        record.source.as_ref().unwrap().specs["Camera"],
+        vec!["合成相机"]
+    );
+    assert_eq!(
+        record.source.unwrap().fetched_at,
+        serde_json::from_slice::<serde_json::Value>(&meta).unwrap()["fetched_at"]
+    );
+    let journal = tmp.path().canonicalize().unwrap().join("backups");
+    let p = store.preview_source("raw-write", "from-raw").unwrap();
+    store
+        .apply_specs("raw-write", &p.after_hash, &journal, || false)
+        .unwrap();
+    let p = store
+        .preview_undo("raw-undo", "raw-write", &journal)
+        .unwrap();
+    store
+        .apply_specs("raw-undo", &p.after_hash, &journal, || false)
+        .unwrap();
+    assert_eq!(fs::read(&item.path).unwrap(), original);
+    let db = rusqlite::Connection::open(tmp.path().join("state.sqlite")).unwrap();
+    db.execute("UPDATE imdb_cache SET parser_version=0", [])
+        .unwrap();
+    drop(db);
+    drop(store);
+    let store = Store::open(&tmp.path().join("state.sqlite")).unwrap();
+    assert!(
+        !store
+            .begin_fetch(request(&item, "reparse", false))
+            .unwrap()
+            .1
+    );
+    assert!(
+        store
+            .begin_fetch(request(&item, "refresh-raw", true))
+            .unwrap()
+            .1
+    );
+}
+#[test]
+fn raw_fallback_respects_failure_cooldown_and_explicit_retry() {
+    let (_tmp, store, item, legacy) = setup();
+    raw_page(&legacy, 60, &html());
+    save(&legacy, &old(30, "timeout"));
+    let plan = store
+        .prepare_migration("import", &legacy, "itm-engine")
+        .unwrap();
+    store.apply_migration("import", &plan.fingerprint).unwrap();
+    let (record, send) = store
+        .begin_fetch(request(&item, "ordinary", false))
+        .unwrap();
+    assert!(!send);
+    assert_eq!(record.phase, "failed");
+    assert_eq!(record.error.unwrap().code, "imdb-timeout");
+    store.save_preference("imdb-failure:tt1234567",&json!({"imdb":"tt1234567","fetched_at":(chrono::Utc::now()-chrono::Duration::hours(2)).to_rfc3339(),"error":AppError::new("imdb-timeout","old timeout")})).unwrap();
+    assert!(
+        !store
+            .begin_fetch(request(&item, "cooled-down", false))
+            .unwrap()
+            .1
+    );
+    assert!(
+        store
+            .begin_fetch(request(&item, "explicit-refresh", true))
+            .unwrap()
+            .1
+    );
+}
+#[test]
+fn raw_corruption_expiry_challenge_and_unsupported_pages_never_become_specs() {
+    for kind in [
+        "expired",
+        "hash",
+        "url",
+        "gzip",
+        "waf",
+        "unknown",
+        "orphan",
+        "oversized",
+    ] {
+        let (_tmp, store, item, legacy) = setup();
+        let page = match kind {
+            "waf" => format!("{} AwsWafIntegration", html()),
+            "unknown" => "<html>Changed structure</html>".into(),
+            "oversized" => "x".repeat(8 * 1024 * 1024 + 1),
+            _ => html(),
+        };
+        let (mut meta, _) = raw_page(
+            &legacy,
+            if kind == "expired" { 31 * 86400 } else { 60 },
+            &page,
+        );
+        if ["hash", "url"].contains(&kind) {
+            let mut value: serde_json::Value = serde_json::from_slice(&meta).unwrap();
+            if kind == "hash" {
+                value["body_hash"] = json!("0".repeat(64));
+            } else {
+                value["url"] = json!("https://www.imdb.com/title/tt7654321/technical/");
+            }
+            meta = serde_json::to_vec(&value).unwrap();
+            fs::write(legacy.join("cache/raw-tt1234567.json"), &meta).unwrap();
+        }
+        if kind == "gzip" {
+            fs::write(legacy.join("cache/raw-tt1234567.html.gz"), [31, 139, 8]).unwrap();
+        }
+        if kind == "orphan" {
+            fs::remove_file(legacy.join("cache/raw-tt1234567.json")).unwrap();
+        }
+        let plan = store
+            .prepare_migration("import", &legacy, "itm-engine")
+            .unwrap();
+        assert_eq!(plan.cache_entries.len(), 1, "{kind}");
+        assert_ne!(plan.cache_entries[0].state, "raw-source", "{kind}");
+        store.apply_migration("import", &plan.fingerprint).unwrap();
+        assert!(
+            store
+                .begin_fetch(request(&item, "acquire", false))
+                .unwrap()
+                .1,
+            "{kind}"
+        );
+    }
+}
+#[test]
+fn changed_raw_destination_or_source_rolls_back_and_archived_integrity_is_checked() {
+    {
+        let (_tmp, store, _item, legacy) = setup();
+        raw_page(&legacy, 60, &html());
+        let plan = store
+            .prepare_migration("changed-source", &legacy, "itm-engine")
+            .unwrap();
+        fs::write(
+            legacy.join("cache/raw-tt1234567.html.gz"),
+            b"changed after review",
+        )
+        .unwrap();
+        assert_eq!(
+            store
+                .apply_migration("changed-source", &plan.fingerprint)
+                .unwrap_err()
+                .code,
+            "migration-source-changed"
+        );
+        assert!(store
+            .legacy_artifact("changed-source", "cache/raw-tt1234567.json")
+            .is_err());
+    }
+    let (tmp, store, item, legacy) = setup();
+    let (original_meta, original_body) = raw_page(&legacy, 60, &html());
+    let other = store
+        .prepare_migration("other", &legacy, "itm-engine")
+        .unwrap();
+    store.apply_migration("other", &other.fingerprint).unwrap();
+    raw_page(&legacy, 0, &html());
+    let plan = store
+        .prepare_migration("first", &legacy, "itm-engine")
+        .unwrap();
+    assert_eq!(plan.cache_entries[0].state, "raw-source");
+    let mut current = store.preferences("imdb-raw:tt1234567").unwrap();
+    current["concurrent_fixture"] = json!(true);
+    store
+        .save_preference("imdb-raw:tt1234567", &current)
+        .unwrap();
+    assert_eq!(
+        store
+            .apply_migration("first", &plan.fingerprint)
+            .unwrap_err()
+            .code,
+        "migration-cache-conflict"
+    );
+    assert!(store
+        .legacy_artifact("first", "cache/raw-tt1234567.json")
+        .is_err());
+    fs::write(legacy.join("cache/raw-tt1234567.json"), original_meta).unwrap();
+    fs::write(legacy.join("cache/raw-tt1234567.html.gz"), original_body).unwrap();
+    let replan = store
+        .prepare_migration("again", &legacy, "itm-engine")
+        .unwrap();
+    assert_eq!(replan.cache_entries[0].state, "kept-current");
+    assert_eq!(
+        store
+            .apply_migration("again", &replan.fingerprint)
+            .unwrap()
+            .applied_cache_entries,
+        0
+    );
+    let db = rusqlite::Connection::open(tmp.path().join("state.sqlite")).unwrap();
+    db.execute(
+        "UPDATE legacy_artifacts SET body=?1 WHERE import_id='other' AND path LIKE '%.html.gz'",
+        [b"changed".to_vec()],
+    )
+    .unwrap();
+    drop(db);
+    assert_eq!(
+        store
+            .begin_fetch(request(&item, "corrupt", false))
+            .unwrap_err()
+            .code,
+        "legacy-raw-integrity"
+    );
+    assert!(
+        store
+            .begin_fetch(request(&item, "bypass-corrupt", true))
+            .unwrap()
+            .1
+    );
+}
+
+#[test]
+fn old_missing_hash_is_compatible_but_malformed_hash_type_cannot_disable_integrity_checks() {
+    let (_tmp, _store, _item, legacy) = setup();
+    let (meta, packed) = raw_page(&legacy, 60, &html());
+    let mut value: serde_json::Value = serde_json::from_slice(&meta).unwrap();
+    value.as_object_mut().unwrap().remove("body_hash");
+    assert!(decode_raw("tt1234567", &serde_json::to_vec(&value).unwrap(), &packed).is_ok());
+    value["body_hash"] = json!(123);
+    assert_eq!(
+        decode_raw("tt1234567", &serde_json::to_vec(&value).unwrap(), &packed)
+            .unwrap_err()
+            .code,
+        "legacy-raw-integrity"
+    );
+}

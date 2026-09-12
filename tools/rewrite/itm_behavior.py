@@ -239,4 +239,33 @@ class WriterBaseline(unittest.TestCase):
         self.assertTrue(eng._load_ai_runtime()['paused'])
         self.assertEqual(self.nfo.read_bytes(),self.raw)
 
+    def test_raw_imdb_cache_reparses_original_gzip_and_respects_age_hash_and_cooldown(self):
+        import datetime as dt
+        eng.CACHE.mkdir(parents=True,exist_ok=True)
+        imdb='tt0064757'
+        page="<script id='__NEXT_DATA__'>"+json.dumps({'props':{'title':{'id':imdb,'runtimes':{'edges':[]},'technicalSpecifications':{'cameras':{'items':[{'camera':'Synthetic camera'}]}}}}})+"</script>"
+        eng._save_raw_page(imdb,'https://www.imdb.com/title/'+imdb+'/technical/',page)
+        meta_path,body_path=eng._raw_cache_files(imdb)
+        packed=body_path.read_bytes()
+        meta=eng.load_json(meta_path)
+        meta['fetched_at']=(dt.datetime.now(dt.timezone.utc)-dt.timedelta(days=29)).isoformat()
+        eng.save_json(meta_path,meta)
+        result=eng._specs_from_raw_cache(imdb)
+        self.assertEqual(result['specs']['Camera'],['Synthetic camera'])
+        self.assertEqual(result['fetched_at'],meta['fetched_at'])
+        self.assertEqual(result['method'],'raw-cache')
+        self.assertEqual(body_path.read_bytes(),packed)
+        failure={'cache_version':8,'parser_version':1,'imdb':imdb,'fetched_at':dt.datetime.now(dt.timezone.utc).isoformat(),'status':'timeout','ok':False,'specs':{}}
+        eng.save_json(eng.cache_file(imdb),failure)
+        with patch.object(eng,'_specs_from_raw_cache',side_effect=AssertionError('ordinary cooldown must precede raw fallback')):
+            self.assertEqual(eng._get_specs_network(imdb)['status'],'timeout')
+        self.assertEqual(eng._get_specs_network(imdb,retry_failed=True)['method'],'raw-cache')
+        meta['fetched_at']=(dt.datetime.now(dt.timezone.utc)-dt.timedelta(days=30)).isoformat()
+        eng.save_json(meta_path,meta)
+        self.assertIsNone(eng._specs_from_raw_cache(imdb))
+        meta['fetched_at']=dt.datetime.now(dt.timezone.utc).isoformat();meta['body_hash']='0'*64
+        eng.save_json(meta_path,meta)
+        self.assertIsNone(eng._specs_from_raw_cache(imdb))
+        self.assertEqual(self.nfo.read_bytes(),self.raw)
+
 if __name__=='__main__': unittest.main(verbosity=2)

@@ -100,7 +100,7 @@ impl Store {
             .transpose()?
         };
         let clock = chrono::Utc::now();
-        let cached =
+        let mut cached =
             cached.filter(|source| crate::imdb_cache::source_fresh(source, clock.timestamp()));
         let failure: Option<crate::imdb_cache::Failure> =
             if cached.is_none() && !request.refresh && !retry_failed {
@@ -118,6 +118,9 @@ impl Store {
             } else {
                 None
             };
+        if cached.is_none() && failure.is_none() && !request.refresh {
+            cached = super::raw_cache::source(&tx, &current.imdb, clock.timestamp())?;
+        }
         let cache_hit = cached.is_some() || failure.is_some();
         let error = failure.map(|f| {
             let mut error = f.error;

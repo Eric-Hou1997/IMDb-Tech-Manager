@@ -1418,3 +1418,4 @@ mod automatic;
 mod batches;
 mod cache_migration;
 mod legacy_undo;
+mod raw_cache;

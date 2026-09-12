@@ -29,10 +29,116 @@ pub struct Failure {
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct CacheMigrationItem {
     pub source: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body_source: Option<String>,
     pub imdb: String,
     pub state: String,
     pub before_hash: Option<String>,
     pub detail: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RawReference {
+    pub import_id: String,
+    pub metadata: String,
+    pub body: String,
+    pub fetched_at: String,
+}
+
+/// Validate the original gzip/meta pair before it becomes an active cache.
+/// The decompressed bound also applies to concatenated gzip members.
+pub fn decode_raw(imdb: &str, metadata: &[u8], packed: &[u8]) -> Result<(String, String)> {
+    use std::io::Read;
+    crate::specs::imdb_url(imdb)?;
+    let meta: serde_json::Value = serde_json::from_slice(metadata)?;
+    let url = meta["url"]
+        .as_str()
+        .and_then(|value| url::Url::parse(value).ok());
+    if !url.is_some_and(|url| {
+        url.scheme() == "https"
+            && matches!(
+                url.host_str(),
+                Some("www.imdb.com" | "imdb.com" | "m.imdb.com")
+            )
+            && url.username().is_empty()
+            && url.password().is_none()
+            && url.port().is_none()
+            && url.path().trim_end_matches('/') == format!("/title/{imdb}/technical")
+    }) {
+        return Err(AppError::new(
+            "legacy-raw-identity",
+            "Raw cache URL does not identify this IMDb technical page",
+        ));
+    }
+    let at = meta["fetched_at"]
+        .as_str()
+        .ok_or_else(|| AppError::new("legacy-cache-time", "Raw cache has no fetch time"))?;
+    chrono::DateTime::parse_from_rfc3339(at).map_err(|e| AppError::new("legacy-cache-time", e))?;
+    let mut raw = Vec::new();
+    flate2::read::MultiGzDecoder::new(packed)
+        .take(8 * 1024 * 1024 + 1)
+        .read_to_end(&mut raw)
+        .map_err(|e| AppError::new("legacy-raw-compression", e))?;
+    if raw.len() > 8 * 1024 * 1024 {
+        return Err(AppError::new(
+            "legacy-raw-size",
+            "Decompressed IMDb cache exceeds 8 MiB",
+        ));
+    }
+    if !meta["body_hash"].is_null() && !meta["body_hash"].is_string() {
+        return Err(AppError::new(
+            "legacy-raw-integrity",
+            "Raw metadata hash must be a string",
+        ));
+    }
+    if let Some(expected) = meta["body_hash"]
+        .as_str()
+        .map(str::trim)
+        .filter(|hash| !hash.is_empty())
+    {
+        if crate::hash(&raw) != expected {
+            return Err(AppError::new(
+                "legacy-raw-integrity",
+                "Raw page does not match its metadata hash",
+            ));
+        }
+    }
+    let page = String::from_utf8(raw).map_err(|e| AppError::new("legacy-raw-encoding", e))?;
+    let lower = page.to_ascii_lowercase();
+    if [
+        "awswafcookiedomainlist",
+        "awswafintegration",
+        "challenge-container",
+        "verify that you're not a robot",
+        "token.awswaf.com",
+    ]
+    .iter()
+    .any(|marker| lower.contains(marker))
+    {
+        return Err(AppError::new(
+            "imdb-waf-challenge",
+            "Raw cache contains a challenge page",
+        ));
+    }
+    if page.trim().is_empty() {
+        return Err(AppError::new("legacy-raw-empty", "Raw page is empty"));
+    }
+    Ok((at.into(), page))
+}
+
+pub fn raw_source(imdb: &str, at: &str, page: &str) -> Result<SourceSpecs> {
+    let mut source = crate::specs::parse_page(imdb, page)?;
+    // The old raw-cache path returns only useful specifications. An empty page
+    // must still follow the ordinary acquisition path, not become a no-tech fact.
+    if source.status != SourceStatus::Ok {
+        return Err(AppError::new(
+            "legacy-raw-no-specs",
+            "Raw page has no reusable specifications",
+        ));
+    }
+    source.fetched_at = at.into();
+    source.validate()?;
+    Ok(source)
 }
 #[derive(Debug, Clone)]
 pub enum LegacyCache {

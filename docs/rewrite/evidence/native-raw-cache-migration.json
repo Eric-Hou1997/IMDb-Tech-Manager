@@ -1,0 +1,68 @@
+{
+  "source_base": "f7a7abc2b4f1ef5ce9e01325119e4b669bbfbdcb",
+  "date": "2026-09-12",
+  "target": "aarch64-apple-darwin",
+  "application_id": "io.github.eric-hou1997.itm.ai-migration-validation",
+  "scope": "Legacy raw IMDb gzip and metadata import through native UI, cache acquisition, preview, write, undo, and exit",
+  "fixture": "Synthetic page generated with original Python _save_raw_page; isolated NFO copy only",
+  "checks": [
+    "two-original-cache-files-imported-and-archive-bytes-identical",
+    "original-fetch-time-visible",
+    "cached-completed-with-zero-http-attempts",
+    "preview-displays-old-and-new-camera",
+    "confirmed-write-visible-in-inspector",
+    "external-tag-retained",
+    "undo-restores-entire-original-nfo-sha256-bom-crlf-and-mode-0640",
+    "normal-app-exit"
+  ],
+  "fetch": {
+    "request": {
+      "operation_id": "903eebf2-618d-4c73-916a-294f08ec91e9",
+      "expected_hash": "bcae81cf1dbfccad3f2cf7d3bea640225f2041a5d76772f87bdf5a5a7fbd5468",
+      "refresh": false
+    },
+    "imdb": "tt1234567",
+    "locale": "zh-CN",
+    "phase": "completed",
+    "cached": true,
+    "started_at": "2026-09-12T10:28:04Z",
+    "finished_at": "2026-09-12T10:28:04Z",
+    "source": {
+      "status": "ok",
+      "imdb": "tt1234567",
+      "specs": {
+        "Aspect ratio": [],
+        "Camera": [
+          "Isolated Raw Cache Camera"
+        ],
+        "Cinematographic Process": [],
+        "Color": [],
+        "Film Length": [],
+        "Laboratory": [],
+        "Negative Format": [],
+        "Printed Film Format": [],
+        "Runtime": [],
+        "Sound mix": []
+      },
+      "fetched_at": "2026-09-12T09:21:47.030724+00:00",
+      "parser": "next-data"
+    },
+    "error": null,
+    "attempts": []
+  },
+  "import_id": "d5d95aad-5175-44dc-b163-319722cf4116",
+  "write_id": "36602666-7d29-4951-939f-831c3f621c2e",
+  "undo_id": "c3e12dad-41d4-49dc-87b7-b259bed876bd",
+  "restored_nfo_sha256": "bcae81cf1dbfccad3f2cf7d3bea640225f2041a5d76772f87bdf5a5a7fbd5468",
+  "source_sha256": {
+    "rewrite/src-tauri/core/src/imdb_cache.rs": "a6520c8ce673d3ad93b83f9b4d5f06e565c279676a4463da82a332d5090661de",
+    "rewrite/src-tauri/core/src/store/raw_cache.rs": "6bcbf4f0a380778212a3e0a2da46128a9cc0ab7758c0c22290565ac6cc2cd3ea",
+    "rewrite/src-tauri/core/src/store/cache_migration.rs": "5eef4b7835af9c70532f1d8a12f90513a5ab8e3586f871a07113f0290d8d4201",
+    "rewrite/src-tauri/core/src/store/acquisition.rs": "640e13fe9d01bbd16655ef163a6437a4d9527cf967e593fa82dc95c3df2828d2"
+  },
+  "limitations": [
+    "Synthetic next-data page; not proof of every historical DOM/textutil parser fallback",
+    "Other-platform desktop acceptance and full cache maintenance remain pending",
+    "No paid model or production NFO was used"
+  ]
+}

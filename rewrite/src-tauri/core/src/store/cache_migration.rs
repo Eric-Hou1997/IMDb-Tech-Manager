@@ -77,12 +77,14 @@ impl Store {
             };
             plan.cache_entries.push(CacheMigrationItem {
                 source: file.relative.clone(),
+                body_source: None,
                 imdb,
                 state,
                 before_hash,
                 detail,
             });
         }
+        self.prepare_raw_cache_migration(plan)?;
         Ok(())
     }
 }
@@ -121,5 +123,5 @@ pub(super) fn apply(
         }
         count += 1;
     }
-    Ok(count)
+    Ok(count + super::raw_cache::apply(db, import_id, entries)?)
 }
