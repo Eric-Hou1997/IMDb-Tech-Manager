@@ -27,15 +27,21 @@ pub async fn save_ai_settings(
     id: String,
     settings: Settings,
     secret: Option<String>,
+    expected_revision: String,
     app: tauri::AppHandle,
 ) -> Result<Settings> {
     tauri::async_runtime::spawn_blocking(move || {
-        app.state::<Desktop>().store.save_ai_profile(
+        let settings = app.state::<Desktop>().store.save_ai_profile_checked(
             &id,
             settings,
             secret.as_deref(),
             &credentials(&app),
-        )
+            &expected_revision,
+        )?;
+        if let Err(error) = app.emit("ai-settings-changed", ()) {
+            eprintln!("ai-settings-event: {error}");
+        }
+        Ok(settings)
     })
     .await
     .map_err(|e| AppError::new("ai-worker", e))?

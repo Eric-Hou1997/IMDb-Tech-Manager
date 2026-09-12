@@ -1,0 +1,74 @@
+{
+  "source_commit": "3e5d3f7",
+  "date": "2026-09-12",
+  "target": "aarch64-apple-darwin",
+  "application_id": "io.github.eric-hou1997.itm.ai-migration-validation",
+  "scope": "Native Tauri WKWebView legacy AI state import, failure skip, cache review, write and undo on isolated NFO",
+  "checks": [
+    "native-import-reviewed-four-old-files-and-one-root",
+    "native-readonly-scan-and-inspector",
+    "ordinary-generation-skips-unchanged-legacy-failure",
+    "explicit-retry-reuses-exact-legacy-cache",
+    "current-request-count-and-cost-zero",
+    "historical-usage-120-and-cost-0.25-separate",
+    "resolved-model-visible",
+    "preview-preserves-external-tag-and-adds-generated-ai-tag",
+    "confirmed-write-visible-in-inspector",
+    "previewed-undo-restores-exact-original-bytes-bom-crlf-and-mode",
+    "normal-application-exit"
+  ],
+  "ai_records": [
+    {
+      "phase": "skipped-legacy-failure",
+      "cached": false,
+      "meter": {
+        "attempts": 0,
+        "successful_http": 0,
+        "current": {
+          "input": 0,
+          "output": 0,
+          "total": 0
+        },
+        "historical_cache": {
+          "input": 0,
+          "output": 0,
+          "total": 0
+        },
+        "raw_usage": []
+      },
+      "cost": 0.0,
+      "historical_cost": 0.0,
+      "resolved_model": ""
+    },
+    {
+      "phase": "review-ready",
+      "cached": true,
+      "meter": {
+        "attempts": 0,
+        "successful_http": 0,
+        "current": {
+          "input": 0,
+          "output": 0,
+          "total": 0
+        },
+        "historical_cache": {
+          "input": 100,
+          "output": 20,
+          "total": 120
+        },
+        "raw_usage": []
+      },
+      "cost": 0.0,
+      "historical_cost": 0.25,
+      "resolved_model": "fixture-resolved-model"
+    }
+  ],
+  "nfo_sha256_before_and_after_undo": "bcae81cf1dbfccad3f2cf7d3bea640225f2041a5d76772f87bdf5a5a7fbd5468",
+  "mode": "0640",
+  "actual_http_attempts": 0,
+  "limitations": [
+    "isolated fictitious credential explicitly authorized by maintainer",
+    "full desktop localization and other platforms not covered",
+    "cross-view AI profile synchronization defect found and fixed in subsequent increment"
+  ]
+}

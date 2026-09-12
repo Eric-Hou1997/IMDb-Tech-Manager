@@ -6,6 +6,18 @@ use crate::ai::{
 };
 use serde_json::{json, Value};
 
+fn check_profile_revision(settings: &Settings, expected: Option<&str>) -> Result<()> {
+    if let Some(expected) = expected {
+        if hash(&serde_json::to_vec(settings)?) != expected {
+            return Err(AppError::new(
+                "ai-settings-conflict",
+                "AI settings changed in another view; reload the current profile before saving",
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn record(db: &Connection, id: &str) -> Result<Record> {
     let body: String = db.query_row("SELECT result FROM operations WHERE id=?1", [id], |r| {
         r.get(0)
@@ -32,9 +44,29 @@ impl Store {
     pub fn save_ai_profile(
         &self,
         id: &str,
+        settings: Settings,
+        secret: Option<&str>,
+        credentials: &dyn crate::services::CredentialStore,
+    ) -> Result<Settings> {
+        self.save_ai_profile_inner(id, settings, secret, credentials, None)
+    }
+    pub fn save_ai_profile_checked(
+        &self,
+        id: &str,
+        settings: Settings,
+        secret: Option<&str>,
+        credentials: &dyn crate::services::CredentialStore,
+        expected_revision: &str,
+    ) -> Result<Settings> {
+        self.save_ai_profile_inner(id, settings, secret, credentials, Some(expected_revision))
+    }
+    fn save_ai_profile_inner(
+        &self,
+        id: &str,
         mut settings: Settings,
         secret: Option<&str>,
         credentials: &dyn crate::services::CredentialStore,
+        expected_revision: Option<&str>,
     ) -> Result<Settings> {
         valid_id(id)?;
         settings.validate()?;
@@ -51,6 +83,7 @@ impl Store {
         };
         if previous.is_none() {
             self.writable()?;
+            check_profile_revision(&self.ai_settings()?, expected_revision)?;
         }
         let mut created_account = None;
         if let Some(secret) = secret.filter(|s| !s.is_empty()) {
@@ -74,7 +107,7 @@ impl Store {
                 None => self.ai_settings()?.credential_account,
             };
         }
-        match self.save_ai_settings(id, settings) {
+        match self.save_ai_settings_inner(id, settings, expected_revision) {
             Ok(value) => Ok(value),
             Err(mut error) => {
                 // Roll back only a newly created key with a proven uncommitted
@@ -122,12 +155,21 @@ impl Store {
             }
         };
         Ok(job::Profile {
+            revision: hash(&serde_json::to_vec(&settings)?),
             settings,
             credential_ready,
             credential_error,
         })
     }
     pub fn save_ai_settings(&self, id: &str, settings: Settings) -> Result<Settings> {
+        self.save_ai_settings_inner(id, settings, None)
+    }
+    fn save_ai_settings_inner(
+        &self,
+        id: &str,
+        settings: Settings,
+        expected_revision: Option<&str>,
+    ) -> Result<Settings> {
         valid_id(id)?;
         settings.validate()?;
         let fingerprint = hash(&serde_json::to_vec(&("ai-settings", &settings))?);
@@ -143,6 +185,17 @@ impl Store {
         let mut db = self.db()?;
         self.writable()?;
         let tx = db.transaction()?;
+        let current: Settings = tx
+            .query_row(
+                "SELECT body FROM preferences WHERE key='ai-settings'",
+                [],
+                |r| r.get::<_, String>(0),
+            )
+            .optional()?
+            .map(|body| serde_json::from_str(&body))
+            .transpose()?
+            .unwrap_or_default();
+        check_profile_revision(&current, expected_revision)?;
         if tx.query_row(
             "SELECT EXISTS(SELECT 1 FROM tasks WHERE id=?1)",
             [id],

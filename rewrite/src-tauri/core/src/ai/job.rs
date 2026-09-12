@@ -82,6 +82,7 @@ impl Settings {
 #[ts(rename = "AiProfile")]
 pub struct Profile {
     pub settings: Settings,
+    pub revision: String,
     pub credential_ready: bool,
     pub credential_error: Option<AppError>,
 }

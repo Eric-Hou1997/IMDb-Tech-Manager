@@ -2038,6 +2038,7 @@ dependencies = [
  "itm-core",
  "keyring",
  "reqwest 0.12.28",
+ "security-framework 2.11.1",
  "serde",
  "serde_json",
  "tauri",

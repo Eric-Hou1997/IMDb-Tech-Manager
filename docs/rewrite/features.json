@@ -296,6 +296,20 @@
           ],
           "scope": "Preserve imported global pause and timestamps; explicit idempotent resume; original connection-test sample with no media write or rule fallback; bounded account retry gates; reported response model and readable settings when credentials fail. Native UI acceptance pending unlock.",
           "evidence": "docs/rewrite/10-completion-checklist.md"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/store/ai_operations.rs",
+            "rewrite/src-tauri/src/credential_process.rs",
+            "rewrite/src-tauri/src/ai_jobs.rs",
+            "rewrite/src/AiGenerator.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/ai_flow.rs",
+            "rewrite/src-tauri/src/credential_process.rs"
+          ],
+          "scope": "Cross-view profile synchronization with retained drafts and transactional compare-and-swap; bounded macOS read-only credential child authenticated to the same application image; native old failure/cache import and reviewed write/undo verified. Other platforms and full behavior parity remain pending.",
+          "evidence": "docs/rewrite/evidence/native-ai-profile-coordination.json"
         }
       ],
       "supplemental_evidence": [

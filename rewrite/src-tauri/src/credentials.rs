@@ -13,6 +13,11 @@ impl NativeCredentials {
 }
 impl CredentialStore for NativeCredentials {
     fn get(&self, account: &str) -> Result<Option<String>> {
+        #[cfg(target_os = "macos")]
+        {
+            crate::credential_process::read(&self.service, account)
+        }
+        #[cfg(not(target_os = "macos"))]
         match self.entry(account)?.get_password() {
             Ok(value) => Ok(Some(value)),
             Err(keyring::Error::NoEntry) => Ok(None),

@@ -1,0 +1,79 @@
+{
+  "source_base": "48433b2",
+  "date": "2026-09-12",
+  "target": "aarch64-apple-darwin",
+  "application_id": "io.github.eric-hou1997.itm.ai-migration-validation",
+  "scope": "Native cross-view AI profile synchronization, protected drafts, credential read denial and successful same-image child read, and connection-test failure accounting",
+  "checks": [
+    "keychain-authorization-failure-returns-with-settings-still-visible",
+    "saved-inspector-profile-refreshes-global-view",
+    "concurrent-update-preserves-unsaved-global-draft",
+    "stale-draft-save-refused",
+    "explicit-discard-loads-current-settings",
+    "new-fictitious-key-readable-by-owned-child",
+    "connection-test-stops-after-three-recorded-attempts",
+    "zero-usage-and-zero-cost-for-three-http-502-responses",
+    "normal-exit-and-no-nfo-byte-change",
+    "both-authorized-fictitious-keychain-records-deleted-and-absence-verified"
+  ],
+  "source_sha256": {
+    "rewrite/src-tauri/src/credential_process.rs": "ad4b5191869feeb568433d7e6f43ac11e57a62b84c0c79887635001579f7e3a4",
+    "rewrite/src-tauri/src/credentials.rs": "6f78f08407dc1afc1da34eff261d13fb2f093db0b6f9e2892a8f8264817c92be",
+    "rewrite/src-tauri/src/ai_jobs.rs": "7d2431078bfd7f13e142a43d35793fc89114588fc1ed054c3b888e906591226e",
+    "rewrite/src-tauri/src/main.rs": "0df2be283481a62ef6a7af00f7a0dd88c1ecd84159a6f4f9a38e178682801aa2",
+    "rewrite/src-tauri/core/src/store/ai_operations.rs": "036774dfd08cb871dc62633c2326706942c9e568426b49b2d73c55a8f3b2b03e",
+    "rewrite/src/AiGenerator.vue": "aaf2e8384c21c658356a731e9bdb0a56789cc2618b0b61d21ae584eab99e0d0a"
+  },
+  "nfo_sha256": "bcae81cf1dbfccad3f2cf7d3bea640225f2041a5d76772f87bdf5a5a7fbd5468",
+  "connection_test": {
+    "phase": "failed",
+    "purpose": "connection-test",
+    "meter": {
+      "attempts": 3,
+      "successful_http": 0,
+      "current": {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      "historical_cache": {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      "raw_usage": []
+    },
+    "cost": 0.0,
+    "error": {
+      "code": "transient",
+      "message": "Provider HTTP 502",
+      "path": null,
+      "operation_id": null,
+      "retryable": false
+    }
+  },
+  "limitations": [
+    "endpoint configured as http://127.0.0.1:9/v1, environment actually returned HTTP 502; not claimed as a direct connection-refused test",
+    "no paid provider or real API credential used",
+    "other-platform keychain and complete desktop acceptance remain separate"
+  ],
+  "final_build_smoke": {
+    "date": "2026-09-12",
+    "checks": [
+      "final-app-launch",
+      "rust-platform-handshake",
+      "missing-test-credential-settings-loaded",
+      "connection-history-retained",
+      "normal-exit"
+    ],
+    "source_sha256": {
+      "rewrite/src-tauri/src/credential_process.rs": "1f13bc41310c0c090c50f56359d96693623d1e8f978a9255b3508d289da0f111",
+      "rewrite/src-tauri/src/credentials.rs": "f3b084b495c6ea948496c5d7fa746838702094697c75f1e045711a5b6012ccbf",
+      "rewrite/src-tauri/src/ai_jobs.rs": "7d2431078bfd7f13e142a43d35793fc89114588fc1ed054c3b888e906591226e",
+      "rewrite/src-tauri/src/main.rs": "0df2be283481a62ef6a7af00f7a0dd88c1ecd84159a6f4f9a38e178682801aa2",
+      "rewrite/src-tauri/core/src/store/ai_operations.rs": "036774dfd08cb871dc62633c2326706942c9e568426b49b2d73c55a8f3b2b03e",
+      "rewrite/src/AiGenerator.vue": "aaf2e8384c21c658356a731e9bdb0a56789cc2618b0b61d21ae584eab99e0d0a"
+    },
+    "scope": "Startup and exit rerun after numeric Keychain error classification; preceding full interaction evidence retains its original source hashes."
+  }
+}

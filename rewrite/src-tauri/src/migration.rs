@@ -56,6 +56,15 @@ pub async fn migration_apply(
         if let Err(error) = app.emit("configuration-changed", &receipt.configuration) {
             eprintln!("configuration-event: {error}");
         }
+        if let Err(error) = app.emit("ai-settings-changed", ()) {
+            eprintln!("ai-settings-event: {error}");
+        }
+        if let Err(error) = app.emit(
+            "ai-runtime-changed",
+            app.state::<Desktop>().store.ai_runtime()?,
+        ) {
+            eprintln!("ai-runtime-event: {error}");
+        }
         Ok(receipt)
     })
     .await

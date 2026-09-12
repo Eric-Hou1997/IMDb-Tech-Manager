@@ -7,7 +7,10 @@ const props=defineProps<{item?:MediaItem;blocked:boolean}>();
 const emit=defineEmits<{preview:[value:WritePreview];busy:[value:boolean]}>();
 const settings=ref<AiSettings|null>(null),configured=ref(false),secret=ref(''),extra=ref('{}'),error=ref(''),busy=ref(false),record=shallowRef<AiRecord|null>(null),history=shallowRef<AiRecord[]>([]),requestId=ref(''),showSettings=ref(!props.item),runtime=ref<AiRuntime|null>(null),credentialError=ref<AppError|null>(null);
 const historyItem=()=>props.item?.id??'__connection_test__';
-let generation=0,disposed=false,executing=false,unlisten:UnlistenFn|undefined,runtimeUnlisten:UnlistenFn|undefined;
+let generation=0,disposed=false,executing=false,unlisten:UnlistenFn|undefined,runtimeUnlisten:UnlistenFn|undefined,profileUnlisten:UnlistenFn|undefined;
+const profileConflict=ref(false),profileRevision=ref('');
+let profileBaseline='',profileLoad=0,savingProfile=false;
+const draftFingerprint=()=>JSON.stringify([settings.value,extra.value]);
 let settingsRequest:{id:string;fingerprint:string}|null=null;
 function receive(value:AiRecord){if(disposed||value.request.operation_id!==requestId.value)return;record.value=value;if(!['requested','running'].includes(value.phase)){requestId.value='';void refreshRuntime().catch(report);if(!executing){busy.value=false;emit('busy',false);}}}
 watch(requestId,(id,_,cleanup)=>{if(!id)return;let polling=false;const timer=window.setInterval(async()=>{if(polling)return;polling=true;try{receive(await invoke<AiRecord>('ai_record',{id}));}catch(e){if(!disposed&&requestId.value===id)report(e);}finally{polling=false;}},750);cleanup(()=>window.clearInterval(timer));});
@@ -15,11 +18,24 @@ function report(e:unknown){const value=e as AppError;error.value=value.code?`${v
 async function loadHistory(){const token=generation;const result=await invoke<AiRecord[]>('ai_history',{itemId:historyItem()});if(!disposed&&token===generation){history.value=result;if(!record.value)record.value=result[0]??null;const pending=result.find(row=>['requested','running'].includes(row.phase));if(pending&&!busy.value){requestId.value=pending.request.operation_id;record.value=pending;busy.value=true;emit('busy',true);}}}
 watch(()=>props.item?.id,()=>{generation++;requestId.value='';executing=false;busy.value=false;emit('busy',false);record.value=null;error.value='';void loadHistory().catch(report);},{immediate:true});
 async function refreshRuntime(){const value=await invoke<AiRuntime>('ai_runtime');if(!disposed)runtime.value=value;}
-async function loadProfile(){const profile=await invoke<AiProfile>('ai_settings');if(disposed)return;settings.value=profile.settings;configured.value=profile.credential_ready;credentialError.value=profile.credential_error;extra.value=JSON.stringify(profile.settings.config.extra_body,null,2);}
-onMounted(async()=>{try{await Promise.all([loadProfile(),refreshRuntime()]);if(disposed)return;const release=await listen<AiRecord>('ai-changed',event=>receive(event.payload));if(disposed)release();else unlisten=release;const releaseRuntime=await listen<AiRuntime>('ai-runtime-changed',event=>{runtime.value=event.payload;});if(disposed)releaseRuntime();else runtimeUnlisten=releaseRuntime;}catch(e){report(e);}});
-onUnmounted(()=>{disposed=true;generation++;unlisten?.();runtimeUnlisten?.();emit('busy',false);});
+async function loadProfile(discardDraft=false){const token=++profileLoad;const profile=await invoke<AiProfile>('ai_settings');if(disposed||token!==profileLoad)return;configured.value=profile.credential_ready;credentialError.value=profile.credential_error;const dirty=!!secret.value||draftFingerprint()!==profileBaseline;if(settings.value&&!discardDraft&&dirty){profileConflict.value=profile.revision!==profileRevision.value;return;}settings.value=profile.settings;profileRevision.value=profile.revision;extra.value=JSON.stringify(profile.settings.config.extra_body,null,2);profileBaseline=draftFingerprint();profileConflict.value=false;if(discardDraft)secret.value='';}
+onMounted(async()=>{try{const releaseProfile=await listen('ai-settings-changed',()=>{if(!savingProfile)void loadProfile().catch(report);});if(disposed){releaseProfile();return;}profileUnlisten=releaseProfile;await Promise.all([loadProfile(),refreshRuntime()]);if(disposed)return;const release=await listen<AiRecord>('ai-changed',event=>receive(event.payload));if(disposed)release();else unlisten=release;const releaseRuntime=await listen<AiRuntime>('ai-runtime-changed',event=>{runtime.value=event.payload;});if(disposed)releaseRuntime();else runtimeUnlisten=releaseRuntime;}catch(e){report(e);}});
+onUnmounted(()=>{disposed=true;generation++;unlisten?.();runtimeUnlisten?.();profileUnlisten?.();emit('busy',false);});
 async function run(work:(token:number)=>Promise<void>){if(busy.value||props.blocked)return;busy.value=true;executing=true;emit('busy',true);error.value='';const token=generation;try{await work(token);}catch(e){if(!disposed&&token===generation)report(e);}finally{if(!disposed&&token===generation){executing=false;busy.value=!!requestId.value;emit('busy',busy.value);}}}
-async function persistSettings(){if(!settings.value)throw Error('AI 设置尚未加载');const body=JSON.parse(extra.value);if(!body||Array.isArray(body)||typeof body!=='object')throw Error('附加请求参数必须是 JSON 对象');settings.value.config.extra_body=body;const fingerprint=JSON.stringify([settings.value,secret.value]);if(settingsRequest?.fingerprint!==fingerprint)settingsRequest={id:crypto.randomUUID(),fingerprint};settings.value=await invoke<AiSettings>('save_ai_settings',{id:settingsRequest.id,settings:settings.value,secret:secret.value||null});secret.value='';settingsRequest=null;await loadProfile();await refreshRuntime();}
+async function persistSettings(){
+ if(!settings.value)throw Error('AI 设置尚未加载');
+ if(profileConflict.value)throw Error('AI 设置已在其他位置更新，请先载入当前设置。');
+ const body=JSON.parse(extra.value);
+ if(!body||Array.isArray(body)||typeof body!=='object')throw Error('附加请求参数必须是 JSON 对象');
+ settings.value.config.extra_body=body;
+ const fingerprint=JSON.stringify([settings.value,secret.value]);
+ if(settingsRequest?.fingerprint!==fingerprint)settingsRequest={id:crypto.randomUUID(),fingerprint};
+ savingProfile=true;
+ try{
+  settings.value=await invoke<AiSettings>('save_ai_settings',{id:settingsRequest.id,settings:settings.value,secret:secret.value||null,expectedRevision:profileRevision.value});
+  secret.value='';settingsRequest=null;await loadProfile(true);await refreshRuntime();
+ }catch(e){await loadProfile().catch(report);throw e;}finally{savingProfile=false;}
+}
 async function save(){await run(async()=>{await persistSettings();if(props.item)showSettings.value=false;});}
 async function request(command:'generate_ai'|'test_ai_connection',token:number,force=false,retryFailed=false){const id=crypto.randomUUID();requestId.value=id;try{const value=await invoke<AiRecord>(command,command==='test_ai_connection'?{id}:{request:{operation_id:id,item_id:props.item!.id,expected_hash:props.item!.source_hash,force,retry_failed:retryFailed}});if(!disposed&&token===generation){record.value=value;await loadHistory();}}catch(e){try{const value=await invoke<AiRecord>('ai_record',{id});if(!disposed&&token===generation)record.value=value;}catch{/* Preserve the original failure when no operation receipt exists. */}throw e;}finally{if(!disposed&&token===generation){if(record.value?.request.operation_id!==id||!['requested','running'].includes(record.value.phase))requestId.value='';await refreshRuntime();}}}
 async function generate(force=false,retryFailed=false){if(!props.item)return;await run(token=>request('generate_ai',token,force,retryFailed));}
@@ -33,6 +49,7 @@ async function prepare(){const current=record.value;if(!current)return;await run
  <section :aria-label="item?'标签生成':'AI 设置与运行状态'" class="generator">
   <h5>{{item?'当前文件标签生成':'AI 设置与运行状态'}}</h5><p v-if="item">生成候选后先检查差异，再确认写入当前文件。现有 External 与 Manual 标签受保护。</p>
   <div class="actions" v-if="item"><button :disabled="busy||blocked||!!item.error" @click="configured&&settings?.enabled?generate():showSettings=true">AI 生成标签</button><button :disabled="busy||blocked||!!item.error" @click="rules">规则生成标签</button><button :disabled="busy||blocked" @click="showSettings=!showSettings">AI 设置</button><button v-if="requestId" @click="cancel">取消 AI 请求</button></div>
+  <p v-if="profileConflict" role="alert">AI 设置已在其他位置更新。当前未保存的内容已保留；重新载入后才能保存。<button :disabled="busy||blocked" @click="run(()=>loadProfile(true))">放弃当前草稿并载入已保存设置</button></p>
   <p v-if="credentialError" role="alert">凭据暂不可用：{{credentialError.code}} · {{credentialError.message}}。设置仍可查看和修改。</p>
   <section v-if="runtime" aria-label="AI 运行状态"><p>{{runtime.paused?'AI 已暂停':'AI 未暂停'}}<span v-if="runtime.reason"> · {{runtime.reason_kind}}：{{runtime.reason}}</span></p><p v-if="runtime.paused_at">暂停时间：{{runtime.paused_at}}</p><p v-if="runtime.last_success_at">最近成功请求：{{runtime.last_success_at}}</p><button v-if="runtime.paused" :disabled="busy||blocked" @click="resume">清除暂停（不发送请求）</button><p v-if="runtime.paused">保存设置不会解除暂停。成功的连接测试可清除鉴权、额度、限流或临时错误暂停；预算和无法确认的旧状态需手动清除。</p></section>
   <button v-if="!item&&requestId" @click="cancel">取消 AI 请求</button>

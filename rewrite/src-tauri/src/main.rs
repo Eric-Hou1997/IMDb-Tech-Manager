@@ -2,6 +2,8 @@
 mod acquisition;
 mod ai_jobs;
 mod batches;
+#[cfg(target_os = "macos")]
+mod credential_process;
 mod credentials;
 mod desktop;
 mod imdb_webview;
@@ -141,6 +143,10 @@ fn restore(app: &tauri::AppHandle) {
     }
 }
 fn main() {
+    #[cfg(target_os = "macos")]
+    if let Some(code) = credential_process::entry() {
+        std::process::exit(code);
+    }
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             restore(app);

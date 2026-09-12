@@ -1087,3 +1087,115 @@ fn inaccessible_credentials_do_not_hide_the_saved_ai_settings() {
     assert!(!profile.credential_ready);
     assert_eq!(profile.credential_error.unwrap().code, "credential-read");
 }
+
+#[test]
+fn stale_profile_save_preserves_current_settings_and_does_not_create_credentials() {
+    use std::{collections::BTreeMap, sync::Mutex};
+    struct Vault(Mutex<BTreeMap<String, String>>);
+    impl services::CredentialStore for Vault {
+        fn get(&self, a: &str) -> Result<Option<String>> {
+            Ok(self.0.lock().unwrap().get(a).cloned())
+        }
+        fn put(&self, a: &str, s: &str) -> Result<()> {
+            self.0.lock().unwrap().insert(a.into(), s.into());
+            Ok(())
+        }
+        fn delete(&self, a: &str) -> Result<()> {
+            self.0.lock().unwrap().remove(a);
+            Ok(())
+        }
+    }
+    let (_temp, store, _, _) = setup();
+    let vault = Vault(Mutex::new(BTreeMap::new()));
+    let old = store.ai_profile(&vault).unwrap();
+    let mut newer = old.settings.clone();
+    newer.config.model = "other-view-model".into();
+    let saved = store
+        .save_ai_profile_checked(
+            "new-view",
+            newer.clone(),
+            Some("fixture"),
+            &vault,
+            &old.revision,
+        )
+        .unwrap();
+    let err = store
+        .save_ai_profile_checked(
+            "stale-view",
+            old.settings.clone(),
+            Some("unused-fixture"),
+            &vault,
+            &old.revision,
+        )
+        .unwrap_err();
+    assert_eq!(err.code, "ai-settings-conflict");
+    assert_eq!(vault.0.lock().unwrap().len(), 1);
+    assert_eq!(
+        store.ai_settings().unwrap().config.model,
+        "other-view-model"
+    );
+    // A known successful request remains queryable/replayable even after another save.
+    let mut third = store.ai_settings().unwrap();
+    third.config.model = "third-model".into();
+    store.save_ai_settings("third", third).unwrap();
+    assert_eq!(
+        store
+            .save_ai_profile_checked("new-view", newer, Some("fixture"), &vault, &old.revision)
+            .unwrap()
+            .credential_account,
+        saved.credential_account
+    );
+    assert_eq!(store.ai_settings().unwrap().config.model, "third-model");
+    assert!(!store.ai_runtime().unwrap().paused);
+}
+
+#[test]
+fn profile_changed_during_keychain_write_rejects_stale_commit_and_cleans_new_key() {
+    use std::{collections::BTreeMap, sync::Mutex};
+    struct RacingVault<'a> {
+        store: &'a Store,
+        keys: Mutex<BTreeMap<String, String>>,
+    }
+    impl services::CredentialStore for RacingVault<'_> {
+        fn get(&self, a: &str) -> Result<Option<String>> {
+            Ok(self.keys.lock().unwrap().get(a).cloned())
+        }
+        fn put(&self, a: &str, s: &str) -> Result<()> {
+            self.keys.lock().unwrap().insert(a.into(), s.into());
+            let mut newer = self.store.ai_settings()?;
+            newer.config.model = "changed-while-keychain-open".into();
+            self.store.save_ai_settings("concurrent-save", newer)?;
+            Ok(())
+        }
+        fn delete(&self, a: &str) -> Result<()> {
+            self.keys.lock().unwrap().remove(a);
+            Ok(())
+        }
+    }
+    let (_temp, store, _, _) = setup();
+    let vault = RacingVault {
+        store: &store,
+        keys: Mutex::new(BTreeMap::new()),
+    };
+    let old = store.ai_profile(&vault).unwrap();
+    let err = store
+        .save_ai_profile_checked(
+            "stale-keychain",
+            old.settings,
+            Some("fixture"),
+            &vault,
+            &old.revision,
+        )
+        .unwrap_err();
+    assert_eq!(err.code, "ai-settings-conflict");
+    assert!(vault.keys.lock().unwrap().is_empty());
+    assert_eq!(
+        store.ai_settings().unwrap().config.model,
+        "changed-while-keychain-open"
+    );
+    assert!(store.ai_settings().unwrap().credential_account.is_empty());
+    assert_eq!(
+        store.operation_result("stale-keychain").unwrap_err().code,
+        "operation-not-found"
+    );
+}
