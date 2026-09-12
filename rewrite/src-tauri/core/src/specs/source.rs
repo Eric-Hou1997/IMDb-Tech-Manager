@@ -55,6 +55,28 @@ pub fn parse_page(imdb: &str, page: &str) -> Result<SourceSpecs> {
             "IMDb response exceeds 8 MiB",
         ));
     }
+    let structured = parse_structured_page(imdb, page);
+    if structured
+        .as_ref()
+        .is_ok_and(|source| source.status == SourceStatus::Ok)
+        || structured
+            .as_ref()
+            .is_err_and(|error| error.code == "imdb-title-mismatch")
+    {
+        return structured;
+    }
+    if let Some((specs, parser)) = super::html_lines::fallback(imdb, page, structured.is_ok())? {
+        return Ok(SourceSpecs {
+            status: SourceStatus::Ok,
+            imdb: imdb.into(),
+            specs,
+            fetched_at: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+            parser: parser.into(),
+        });
+    }
+    structured
+}
+fn parse_structured_page(imdb: &str, page: &str) -> Result<SourceSpecs> {
     let script = regex::Regex::new(
         r#"(?is)<script\b[^>]*\bid\s*=\s*["']__NEXT_DATA__["'][^>]*>(.*?)</script\s*>"#,
     )

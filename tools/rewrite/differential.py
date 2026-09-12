@@ -56,6 +56,19 @@ assert found
 assert rust({"mode": "next-data", "data": payload}) == expected
 print("PASS structured IMDb parser:", "ten fields and separate bullets")
 
+for case in json.loads((ROOT / 'tools/rewrite/fixtures/imdb-html-lines.json').read_text()):
+    source = '<link rel="canonical" href="https://www.imdb.com/title/tt1234567/technical/">' + case['body']
+    expected, _, parser = legacy.extract_specs(source)
+    assert parser == case.get('legacy_parser','html-lines'), (case['name'],parser)
+    assert {k:v for k,v in expected.items() if v} == case.get('legacy_expected',case['expected']), case['name']
+    actual = rust({'mode':'html-page','page':source})
+    assert {k:v for k,v in actual.items() if v} == case['expected'], case['name']
+    if 'legacy_expected' not in case:
+        assert actual == expected, case['name']
+    else:
+        print('KNOWN OLD BUG corrected:', case['known_old_bug'])
+    print('PASS actual legacy HTML text fallback:', case['name'])
+
 rule_cases = [
     "Panavision B- and C-Series Lenses",
     "Panavision C-, D-, E- and H-Series Lenses, Sony Venice (aerial shots)",

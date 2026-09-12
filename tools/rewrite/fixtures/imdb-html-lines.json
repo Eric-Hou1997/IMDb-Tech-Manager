@@ -1,0 +1,31 @@
+[
+  {
+    "name": "separate bullets, inline markup, qualifiers and footer",
+    "body": "<h1>Technical specifications</h1><h3>Camera</h3><ul><li>ARRI <b>Alexa</b> &amp; Sony</li><li>(aerial shots)</li><li>Canon</li><li>canon</li></ul><div>See all</div><div>2 more</div><h3>Sound mix</h3><li>Dolby Atmos • DTS:X</li><div>Contribute to this page</div><p>Unrelated content</p>",
+    "expected": {"Camera": ["ARRI Alexa & Sony (aerial shots)", "Canon"], "Sound mix": ["Dolby Atmos", "DTS:X"]}
+  },
+  {
+    "name": "inline headings, bullets, entities and Unicode deduplication",
+    "body": "<p>• Runtime 2h 4m</p><p>Camera Straße</p><p>STRASSE</p><p>Negative Format 35 mm</p><p>Printed Film Format 70 mm</p><p>Camera Bausch &amp;amp; Lomb&nbsp;2709</p>",
+    "expected": {"Runtime": ["2h 4m"], "Camera": ["Straße", "Bausch & Lomb 2709"], "Negative Format": ["35 mm"], "Printed Film Format": ["70 mm"]}
+  },
+  {
+    "name": "script style SVG and comments are not facts",
+    "body": "<script>const x = '<h3>Camera</h3><p>Fake</p>';</script><style>Camera</style><noscript><h3>Camera</h3><p>Fake</p></noscript><svg><text>Camera Fake</text></svg><!-- Camera Fake --><h3>Camera</h3><p>Actual<!-- invisible -->Camera</p><p>Recently viewed</p><p>Ignored</p>",
+    "expected": {"Camera": ["Actual Camera"]}
+  },
+  {
+    "name": "quoted tag delimiter and table boundaries",
+    "body": "<table><tr><th data-note='a > b'>Aspect ratio</th><td>1.85:1</td><td>(theatrical)</td></tr><tr><th>Color</th><td>Color</td><td>Black and White</td></tr><tr><th>Film Length</th><td>3,000 m</td></tr></table>",
+    "expected": {"Aspect ratio": ["1.85:1 (theatrical)"], "Color": ["Color", "Black and White"], "Film Length": ["3,000 m"]},
+    "legacy_expected": {"Aspect ratio": ["1.85:1 (theatrical)"], "Color": ["Black and White"], "Film Length": ["3,000 m"]},
+    "known_old_bug": "The flattened parser mistakes the table value Color for a repeated section heading. New parser retains this visible fact."
+  },
+  {
+    "name": "visual-text fallback preserves adjacent inline heading fragments",
+    "body": "<html><body><div><span>C</span><span>amera</span></div><div>ARRI <em>Alexa</em></div></body></html>",
+    "expected": {"Camera": ["ARRI Alexa"]},
+    "legacy_parser": "textutil",
+    "parser": "html-visual-text"
+  }
+]

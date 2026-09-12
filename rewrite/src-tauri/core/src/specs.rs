@@ -1,5 +1,6 @@
 use crate::{AppError, Result, Specs};
 use serde_json::Value;
+mod html_lines;
 mod source;
 pub use source::{imdb_url, parse_page, source_candidate, SourceSpecs, SourceStatus};
 pub const SECTIONS: [&str; 10] = [
@@ -45,7 +46,7 @@ fn find_title(value: &Value) -> Option<&Value> {
         _ => None,
     }
 }
-// Structured Next data is the first migrated acquisition format. HTML fallback remains a separate gate.
+// Structured Next data stays authoritative; source::parse_page coordinates HTML fallbacks.
 pub fn parse_next_data(value: &Value) -> Result<Specs> {
     let title = find_title(value).ok_or_else(|| {
         AppError::new(

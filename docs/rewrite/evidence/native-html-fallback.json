@@ -1,0 +1,67 @@
+{
+  "source_base": "ddce8caea6e5ef15c4be88625a71a8c1ae6d7e3c",
+  "date": "2026-09-12",
+  "target": "aarch64-apple-darwin",
+  "application_id": "io.github.eric-hou1997.itm.ai-migration-validation",
+  "scope": "Actual old-engine raw HTML import and Rust visual-text fallback, native preview/write/undo/exit",
+  "fixture": "Adjacent C + amera spans require actual old macOS textutil fallback; Rust uses HTML tokenization without a subprocess",
+  "checks": [
+    "only-isolated-media-scanned",
+    "original-cache-and-archive-bytes-identical",
+    "zero-http-cache-acquisition",
+    "source-time-preserved",
+    "preview-displays-camera",
+    "confirmed-write-visible-in-inspector",
+    "external-tag-retained",
+    "undo-restores-original-nfo-sha256-bom-crlf-mode-0640",
+    "normal-exit"
+  ],
+  "fetch": {
+    "request": {
+      "operation_id": "4c0607f2-1487-4628-aac2-38133eefcd34",
+      "expected_hash": "b80c5fe4dfe59703bf89431b56b15e2ec98acbafa2145fa5d0427ec719fea1b7",
+      "refresh": false
+    },
+    "imdb": "tt1234568",
+    "locale": "zh-CN",
+    "phase": "completed",
+    "cached": true,
+    "started_at": "2026-09-12T10:47:11Z",
+    "finished_at": "2026-09-12T10:47:11Z",
+    "source": {
+      "status": "ok",
+      "imdb": "tt1234568",
+      "specs": {
+        "Aspect ratio": [],
+        "Camera": [
+          "Isolated Visual Fallback Camera"
+        ],
+        "Cinematographic Process": [],
+        "Color": [],
+        "Film Length": [],
+        "Laboratory": [],
+        "Negative Format": [],
+        "Printed Film Format": [],
+        "Runtime": [],
+        "Sound mix": []
+      },
+      "fetched_at": "2026-09-12T10:45:12+00:00",
+      "parser": "html-visual-text"
+    },
+    "error": null,
+    "attempts": []
+  },
+  "import_id": "d4c80dc3-59ca-4017-9d22-67d8255f00ae",
+  "write_id": "6c087de2-ea6c-4f3d-b75c-a0c3136dd83e",
+  "undo_id": "d6b2c533-bf1e-4046-a3bf-a0c0b93ac82e",
+  "restored_nfo_sha256": "b80c5fe4dfe59703bf89431b56b15e2ec98acbafa2145fa5d0427ec719fea1b7",
+  "source_sha256": {
+    "rewrite/src-tauri/core/src/specs/html_lines.rs": "5986a01548fa59099577099d7d713ec0bb4b148e63b2a90539c1a21be8aae858",
+    "rewrite/src-tauri/core/src/specs/source.rs": "fdeef7c10b8a9f5d0739e8f1234ae3c606bdf6eceb7f1724b3f7613997415d82",
+    "rewrite/src-tauri/core/src/store/raw_cache.rs": "6bcbf4f0a380778212a3e0a2da46128a9cc0ab7758c0c22290565ac6cc2cd3ea"
+  },
+  "limitations": [
+    "Synthetic unexpected layout; no proof of every historical page or CSS rendering conversion",
+    "Real-platform desktop behavior beyond macOS still pending for this increment"
+  ]
+}

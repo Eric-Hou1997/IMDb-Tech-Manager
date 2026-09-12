@@ -470,6 +470,25 @@
           "scope": "Real IMDb HTTP/system WebView acquisition, cache, confirmed-empty state, manual facts preserved during refresh, reviewed write/undo; auto scheduler and old cache adapter pending",
           "evidence": "docs/rewrite/evidence/native-imdb-refresh.json",
           "recorded_at": "2026-09-11"
+        },
+        {
+          "slice": "raw-imdb-cache-and-html-fallback",
+          "sources": [
+            "rewrite/src-tauri/core/src/store/raw_cache.rs",
+            "rewrite/src-tauri/core/src/specs/html_lines.rs",
+            "rewrite/src-tauri/core/src/specs/source.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/html_fallback.rs",
+            "rewrite/src-tauri/core/tests/migration_cache.rs",
+            "tools/rewrite/differential.py"
+          ],
+          "scope": "Original gzip/meta archival, time-preserving reuse, parsed-cache/cooldown precedence, validated HTML and visual-text fallback; known old Color table bug corrected; five-target full business acceptance and complex historical page parity remain pending.",
+          "evidence": [
+            "docs/rewrite/evidence/native-raw-cache-migration.json",
+            "docs/rewrite/evidence/native-html-fallback.json"
+          ],
+          "recorded_at": "2026-09-12"
         }
       ],
       "supplemental_evidence": [
@@ -818,6 +837,25 @@
           ],
           "scope": "Preserve imported global pause and timestamps; explicit idempotent resume; original connection-test sample with no media write or rule fallback; bounded account retry gates; reported response model and readable settings when credentials fail. Native UI acceptance pending unlock.",
           "evidence": "docs/rewrite/10-completion-checklist.md"
+        },
+        {
+          "slice": "raw-imdb-cache-and-html-fallback",
+          "sources": [
+            "rewrite/src-tauri/core/src/store/raw_cache.rs",
+            "rewrite/src-tauri/core/src/specs/html_lines.rs",
+            "rewrite/src-tauri/core/src/specs/source.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/html_fallback.rs",
+            "rewrite/src-tauri/core/tests/migration_cache.rs",
+            "tools/rewrite/differential.py"
+          ],
+          "scope": "Original gzip/meta archival, time-preserving reuse, parsed-cache/cooldown precedence, validated HTML and visual-text fallback; known old Color table bug corrected; five-target full business acceptance and complex historical page parity remain pending.",
+          "evidence": [
+            "docs/rewrite/evidence/native-raw-cache-migration.json",
+            "docs/rewrite/evidence/native-html-fallback.json"
+          ],
+          "recorded_at": "2026-09-12"
         }
       ],
       "current_slices": [

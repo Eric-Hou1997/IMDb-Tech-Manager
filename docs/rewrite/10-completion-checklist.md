@@ -231,3 +231,13 @@ Windows 写入回归发现候选 NamedTempFile 仍持有打开句柄，导致 Re
 - 原版实际行为测试 18 项通过；全工作区 183 项在本增量初版通过。之后补充元数据 hash 类型校验，最终相关迁移测试 10 项与严格 clippy、前端/原生构建通过；没有把先前全量次数改写成最终源码的新次数。
 - macOS 隔离原生窗口完成原引擎生成缓存的导入、零 HTTP 获取、来源时间展示、预览、确认写入、Inspector 更新、完整撤销和退出。NFO 完整 SHA-256、BOM、CRLF、0640 权限恢复，原缓存和归档字节一致。见 [原始缓存原生证据](evidence/native-raw-cache-migration.json)。
 - 当前仅接通已有 next-data 解析器；旧 DOM/textutil 回退、缓存容量与维护界面、其他数据适配和完整平台验收仍待完成。此增量不关闭第 11–12 步。维护者确认暂无 Apple Developer ID Application 身份，macOS 正式签名及受信任辅助程序安装验收保留为阻塞项。
+
+### HTML 文本回退与旧 textutil 路径（2026-09-12）
+
+- 直接对照旧 `HTMLLineExtractor`、`parse_specs` 和 `extract_specs`：新版按结构化 Next data → HTML 分行文本 → 保留行内连续文本的顺序解析，保留原字段顺序、独立条目、括号附注、Unicode 去重、页尾停止和脚本/style/noscript/SVG 过滤。第三条路径使用 Rust，不启动 macOS textutil、Python 或浏览器。复用锁文件已有 html5ever 0.38，未升级其版本或引入额外传递依赖。
+- 新旧实际差分包含相邻行内元素将 Camera 拆为 C/amera 的页面；原版在真实 textutil 中得到结果，新版 `html-visual-text` 得到同一事实。五组样本都执行旧引擎，标准差分继续覆盖原有 NFO、规则、请求与 AI 键。
+- **BUG-HTML-COLOR-001（旧 bug，已修正）**：原版把表格数据单元格内的 Color 误当标题，漏掉事实。新版保留该值。合成样本分别记录原结果与正确结果，Rust 回归和差分显式验证这项有意变化，没有把旧 bug 固化成兼容规则。
+- 安全差异：纯 HTML 结果需要匹配请求 IMDb 的 canonical/og:url，或已确认的结构化标题身份；缺失身份为 `imdb-identity-unconfirmed`，矛盾身份拒绝。未知页面不能作为无规格结论；匹配的结构化正结果继续优先。无身份旧页面保留归档并走正常获取，不能据标题文字猜测归属。
+- 工作区运行完成 184 项核心测试；原生 HTTP 组首次受沙盒端口权限拒绝，调整测试执行权限后 4 项全部重跑通过。随后表格事实修正及可视文本回退的最终相关 22 项回归、全差分、严格 clippy、前端及原生构建通过。没有把早期全量结果当作最后修改后的全量证据。
+- macOS 原生界面完成旧引擎生成的 HTML gzip 导入、零 HTTP 的 `html-visual-text` 获取、预览、写入、展示、撤销与退出；NFO 完整哈希、BOM/CRLF/0640 权限及原缓存归档逐字节核对通过。见 [HTML 回退原生证据](evidence/native-html-fallback.json)。
+- 复杂旧 HTML/CSS 转文本、大样本覆盖及其他平台该业务链仍需继续验收，不能声称完全等价于任意 textutil 渲染。完整迁移/八语言/OTA/最终 18 包门槛仍未关闭。

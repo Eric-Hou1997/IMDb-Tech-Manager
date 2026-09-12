@@ -2015,6 +2015,7 @@ dependencies = [
  "chrono",
  "flate2",
  "html-escape",
+ "html5ever",
  "minisign-verify",
  "plist",
  "regex",

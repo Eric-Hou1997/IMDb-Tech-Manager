@@ -280,6 +280,40 @@ fn html() -> String {
     )
 }
 #[test]
+fn historical_dom_cache_is_reused_with_original_archive_and_no_http() {
+    let (_tmp, store, item, legacy) = setup();
+    let page = "<link rel='canonical' href='https://www.imdb.com/title/tt1234567/technical/'><h3>Camera</h3><li>Historical DOM Camera</li>";
+    let (meta, packed) = raw_page(&legacy, 60, page);
+    let plan = store
+        .prepare_migration("dom-import", &legacy, "itm-engine")
+        .unwrap();
+    assert_eq!(plan.cache_entries[0].state, "raw-source");
+    store
+        .apply_migration("dom-import", &plan.fingerprint)
+        .unwrap();
+    let (record, network) = store
+        .begin_fetch(request(&item, "dom-fetch", false))
+        .unwrap();
+    assert!(!network);
+    assert!(record.cached);
+    assert!(record.attempts.is_empty());
+    let source = record.source.unwrap();
+    assert_eq!(source.parser, "html-lines");
+    assert_eq!(source.specs["Camera"], ["Historical DOM Camera"]);
+    assert_eq!(
+        store
+            .legacy_artifact("dom-import", "cache/raw-tt1234567.json")
+            .unwrap(),
+        meta
+    );
+    assert_eq!(
+        store
+            .legacy_artifact("dom-import", "cache/raw-tt1234567.html.gz")
+            .unwrap(),
+        packed
+    );
+}
+#[test]
 fn original_gzip_pair_is_reused_without_http_reparsed_after_parser_change_and_undoable() {
     let (tmp, store, item, legacy) = setup();
     let (meta, packed) = raw_page(&legacy, 60, &html());
