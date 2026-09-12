@@ -368,17 +368,14 @@ fn original_gzip_pair_is_reused_without_http_reparsed_after_parser_change_and_un
         .unwrap();
     assert_eq!(fs::read(&item.path).unwrap(), original);
     let db = rusqlite::Connection::open(tmp.path().join("state.sqlite")).unwrap();
-    db.execute("UPDATE imdb_cache SET parser_version=0", [])
+    db.execute("UPDATE imdb_cache SET parser_version=1, body=json_set(body,'$.specs.Camera',json('[\"Incorrect prior parser value\"]'))", [])
         .unwrap();
     drop(db);
     drop(store);
     let store = Store::open(&tmp.path().join("state.sqlite")).unwrap();
-    assert!(
-        !store
-            .begin_fetch(request(&item, "reparse", false))
-            .unwrap()
-            .1
-    );
+    let (reparsed, network) = store.begin_fetch(request(&item, "reparse", false)).unwrap();
+    assert!(!network);
+    assert_eq!(reparsed.source.unwrap().specs["Camera"], ["合成相机"]);
     assert!(
         store
             .begin_fetch(request(&item, "refresh-raw", true))
@@ -568,5 +565,48 @@ fn old_missing_hash_is_compatible_but_malformed_hash_type_cannot_disable_integri
             .unwrap_err()
             .code,
         "legacy-raw-integrity"
+    );
+}
+
+#[test]
+fn old_parser_revision_does_not_block_valid_legacy_cache_and_is_in_conflict_snapshot() {
+    let (tmp, store, item, legacy) = setup();
+    save(&legacy, &old(60, "ok"));
+    let p = store
+        .prepare_migration("first", &legacy, "itm-engine")
+        .unwrap();
+    store.apply_migration("first", &p.fingerprint).unwrap();
+    let db = rusqlite::Connection::open(tmp.path().join("state.sqlite")).unwrap();
+    db.execute("UPDATE imdb_cache SET parser_version=1", [])
+        .unwrap();
+    let p = store
+        .prepare_migration("refresh-parser", &legacy, "itm-engine")
+        .unwrap();
+    assert_eq!(p.cache_entries[0].state, "source");
+    db.execute("UPDATE imdb_cache SET parser_version=2", [])
+        .unwrap();
+    assert_eq!(
+        store
+            .apply_migration("refresh-parser", &p.fingerprint)
+            .unwrap_err()
+            .code,
+        "migration-cache-conflict"
+    );
+    db.execute("UPDATE imdb_cache SET parser_version=1", [])
+        .unwrap();
+    let p = store
+        .prepare_migration("retry-parser", &legacy, "itm-engine")
+        .unwrap();
+    store
+        .apply_migration("retry-parser", &p.fingerprint)
+        .unwrap();
+    let (record, network) = store.begin_fetch(request(&item, "reused", false)).unwrap();
+    assert!(!network);
+    assert_eq!(record.source.unwrap().specs["Camera"], ["Arri Alexa"]);
+    assert_eq!(
+        db.query_row("SELECT parser_version FROM imdb_cache", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        PARSER_VERSION
     );
 }

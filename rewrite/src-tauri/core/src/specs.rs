@@ -26,13 +26,16 @@ pub const TAG_SECTIONS: [&str; 6] = [
 fn clean(s: &str) -> String {
     s.split_whitespace().collect::<Vec<_>>().join(" ")
 }
+fn source_clean(s: &str) -> String {
+    clean(&html_escape::decode_html_entities(s))
+}
 fn attrs(item: &Value) -> Vec<String> {
     item["attributes"]
         .as_array()
         .into_iter()
         .flatten()
         .filter_map(|a| a["text"].as_str())
-        .map(clean)
+        .map(source_clean)
         .filter(|s| !s.is_empty())
         .collect()
 }
@@ -103,7 +106,7 @@ pub fn parse_next_data(value: &Value) -> Result<Specs> {
     let mut out: Specs = SECTIONS.into_iter().map(|s| (s.into(), vec![])).collect();
     for edge in title["runtimes"]["edges"].as_array().into_iter().flatten() {
         let node = &edge["node"];
-        let mut base = clean(
+        let mut base = source_clean(
             node["displayableProperty"]["value"]["plainText"]
                 .as_str()
                 .unwrap_or(""),
@@ -118,7 +121,7 @@ pub fn parse_next_data(value: &Value) -> Result<Specs> {
         extras.extend(attrs(node));
         if let Some(country) = node["country"]["text"]
             .as_str()
-            .map(clean)
+            .map(source_clean)
             .filter(|s| !s.is_empty())
         {
             extras.push(country);
@@ -143,7 +146,7 @@ pub fn parse_next_data(value: &Value) -> Result<Specs> {
             .into_iter()
             .flatten()
         {
-            let mut base = clean(item[key].as_str().unwrap_or(""));
+            let mut base = source_clean(item[key].as_str().unwrap_or(""));
             if base.is_empty() {
                 continue;
             }
@@ -159,7 +162,7 @@ pub fn parse_next_data(value: &Value) -> Result<Specs> {
         .into_iter()
         .flatten()
     {
-        let mut base = clean(
+        let mut base = source_clean(
             item["displayableProperty"]["value"]["plainText"]
                 .as_str()
                 .unwrap_or(""),
@@ -174,7 +177,7 @@ pub fn parse_next_data(value: &Value) -> Result<Specs> {
                 .into_iter()
                 .flatten()
                 .filter_map(|v| v["text"].as_str())
-                .map(clean)
+                .map(source_clean)
                 .filter(|s| !s.is_empty()),
         );
         if !extras.is_empty() {

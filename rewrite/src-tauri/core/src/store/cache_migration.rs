@@ -3,11 +3,14 @@ use crate::{imdb_cache::*, migration::*};
 pub(super) fn negative_key(imdb: &str) -> String {
     format!("imdb-failure:{imdb}")
 }
-fn current(db: &Connection, imdb: &str) -> Result<(Option<String>, Option<String>)> {
+type Current = (Option<(i64, String)>, Option<String>);
+fn current(db: &Connection, imdb: &str) -> Result<Current> {
     Ok((
-        db.query_row("SELECT body FROM imdb_cache WHERE imdb=?1", [imdb], |r| {
-            r.get(0)
-        })
+        db.query_row(
+            "SELECT parser_version,body FROM imdb_cache WHERE imdb=?1",
+            [imdb],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
         .optional()?,
         db.query_row(
             "SELECT body FROM preferences WHERE key=?1",
@@ -17,7 +20,7 @@ fn current(db: &Connection, imdb: &str) -> Result<(Option<String>, Option<String
         .optional()?,
     ))
 }
-fn snapshot(value: &(Option<String>, Option<String>)) -> Result<Option<String>> {
+fn snapshot(value: &Current) -> Result<Option<String>> {
     if value.0.is_none() && value.1.is_none() {
         Ok(None)
     } else {
@@ -51,19 +54,26 @@ impl Store {
                     };
                     let old = chrono::DateTime::parse_from_rfc3339(at)
                         .map_err(|e| AppError::new("legacy-cache-time", e))?;
-                    let newer = [existing.0.as_ref(), existing.1.as_ref()]
-                        .into_iter()
-                        .flatten()
-                        .any(|body| {
-                            serde_json::from_str::<serde_json::Value>(body)
-                                .ok()
-                                .and_then(|v| {
-                                    v["fetched_at"]
-                                        .as_str()
-                                        .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
-                                })
-                                .is_some_and(|t| t >= old)
-                        });
+                    let newer = [
+                        existing
+                            .0
+                            .as_ref()
+                            .filter(|(version, _)| *version == PARSER_VERSION)
+                            .map(|(_, body)| body),
+                        existing.1.as_ref(),
+                    ]
+                    .into_iter()
+                    .flatten()
+                    .any(|body| {
+                        serde_json::from_str::<serde_json::Value>(body)
+                            .ok()
+                            .and_then(|v| {
+                                v["fetched_at"]
+                                    .as_str()
+                                    .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
+                            })
+                            .is_some_and(|t| t >= old)
+                    });
                     if newer {
                         ("kept-current".into(),"Current cache is at least as recent; historical bytes are retained without replacing it".into())
                     } else {
@@ -111,7 +121,7 @@ pub(super) fn apply(
         )?;
         match parse_legacy(&entry.imdb, &raw)? {
             LegacyCache::Source(source) => {
-                db.execute("INSERT INTO imdb_cache VALUES(?1,1,?2) ON CONFLICT(imdb) DO UPDATE SET parser_version=1,body=excluded.body",params![entry.imdb,serde_json::to_string(&source)?])?;
+                db.execute("INSERT INTO imdb_cache VALUES(?1,?3,?2) ON CONFLICT(imdb) DO UPDATE SET parser_version=excluded.parser_version,body=excluded.body",params![entry.imdb,serde_json::to_string(&source)?,crate::imdb_cache::PARSER_VERSION])?;
                 db.execute(
                     "DELETE FROM preferences WHERE key=?1",
                     [negative_key(&entry.imdb)],

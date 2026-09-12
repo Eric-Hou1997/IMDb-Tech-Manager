@@ -184,7 +184,7 @@ pub(super) fn source(
     let Ok(source) = raw_source(imdb, &at, &page) else {
         return Ok(None);
     };
-    db.execute("INSERT INTO imdb_cache VALUES(?1,1,?2) ON CONFLICT(imdb) DO UPDATE SET parser_version=1,body=excluded.body",params![imdb,serde_json::to_string(&source)?])?;
+    db.execute("INSERT INTO imdb_cache VALUES(?1,?3,?2) ON CONFLICT(imdb) DO UPDATE SET parser_version=excluded.parser_version,body=excluded.body",params![imdb,serde_json::to_string(&source)?,crate::imdb_cache::PARSER_VERSION])?;
     db.execute(
         "DELETE FROM preferences WHERE key=?1",
         [super::cache_migration::negative_key(imdb)],

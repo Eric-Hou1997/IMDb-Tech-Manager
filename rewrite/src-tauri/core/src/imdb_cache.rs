@@ -1,3 +1,5 @@
+/// Native parsed-cache revision; independent of the frozen legacy cache schema.
+pub const PARSER_VERSION: i64 = 2;
 use crate::{
     specs::{SourceSpecs, SourceStatus},
     *,

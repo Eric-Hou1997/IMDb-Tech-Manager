@@ -91,8 +91,8 @@ impl Store {
             None
         } else {
             tx.query_row(
-                "SELECT body FROM imdb_cache WHERE imdb=?1 AND parser_version=1",
-                [&current.imdb],
+                "SELECT body FROM imdb_cache WHERE imdb=?1 AND parser_version=?2",
+                params![current.imdb, crate::imdb_cache::PARSER_VERSION],
                 |r| r.get::<_, String>(0),
             )
             .optional()?
@@ -204,7 +204,7 @@ impl Store {
                         "Fetched data belongs to a different title",
                     ));
                 }
-                tx.execute("INSERT INTO imdb_cache VALUES(?1,1,?2) ON CONFLICT(imdb) DO UPDATE SET parser_version=1,body=excluded.body",params![source.imdb,serde_json::to_string(&source)?])?;
+                tx.execute("INSERT INTO imdb_cache VALUES(?1,?3,?2) ON CONFLICT(imdb) DO UPDATE SET parser_version=excluded.parser_version,body=excluded.body",params![source.imdb,serde_json::to_string(&source)?,crate::imdb_cache::PARSER_VERSION])?;
                 tx.execute(
                     "DELETE FROM preferences WHERE key=?1",
                     [super::cache_migration::negative_key(&source.imdb)],

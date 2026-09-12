@@ -55,6 +55,10 @@ expected, found = legacy.parse_next_data_specs(source)
 assert found
 assert rust({"mode": "next-data", "data": payload}) == expected
 print("PASS structured IMDb parser:", "ten fields and separate bullets")
+entity_payload = {"runtimes":{"edges":[]},"technicalSpecifications":{"cameras":{"items":[{"camera":"Bausch &amp; Lomb","attributes":[{"text":"scope &amp; format"}]}]},"soundMixes":{"items":[{"text":"Mono &amp; Stereo"}]}}}
+entity_old, _ = legacy.parse_next_data_specs('<script id="__NEXT_DATA__">'+json.dumps(entity_payload)+'</script>')
+assert rust({"mode":"next-data","data":entity_payload}) == entity_old
+print('PASS structured source HTML entities: values and attributes')
 
 for case in json.loads((ROOT / 'tools/rewrite/fixtures/imdb-html-lines.json').read_text()):
     source = '<link rel="canonical" href="https://www.imdb.com/title/tt1234567/technical/">' + case['body']

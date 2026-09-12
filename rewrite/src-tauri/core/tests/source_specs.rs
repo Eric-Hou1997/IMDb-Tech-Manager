@@ -185,3 +185,21 @@ fn confirmed_empty_is_a_persisted_fact_state_but_incomplete_payloads_are_not() {
         "invalid-source-specs"
     );
 }
+
+#[test]
+fn structured_entities_are_decoded_without_reinterpreting_manual_nfo_text() {
+    let payload = serde_json::json!({"runtimes":{"edges":[]},"technicalSpecifications":{"cameras":{"items":[{"camera":"Bausch &amp; Lomb","attributes":[{"text":"scope &amp; format"}]}]},"soundMixes":{"items":[{"text":"Mono &amp; Stereo"}]}}});
+    let parsed = parse_next_data(&payload).unwrap();
+    assert_eq!(parsed["Camera"], ["Bausch & Lomb (scope & format)"]);
+    assert_eq!(parsed["Sound mix"], ["Mono & Stereo"]);
+    let raw=br#"<movie><technicalspecs source="IMDb" modified="manual"><section name="Camera"><item>Literal &amp;amp; text</item></section></technicalspecs></movie>"#;
+    let source = SourceSpecs {
+        specs: parsed,
+        ..fetched()
+    };
+    let after = source_candidate(raw, &source).unwrap();
+    assert!(std::str::from_utf8(&after)
+        .unwrap()
+        .contains("<item>Literal &amp;amp; text</item>"));
+    validate_specs_only(raw, &after).unwrap();
+}
