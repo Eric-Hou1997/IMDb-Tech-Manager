@@ -3,6 +3,7 @@ mod ai_runtime;
 mod inspector;
 mod legacy_ai_cache;
 mod legacy_ai_failure;
+mod ownership;
 use crate::{contracts::*, hash, library, paths};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::{
@@ -51,7 +52,7 @@ impl Store {
         let connection = Connection::open(path)?;
         connection.busy_timeout(std::time::Duration::from_secs(5))?;
         let version: u32 = connection.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version > 8 {
+        if version > 9 {
             return Err(AppError::new(
                 "newer-database",
                 "Database belongs to a newer application; refusing downgrade",
@@ -64,6 +65,7 @@ impl Store {
           CREATE TABLE IF NOT EXISTS operations (id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, result TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, body TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS items (id TEXT PRIMARY KEY, root_id TEXT NOT NULL, seen_task TEXT NOT NULL, body TEXT NOT NULL);
+          CREATE INDEX IF NOT EXISTS tasks_active_auto ON tasks(json_extract(body,'$.state'),json_extract(body,'$.automatic'));
           CREATE INDEX IF NOT EXISTS items_root ON items(root_id);
           CREATE INDEX IF NOT EXISTS items_path ON items(root_id,json_extract(body,'$.path'));
           CREATE TABLE IF NOT EXISTS legacy_artifacts(import_id TEXT NOT NULL, path TEXT NOT NULL, category TEXT NOT NULL, sha256 TEXT NOT NULL, body BLOB NOT NULL, PRIMARY KEY(import_id,path));
@@ -126,6 +128,12 @@ impl Store {
                 )
             })?;
         }
+        if version < 9 {
+            let tx = connection.unchecked_transaction()?;
+            tx.execute_batch("CREATE TABLE IF NOT EXISTS imdb_raw_cache(imdb TEXT PRIMARY KEY, fetched_at TEXT NOT NULL, metadata BLOB NOT NULL, body BLOB NOT NULL)")?;
+            tx.pragma_update(None, "user_version", 9)?;
+            tx.commit()?;
+        }
         let store = Self {
             connection: Mutex::new(connection),
             worker: Mutex::new(()),
@@ -151,6 +159,15 @@ impl Store {
         source: &Path,
         kind: &str,
     ) -> Result<crate::migration::MigrationPlan> {
+        self.prepare_migration_cancellable(id, source, kind, &|| false)
+    }
+    fn prepare_migration_cancellable(
+        &self,
+        id: &str,
+        source: &Path,
+        kind: &str,
+        cancelled: &dyn Fn() -> bool,
+    ) -> Result<crate::migration::MigrationPlan> {
         valid_id(id)?;
         let source = paths::checked(source)?;
         let identity = hash(
@@ -169,9 +186,15 @@ impl Store {
                 )),
             };
         }
-        let mut plan = crate::migration::prepare(id, &source, kind, &self.configuration()?)?;
+        let mut plan = crate::migration::prepare_cancellable(
+            id,
+            &source,
+            kind,
+            &self.configuration()?,
+            cancelled,
+        )?;
         if kind.starts_with("itm-") {
-            for file in &plan.files {
+            for file in &plan.files.clone() {
                 if file.category != "configuration" {
                     continue;
                 }
@@ -179,6 +202,43 @@ impl Store {
                 let Ok(value) = serde_json::from_slice::<serde_json::Value>(&data) else {
                     continue;
                 };
+                if file.relative == "ui-layout.json" && kind == "itm-manager" {
+                    if let Ok(state) = crate::migration::ui_layout::adapt(&value) {
+                        let before: Option<String> = self
+                            .db()?
+                            .query_row(
+                                "SELECT body FROM preferences WHERE key='library-view'",
+                                [],
+                                |r| r.get(0),
+                            )
+                            .optional()?;
+                        plan.adapters.push(crate::migration::AdapterPlan {
+                            source: file.relative.clone(),
+                            target: "library-view".into(),
+                            before_hash: before.map(|s| hash(s.as_bytes())),
+                            value: serde_json::to_value(state)?,
+                            warnings: vec![],
+                        });
+                    }
+                }
+                if file.relative == "settings.json" && kind == "itm-manager" {
+                    if let Some(settings) = crate::lifecycle::legacy_settings(&value)? {
+                        let before: Option<String> = self
+                            .db()?
+                            .query_row(
+                                "SELECT body FROM preferences WHERE key='lifecycle-settings'",
+                                [],
+                                |r| r.get(0),
+                            )
+                            .optional()?;
+                        plan.adapters.push(crate::migration::AdapterPlan {
+                            source: file.relative.clone(), target: "lifecycle-settings".into(),
+                            before_hash: before.map(|s| hash(s.as_bytes())), value: serde_json::to_value(settings)?,
+                            warnings: vec!["Preserves the original App login preference; import alone does not register or start a system login item".into()],
+                        });
+                    }
+                }
+                self.prepare_cache_settings(&mut plan, &file.relative, &value)?;
                 match crate::automatic::legacy_settings(&value) {
                     Ok(Some(settings)) => {
                         if plan.adapters.iter().any(|a| a.target == "automatic") {
@@ -239,10 +299,16 @@ impl Store {
                 }
             }
         }
+        if cancelled() {
+            return Err(AppError::new("startup-cancelled", "Startup import stopped"));
+        }
         self.prepare_annotation_migration(&mut plan)?;
         self.prepare_failure_migration(&mut plan)?;
         self.prepare_runtime_migration(&mut plan)?;
         self.prepare_cache_migration(&mut plan)?;
+        if cancelled() {
+            return Err(AppError::new("startup-cancelled", "Startup import stopped"));
+        }
         plan.fingerprint = hash(&serde_json::to_vec(&(
             &plan.fingerprint,
             &plan.adapters,
@@ -272,6 +338,17 @@ impl Store {
         let mut db = self.db()?;
         self.writable()?;
         let tx = db.transaction()?;
+        let receipt = Self::apply_migration_transaction(&tx, id, fingerprint, None, &|| false)?;
+        tx.commit()?;
+        Ok(receipt)
+    }
+    fn apply_migration_transaction(
+        tx: &rusqlite::Transaction<'_>,
+        id: &str,
+        fingerprint: &str,
+        startup_revision: Option<u32>,
+        cancelled: &dyn Fn() -> bool,
+    ) -> Result<crate::migration::MigrationReceipt> {
         let body: String =
             tx.query_row("SELECT result FROM operations WHERE id=?1", [id], |row| {
                 row.get(0)
@@ -280,7 +357,28 @@ impl Store {
             OperationResult::Migration(receipt) if receipt.fingerprint == fingerprint => {
                 return Ok(receipt)
             }
-            OperationResult::MigrationPlan(plan) if plan.fingerprint == fingerprint => plan,
+            OperationResult::MigrationPlan(mut plan) if plan.fingerprint == fingerprint => {
+                // Only the startup owner may apply both original directories in
+                // one transaction; each immutable plan has the same base revision.
+                if let Some(base) = startup_revision {
+                    if plan.configuration_revision != base {
+                        return Err(AppError::new(
+                            "configuration-conflict",
+                            "Startup source revision changed",
+                        ));
+                    }
+                    plan.configuration_revision = tx
+                        .query_row("SELECT body FROM configuration WHERE id=1", [], |r| {
+                            r.get::<_, String>(0)
+                        })
+                        .optional()?
+                        .map(|s| serde_json::from_str::<Configuration>(&s))
+                        .transpose()?
+                        .unwrap_or_default()
+                        .revision;
+                }
+                plan
+            }
             _ => {
                 return Err(AppError::new(
                     "migration-plan-mismatch",
@@ -313,6 +411,12 @@ impl Store {
         let mut preferences = std::collections::BTreeMap::new();
         let mut total = 0u64;
         for file in &plan.files {
+            if cancelled() {
+                return Err(AppError::new(
+                    "startup-cancelled",
+                    "Startup import stopped before completion",
+                ));
+            }
             let data = crate::migration::read_snapshot(Path::new(&plan.source), file)?;
             if file.category == "configuration" {
                 if let Ok(value) = serde_json::from_slice::<serde_json::Value>(&data) {
@@ -325,9 +429,17 @@ impl Store {
                 .ok_or_else(|| AppError::new("migration-size", "Import byte count overflow"))?;
         }
         let mut applied_adapters = vec![];
-        let applied_cache_entries = cache_migration::apply(&tx, id, &plan.cache_entries)?;
+        let applied_cache_entries = cache_migration::apply(tx, id, &plan.cache_entries)?;
         for adapter in &plan.adapters {
-            if !["ai-settings", "automatic", "ai-runtime"].contains(&adapter.target.as_str())
+            if ![
+                "ai-settings",
+                "automatic",
+                "ai-runtime",
+                "imdb-cache-settings",
+                "library-view",
+                "lifecycle-settings",
+            ]
+            .contains(&adapter.target.as_str())
                 && !adapter.target.starts_with("inspector:")
                 && !adapter.target.starts_with("legacy-ai-failure:")
             {
@@ -349,10 +461,23 @@ impl Store {
                     "Settings changed after the migration preview",
                 ));
             }
-            if adapter.target == "ai-runtime" {
-                ai_runtime::write(&tx, &serde_json::from_value(adapter.value.clone())?)?;
+            if adapter.target == "library-view" {
+                let state: crate::ui::UiState = serde_json::from_value(adapter.value.clone())?;
+                state.validate()?;
+                tx.execute("INSERT INTO preferences VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&state)?])?;
+            } else if adapter.target == "lifecycle-settings" {
+                let settings: crate::lifecycle::Settings =
+                    serde_json::from_value(adapter.value.clone())?;
+                tx.execute("INSERT INTO preferences VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&settings)?])?;
+            } else if adapter.target == "ai-runtime" {
+                ai_runtime::write(tx, &serde_json::from_value(adapter.value.clone())?)?;
+            } else if adapter.target == "imdb-cache-settings" {
+                let settings: crate::imdb_cache::CacheSettings =
+                    serde_json::from_value(adapter.value.clone())?;
+                settings.validate()?;
+                tx.execute("INSERT INTO preferences VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&settings)?])?;
             } else if adapter.target == "automatic" {
-                automatic::import_settings(&tx, serde_json::from_value(adapter.value.clone())?)?;
+                automatic::import_settings(tx, serde_json::from_value(adapter.value.clone())?)?;
             } else if adapter.target.starts_with("inspector:") {
                 let annotation: crate::inspector::Annotation =
                     serde_json::from_value(adapter.value.clone())?;
@@ -374,7 +499,7 @@ impl Store {
             } else {
                 let settings: crate::ai::job::Settings =
                     serde_json::from_value(adapter.value.clone())?;
-                settings.validate()?;
+                settings.validate_saved()?;
                 tx.execute("INSERT INTO preferences(key,body) VALUES(?1,?2) ON CONFLICT(key) DO UPDATE SET body=excluded.body",params![adapter.target,serde_json::to_string(&settings)?])?;
             }
             applied_adapters.push(adapter.target.clone());
@@ -405,7 +530,6 @@ impl Store {
                 serde_json::to_string(&OperationResult::Migration(receipt.clone()))?
             ],
         )?;
-        tx.commit()?;
         Ok(receipt)
     }
     pub fn legacy_artifact(&self, id: &str, path: &str) -> Result<Vec<u8>> {
@@ -521,6 +645,69 @@ impl Store {
         body.map(|b| serde_json::from_str(&b).map_err(Into::into))
             .unwrap_or_else(|| Ok(Configuration::default()))
     }
+    /// Original "测试访问": only confirmed roots, a single directory listing,
+    /// no recursive index or media reads, and no configuration changes.
+    pub fn test_library_root(&self, path: &str) -> Result<LibraryRootAccess> {
+        let configuration = self.configuration()?;
+        if configuration.roots.is_empty() {
+            return Err(AppError::new("unconfirmed-root", "请先保存分类资料库"));
+        }
+        let requested = Path::new(path);
+        if !configuration
+            .roots
+            .iter()
+            .any(|root| Path::new(&root.path) == requested)
+        {
+            return Err(AppError::new("unconfirmed-root", "只能测试已确认的资料库根目录").at(path));
+        }
+        let mut result = LibraryRootAccess {
+            path: path.into(),
+            online: false,
+            state: "offline".into(),
+            access_error: None,
+            entry_count: None,
+            checked_at: None,
+        };
+        let real = match paths::checked(requested) {
+            Ok(real) => real,
+            Err(error) if error.code == "path-unavailable" => {
+                result.access_error = Some(error.message);
+                return Ok(result);
+            }
+            Err(error) => return Err(error),
+        };
+        if !real.is_dir() {
+            return Err(AppError::new("invalid-root", "资料库路径不是文件夹").at(path));
+        }
+        let count = std::fs::read_dir(&real).and_then(|mut entries| {
+            entries.try_fold(0u32, |count, entry| {
+                entry?;
+                count
+                    .checked_add(1)
+                    .ok_or_else(|| std::io::Error::other("Directory entry count overflow"))
+            })
+        });
+        match count {
+            Ok(count) => {
+                if paths::checked(requested)? != real {
+                    return Err(AppError::new(
+                        "ambiguous-path",
+                        "Library root changed during access test",
+                    )
+                    .at(path));
+                }
+                result.online = true;
+                result.state = "online".into();
+                result.entry_count = Some(count);
+                result.checked_at = Some(chrono::Local::now().to_rfc3339());
+            }
+            Err(error) => {
+                result.state = "permission-denied".into();
+                result.access_error = Some(error.to_string());
+            }
+        }
+        Ok(result)
+    }
     pub fn operation_result(&self, id: &str) -> Result<OperationResult> {
         let body: Option<String> = self
             .db()?
@@ -557,10 +744,16 @@ impl Store {
             return Ok(serde_json::from_str(&result)?);
         }
         let mut roots = vec![];
+        let existing_roots = self.configuration()?.roots;
         for root in &mut value.roots {
             valid_id(&root.id)?;
-            let real = paths::checked(Path::new(&root.path))?;
-            if !real.is_dir() {
+            let retained = existing_roots.iter().any(|old| old == root);
+            let real = if retained {
+                paths::checked_or_missing(Path::new(&root.path))?
+            } else {
+                paths::checked(Path::new(&root.path))?
+            };
+            if real.exists() && !real.is_dir() {
                 return Err(
                     AppError::new("invalid-root", "Library root must be a directory")
                         .at(real.display()),
@@ -688,6 +881,94 @@ impl Store {
     pub fn submit(&self, request: ScanRequest) -> Result<Task> {
         self.submit_context(request, false)
     }
+    /// The original launcher reconciles confirmed roots once after launch,
+    /// waiting for current work. Both media spaces are queued atomically and
+    /// use the normal read-only scanner; no automatic generation is enabled.
+    pub fn reconcile_on_launch(&self, launch_id: &str) -> Result<Option<Vec<Task>>> {
+        let ids = [format!("{launch_id}-movie"), format!("{launch_id}-tv")];
+        for id in &ids {
+            valid_id(id)?;
+        }
+        let mut db = self.db()?;
+        self.writable()?;
+        let tx = db.transaction()?;
+        let previous = tx
+            .prepare("SELECT body FROM tasks WHERE id IN (?1,?2) ORDER BY rowid")?
+            .query_map(params![ids[0], ids[1]], |row| row.get::<_, String>(0))?
+            .map(|body| Ok(serde_json::from_str::<Task>(&body?)?))
+            .collect::<Result<Vec<_>>>()?;
+        if !previous.is_empty() {
+            return Ok(Some(previous));
+        }
+        if tx.query_row("SELECT EXISTS(SELECT 1 FROM tasks WHERE json_extract(body,'$.state') IN ('requested','running','paused','interrupted')) OR EXISTS(SELECT 1 FROM operations WHERE json_extract(result,'$.kind')='write' AND json_extract(result,'$.result.phase') IN ('writing','committed-mirror-pending'))", [], |row| row.get::<_, bool>(0))? {
+            return Ok(None);
+        }
+        let config: Configuration = tx
+            .query_row("SELECT body FROM configuration WHERE id=1", [], |row| {
+                row.get::<_, String>(0)
+            })
+            .optional()?
+            .map(|body| serde_json::from_str(&body))
+            .transpose()?
+            .unwrap_or_default();
+        if config.roots.is_empty() {
+            return Ok(None);
+        }
+        let mut tasks = vec![];
+        for (space, id) in [Space::Movie, Space::Tv].into_iter().zip(ids) {
+            let roots: Vec<_> = config
+                .roots
+                .iter()
+                .filter(|root| root.space == space)
+                .cloned()
+                .collect();
+            if roots.is_empty() {
+                continue;
+            }
+            if tx.query_row(
+                "SELECT EXISTS(SELECT 1 FROM operations WHERE id=?1)",
+                [&id],
+                |row| row.get::<_, bool>(0),
+            )? {
+                return Err(AppError::new(
+                    "operation-conflict",
+                    "Launch scan ID belongs to another operation",
+                ));
+            }
+            let request = ScanRequest {
+                operation_id: id.clone(),
+                space,
+                root_ids: roots.iter().map(|root| root.id.clone()).collect(),
+            };
+            let mut task = Task {
+                journal: None,
+                automatic: false,
+                batch: None,
+                id,
+                state: TaskState::Requested,
+                locale: config.locale.clone(),
+                space: request.space.clone(),
+                roots,
+                attempt: 0,
+                processed: 0,
+                errors: 0,
+                current_path: None,
+                failure: None,
+            };
+            Self::begin_task_log(&tx, &mut task)?;
+            tx.execute(
+                "INSERT INTO tasks VALUES(?1,?2,?3)",
+                params![
+                    task.id,
+                    hash(serde_json::to_string(&request)?.as_bytes()),
+                    serde_json::to_string(&task)?
+                ],
+            )?;
+            tasks.push(task);
+        }
+        tx.commit()?;
+        Ok(Some(tasks))
+    }
     pub(super) fn submit_context(&self, request: ScanRequest, automatic: bool) -> Result<Task> {
         valid_id(&request.operation_id)?;
         if request.root_ids.is_empty() {
@@ -736,7 +1017,8 @@ impl Store {
             }
             roots.push(root.clone());
         }
-        let task = Task {
+        let mut task = Task {
+            journal: None,
             automatic,
             batch: None,
             id: request.operation_id.clone(),
@@ -750,16 +1032,18 @@ impl Store {
             current_path: None,
             failure: None,
         };
-        let db = self.db()?;
+        let mut db = self.db()?;
         self.writable()?;
-        if automatic && !automatic::enabled(&db)? {
+        let tx = db.transaction()?;
+        Self::begin_task_log(&tx, &mut task)?;
+        if automatic && !automatic::enabled(&tx)? {
             return Err(AppError::new(
                 "automatic-stopped",
                 "Automatic mode stopped before indexing",
             ));
         }
         let latest: String =
-            db.query_row("SELECT body FROM configuration WHERE id=1", [], |r| {
+            tx.query_row("SELECT body FROM configuration WHERE id=1", [], |r| {
                 r.get(0)
             })?;
         if serde_json::from_str::<Configuration>(&latest)?.revision != config.revision {
@@ -768,7 +1052,7 @@ impl Store {
                 "Settings changed while preparing task",
             ));
         }
-        if let Some((old, body)) = db
+        if let Some((old, body)) = tx
             .query_row(
                 "SELECT fingerprint,body FROM tasks WHERE id=?1",
                 [&task.id],
@@ -784,7 +1068,7 @@ impl Store {
             }
             return Ok(serde_json::from_str(&body)?);
         }
-        if db.query_row(
+        if tx.query_row(
             "SELECT EXISTS(SELECT 1 FROM operations WHERE id=?1)",
             [&task.id],
             |r| r.get::<_, bool>(0),
@@ -794,17 +1078,72 @@ impl Store {
                 "Task ID already belongs to another operation",
             ));
         }
-        db.execute(
+        if !automatic {
+            Self::supersede_stopped(&tx, &task.id, None)?;
+        }
+        tx.execute(
             "INSERT INTO tasks VALUES(?1,?2,?3)",
             params![task.id, fingerprint, serde_json::to_string(&task)?],
         )?;
+        tx.commit()?;
         Ok(task)
     }
     fn save_task(&self, task: &Task) -> Result<()> {
-        self.db()?.execute(
+        Self::record_task(&*self.db()?, &mut task.clone())
+    }
+    // Keep state, timestamps and the log in the same SQLite transaction.
+    fn record_task(db: &Connection, task: &mut Task) -> Result<()> {
+        let body: String = db.query_row("SELECT body FROM tasks WHERE id=?1", [&task.id], |r| {
+            r.get(0)
+        })?;
+        let previous: Task = serde_json::from_str(&body)?;
+        if task.journal.as_ref().is_none_or(|j| j.text.is_empty()) {
+            task.journal = previous.journal;
+        }
+        if task.batch.as_ref().is_some_and(|b| b.pause_requested)
+            && previous.batch.as_ref().is_some_and(|b| !b.pause_requested)
+        {
+            task.log_line(&task.localized(
+                "已请求暂停，当前 NFO 完成后停止取下一项。",
+                "已請求暫停，目前 NFO 完成後停止取下一項。",
+                "Pause requested; stop taking new items after the current NFO finishes.",
+            ));
+        }
+        task.log_state(&previous.state);
+        db.execute(
             "UPDATE tasks SET body=?2 WHERE id=?1",
             params![task.id, serde_json::to_string(task)?],
         )?;
+        Ok(())
+    }
+    // A new explicit original action can replace a stopped index scope and a
+    // stopped batch of the same kind. A scan must preserve a paused AI queue.
+    fn supersede_stopped(
+        db: &Connection,
+        keep: &str,
+        engine: Option<(&crate::batch::BatchEngine, &Space)>,
+    ) -> Result<()> {
+        let bodies=db.prepare("SELECT body FROM tasks WHERE id<>?1 AND json_extract(body,'$.automatic')=0 AND json_extract(body,'$.state') IN ('paused','interrupted')")?.query_map([keep],|r|r.get::<_,String>(0))?.collect::<std::result::Result<Vec<_>,_>>()?;
+        let mut stopped = vec![];
+        for body in bodies {
+            let task: Task = serde_json::from_str(&body)?;
+            if task.batch.is_none()
+                || task
+                    .batch
+                    .as_ref()
+                    .is_some_and(|b| engine == Some((&b.engine, &task.space)))
+            {
+                stopped.push(task);
+            }
+        }
+        if !stopped.is_empty()&&db.query_row("SELECT EXISTS(SELECT 1 FROM operations WHERE json_extract(result,'$.kind')='write' AND json_extract(result,'$.result.phase') IN ('writing','committed-mirror-pending'))",[],|r|r.get::<_,bool>(0))?{
+            return Err(AppError::new("recovery-required","Finish the interrupted NFO transaction before starting another task"));
+        }
+        for mut task in stopped {
+            task.log_line(&task.localized("已由用户启动的新任务替代；原记录与已完成结果保留。", "已由使用者啟動的新任務替代；原記錄與已完成結果保留。", "Superseded by a new user-requested task; prior records and completed results are preserved."));
+            task.state = TaskState::Cancelled;
+            Self::record_task(db, &mut task)?;
+        }
         Ok(())
     }
     pub fn tasks(&self) -> Result<Vec<Task>> {
@@ -812,7 +1151,13 @@ impl Store {
         let mut stmt = db.prepare("SELECT body FROM tasks ORDER BY rowid DESC")?;
         let result = stmt
             .query_map([], |r| r.get::<_, String>(0))?
-            .map(|s| Ok(serde_json::from_str(&s?)?))
+            .map(|s| {
+                let mut task: Task = serde_json::from_str(&s?)?;
+                if let Some(journal) = task.journal.as_mut() {
+                    journal.text.clear();
+                }
+                Ok(task)
+            })
             .collect();
         result
     }
@@ -868,6 +1213,11 @@ impl Store {
             TaskState::Cancelled => !task.state.terminal(),
             TaskState::Requested => {
                 matches!(task.state, TaskState::Paused | TaskState::Interrupted)
+                    || task.state == TaskState::Failed
+                        && task
+                            .batch
+                            .as_ref()
+                            .is_some_and(|b| b.engine == crate::batch::BatchEngine::Ai)
             }
             _ => false,
         };
@@ -902,8 +1252,8 @@ impl Store {
         } else {
             task.state = state;
         }
+        Self::record_task(&tx, &mut task)?;
         let body = serde_json::to_string(&task)?;
-        tx.execute("UPDATE tasks SET body=?2 WHERE id=?1", params![id, body])?;
         tx.execute(
             "INSERT INTO operations VALUES(?1,?2,?3)",
             params![request.operation_id, fingerprint, body],
@@ -916,10 +1266,13 @@ impl Store {
         let mut statement = db.prepare("SELECT body FROM items ORDER BY id")?;
         let rows = statement.query_map([], |r| r.get::<_, String>(0))?;
         let annotations = inspector::annotations(&db)?;
+        let ai_hints = inspector::AiHints::read(&db)?;
         let mut items = Vec::new();
         for row in rows {
             let mut item: MediaItem = serde_json::from_str(&row?)?;
             let value = annotations.get(&format!("inspector:{}", hash(item.path.as_bytes())));
+            ownership::overlay(&db, &mut item);
+            ai_hints.apply(&mut item);
             crate::inspector::apply(&mut item, value);
             items.push(item);
         }
@@ -1163,7 +1516,50 @@ impl Store {
             revision: state.revision,
         })
     }
+    /// Explicit "select all/invert" uses the complete filtered result, not the
+    /// currently rendered page. Reading identifiers never starts a batch task.
+    pub fn catalog_members(
+        &self,
+        space: Space,
+        view: crate::ui::LibraryView,
+    ) -> Result<Vec<String>> {
+        crate::ui::UiState {
+            movie: view.clone(),
+            ..Default::default()
+        }
+        .validate()?;
+        let mut items: Vec<_> = self
+            .all_items()?
+            .into_iter()
+            .filter(|item| crate::ui::matches(item, &space, &view))
+            .collect();
+        if items.len() > 100_000 {
+            return Err(AppError::new(
+                "view-state-limit",
+                "Narrow the selection to at most 100000 items",
+            ));
+        }
+        crate::ui::sort(&mut items, &view);
+        Ok(items.into_iter().map(|item| item.id).collect())
+    }
     pub fn browse(&self, space: Space, view: crate::ui::LibraryView) -> Result<CatalogPage> {
+        let offset = view.offset;
+        let mut page = self.browse_complete(space, view)?;
+        page.items = page
+            .items
+            .into_iter()
+            .skip(offset as usize)
+            .take(100)
+            .collect();
+        Ok(page)
+    }
+    /// The original product filters the complete library and renders movie
+    /// rows in chunks. Keep the paged internal API for its existing callers.
+    pub fn browse_complete(
+        &self,
+        space: Space,
+        view: crate::ui::LibraryView,
+    ) -> Result<CatalogPage> {
         let mut items: Vec<_> = self
             .all_items()?
             .into_iter()
@@ -1172,11 +1568,7 @@ impl Store {
         crate::ui::sort(&mut items, &view);
         Ok(CatalogPage {
             total: items.len().try_into().unwrap_or(u32::MAX),
-            items: items
-                .into_iter()
-                .skip(view.offset as usize)
-                .take(100)
-                .collect(),
+            items,
         })
     }
     pub fn query(&self, query: CatalogQuery) -> Result<CatalogPage> {
@@ -1215,15 +1607,18 @@ impl Store {
         Ok(serde_json::from_str(&body)?)
     }
     fn checkpoint(&self, id: &str, stop: &impl Fn() -> bool) -> Result<bool> {
-        if stop() {
-            let mut task = self.task(id)?;
-            if task.state == TaskState::Running {
-                task.state = TaskState::Interrupted;
-                self.save_task(&task)?;
-            }
-            return Ok(false);
+        let stopping = stop();
+        let mut db = self.db()?;
+        let tx = db.transaction()?;
+        let body: String =
+            tx.query_row("SELECT body FROM tasks WHERE id=?1", [id], |r| r.get(0))?;
+        let mut task: Task = serde_json::from_str(&body)?;
+        if stopping && task.state == TaskState::Running {
+            task.state = TaskState::Interrupted;
+            Self::record_task(&tx, &mut task)?;
         }
-        Ok(self.task(id)?.state == TaskState::Running)
+        tx.commit()?;
+        Ok(!stopping && task.state == TaskState::Running)
     }
     // Called by exactly one owned worker. Pause/cancel apply between bounded file reads.
     pub fn run_next(
@@ -1257,10 +1652,7 @@ impl Store {
             task.attempt = task.attempt.checked_add(1).ok_or_else(|| {
                 AppError::new("attempt-overflow", "Task attempt counter exhausted")
             })?;
-            tx.execute(
-                "UPDATE tasks SET body=?2 WHERE id=?1",
-                params![task.id, serde_json::to_string(&task)?],
-            )?;
+            Self::record_task(&tx, &mut task)?;
             tx.commit()?;
             task
         };
@@ -1361,14 +1753,23 @@ impl Store {
                                 .any(|i| i == "library-type-mismatch"),
                     );
                     current.current_path = Some(item.path.clone());
+                    current.log_line(&format!(
+                        "[{}] {} · {} · {} · {} · {}",
+                        current.processed,
+                        item.title,
+                        item.year,
+                        item.imdb,
+                        item.path,
+                        item.error
+                            .as_ref()
+                            .map(|e| current.error_message(e))
+                            .unwrap_or_else(|| current.result_label(&item.inspection.lifecycle))
+                    ));
                     tx.execute("INSERT INTO items VALUES(?1,?2,?3,?4) ON CONFLICT(id) DO UPDATE SET root_id=excluded.root_id,seen_task=excluded.seen_task,body=excluded.body",params![item.id,root.id,scan_id,serde_json::to_string(&item)?])?;
                     // A readable path supersedes its former error row even if a different
                     // file keeps the root-wide stale-entry cleanup suspended.
                     tx.execute("DELETE FROM items WHERE root_id=?1 AND json_extract(body,'$.path')=?2 AND id<>?3",params![root.id,item.path,item.id])?;
-                    tx.execute(
-                        "UPDATE tasks SET body=?2 WHERE id=?1",
-                        params![task.id, serde_json::to_string(&current)?],
-                    )?;
+                    Self::record_task(&tx, &mut current)?;
                     tx.commit()?;
                     drop(db);
                     progress(&current);
@@ -1379,8 +1780,8 @@ impl Store {
             }
             if !root_failed {
                 self.db()?.execute(
-                    "DELETE FROM items WHERE root_id=?1 AND seen_task<>?2",
-                    params![root.id, scan_id],
+                    "DELETE FROM items WHERE root_id=?1 AND seen_task<>?2 AND EXISTS(SELECT 1 FROM tasks WHERE id=?3 AND json_extract(body,'$.state')='running' AND json_extract(body,'$.attempt')=?4)",
+                    params![root.id, scan_id, task.id, task.attempt],
                 )?;
             }
         }
@@ -1398,10 +1799,7 @@ impl Store {
                 TaskState::Failed
             };
             result.current_path = None;
-            tx.execute(
-                "UPDATE tasks SET body=?2 WHERE id=?1",
-                params![result.id, serde_json::to_string(&result)?],
-            )?;
+            Self::record_task(&tx, &mut result)?;
         }
         tx.commit()?;
         drop(db);
@@ -1410,12 +1808,21 @@ impl Store {
     }
 }
 mod ai_operations;
+mod presentation;
 
 mod acquisition;
 mod write_operations;
 
 mod automatic;
 mod batches;
+mod cache_maintenance;
 mod cache_migration;
 mod legacy_undo;
 mod raw_cache;
+
+mod history;
+
+mod languages;
+
+mod startup_migration;
+pub use startup_migration::StartupSources;

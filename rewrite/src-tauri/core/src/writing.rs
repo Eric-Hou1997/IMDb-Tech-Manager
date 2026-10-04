@@ -9,6 +9,15 @@ pub enum WriteIntent {
     Tags {
         plan: crate::tags::Plan,
     },
+    RecoveredSpecs {
+        #[ts(type = "unknown")]
+        ownership: Box<serde_json::Value>,
+    },
+    RecoveredTags {
+        plan: crate::tags::Plan,
+        #[ts(type = "unknown")]
+        ownership: Box<serde_json::Value>,
+    },
     Undo {
         original_id: String,
     },

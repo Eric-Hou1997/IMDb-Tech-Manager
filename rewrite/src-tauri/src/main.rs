@@ -7,8 +7,10 @@ mod credential_process;
 mod credentials;
 mod desktop;
 mod imdb_webview;
+mod languages;
 mod lifecycle;
-mod migration;
+mod native_dialogs;
+mod public_links;
 mod update;
 mod writing;
 use product_core::services::CredentialStore;
@@ -147,6 +149,89 @@ fn main() {
     if let Some(code) = credential_process::entry() {
         std::process::exit(code);
     }
+    let commands: fn(tauri::ipc::Invoke<tauri::Wry>) -> bool = tauri::generate_handler![
+        languages::language_status,
+        languages::choose_language,
+        languages::restore_language_packs,
+        native_dialogs::native_dialog,
+        acquisition::fetch_specs,
+        acquisition::fetch_record,
+        acquisition::fetch_history,
+        acquisition::imdb_cache_status,
+        acquisition::maintain_imdb_cache,
+        acquisition::cancel_fetch,
+        acquisition::preview_source,
+        writing::preview_specs,
+        writing::preview_restore_specs,
+        writing::preview_tags,
+        writing::preview_rules,
+        ai_jobs::ai_settings,
+        ai_jobs::save_ai_settings,
+        ai_jobs::ai_settings_receipt,
+        ai_jobs::generate_ai,
+        ai_jobs::ai_record,
+        ai_jobs::cancel_ai,
+        ai_jobs::ai_history,
+        ai_jobs::ai_runtime,
+        ai_jobs::ai_failure_items,
+        ai_jobs::resume_ai_runtime,
+        ai_jobs::test_ai_connection,
+        ai_jobs::preview_ai,
+        writing::apply_specs,
+        writing::preview_undo,
+        writing::write_history,
+        writing::legacy_undo_entries,
+        writing::preview_legacy_undo,
+        runtime_probe,
+        lifecycle::lifecycle_status,
+        lifecycle::lifecycle_apply,
+        lifecycle::background_window,
+        frontend_ready,
+        directory_probe,
+        storage_probe,
+        credential_probe,
+        network_probe,
+        public_links::open_product_link,
+        quit_probe,
+        update::update_identity,
+        update::update_status,
+        update::update_check,
+        update::update_install,
+        update::update_cancel,
+        desktop::configuration,
+        desktop::pending_legacy_roots,
+        desktop::onboarding_info,
+        desktop::automatic_status,
+        desktop::automatic_apply,
+        desktop::operation_result,
+        desktop::add_library_root,
+        desktop::choose_library_root,
+        desktop::save_library_roots,
+        desktop::test_library_root,
+        batches::plan_batch,
+        batches::adopt_preview,
+        batches::preflight_items,
+        batches::batch_detail,
+        batches::apply_batch_item,
+        batches::approve_batch_scope,
+        desktop::scan_library,
+        desktop::task_control,
+        desktop::task_history,
+        desktop::task_job,
+        desktop::job_history,
+        desktop::task_result,
+        desktop::catalog,
+        desktop::ui_state,
+        desktop::save_ui_state,
+        desktop::browse,
+        desktop::catalog_members,
+        desktop::tv_catalog,
+        desktop::tv_members,
+        desktop::inspector,
+        desktop::annotate_item,
+        desktop::copy_text,
+        desktop::reveal_item
+    ];
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             restore(app);
@@ -168,86 +253,62 @@ fn main() {
             }
         })
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![
-            acquisition::fetch_specs,
-            acquisition::fetch_record,
-            acquisition::fetch_history,
-            acquisition::cancel_fetch,
-            acquisition::preview_source,
-            writing::preview_specs,
-            writing::preview_tags,
-            writing::preview_rules,
-            ai_jobs::ai_settings,
-            ai_jobs::save_ai_settings,
-            ai_jobs::generate_ai,
-            ai_jobs::ai_record,
-            ai_jobs::cancel_ai,
-            ai_jobs::ai_history,
-            ai_jobs::ai_runtime,
-            ai_jobs::resume_ai_runtime,
-            ai_jobs::test_ai_connection,
-            ai_jobs::preview_ai,
-            writing::apply_specs,
-            writing::preview_undo,
-            writing::write_history,
-            writing::legacy_undo_entries,
-            writing::preview_legacy_undo,
-            runtime_probe,
-            lifecycle::lifecycle_status,
-            lifecycle::lifecycle_apply,
-            lifecycle::background_window,
-            frontend_ready,
-            directory_probe,
-            storage_probe,
-            credential_probe,
-            network_probe,
-            quit_probe,
-            migration::migration_plan,
-            migration::migration_apply,
-            migration::migration_result,
-            update::update_identity,
-            update::update_status,
-            update::update_check,
-            update::update_install,
-            update::update_cancel,
-            desktop::configuration,
-            desktop::automatic_status,
-            desktop::automatic_apply,
-            desktop::operation_result,
-            desktop::add_library_root,
-            batches::plan_batch,
-            batches::batch_detail,
-            batches::apply_batch_item,
-            batches::approve_batch_scope,
-            desktop::scan_library,
-            desktop::task_control,
-            desktop::task_history,
-            desktop::task_result,
-            desktop::catalog,
-            desktop::ui_state,
-            desktop::save_ui_state,
-            desktop::browse,
-            desktop::tv_catalog,
-            desktop::tv_members,
-            desktop::inspector,
-            desktop::annotate_item,
-            desktop::reveal_item
-        ])
+        .invoke_handler(move |invoke: tauri::ipc::Invoke<tauri::Wry>| {
+            let app = invoke.message.webview().app_handle().clone();
+            let state = app.state::<desktop::Desktop>();
+            if !desktop::startup_command_allowed(
+                state.ready(),
+                state.stopping(),
+                invoke.message.command(),
+            ) {
+                invoke.resolver.reject(product_core::AppError::new(
+                    "startup-pending",
+                    "启动未完成，请重新连接；尚未启动后台任务",
+                ));
+                return true;
+            }
+            commands(invoke)
+        })
         .setup(|app| {
             app.manage(desktop::Desktop::start(app.handle())?);
-            app.state::<desktop::Desktop>().resume(app.handle())?;
             app.manage(lifecycle::Lifecycle::default());
-            lifecycle::initialize(app.handle());
             app.manage(update::Updates::default());
+            app.manage(languages::Languages::default());
             let show = MenuItem::with_id(app, "show", "显示窗口 / Show", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "退出 / Quit", true, Some("CmdOrCtrl+Q"))?;
             // macOS menu bars require top-level submenus. A flat tray menu
             // cannot also serve as the menu bar: its accelerators stay inactive.
-            let application = Submenu::with_items(app, "ITM", true, &[&show, &quit])?;
+            #[cfg(target_os = "macos")]
+            let about = tauri::menu::PredefinedMenuItem::about(
+                app,
+                Some("关于 IMDb Tech Manager"),
+                Some(tauri::menu::AboutMetadata {
+                    name: Some("IMDb Tech Manager".into()),
+                    version: Some(env!("CARGO_PKG_VERSION").into()),
+                    authors: Some(vec!["侯雁泽".into()]),
+                    license: Some("Apache License 2.0".into()),
+                    ..Default::default()
+                }),
+            )?;
+            #[cfg(target_os = "macos")]
+            let separator = tauri::menu::PredefinedMenuItem::separator(app)?;
+            #[cfg(target_os = "macos")]
+            let application =
+                Submenu::with_items(app, "IMDb Tech Manager", true, &[&about, &separator, &quit])?;
+            #[cfg(not(target_os = "macos"))]
+            let application = Submenu::with_items(app, "IMDb Tech Manager", true, &[&show, &quit])?;
             app.set_menu(Menu::with_items(app, &[&application])?)?;
             let tray_show = MenuItem::with_id(app, "show", "显示窗口 / Show", true, None::<&str>)?;
             let tray_quit = MenuItem::with_id(app, "quit", "退出 / Quit", true, None::<&str>)?;
             let tray_menu = Menu::with_items(app, &[&tray_show, &tray_quit])?;
+            app.manage(languages::LanguageMenus(
+                vec![show, tray_show],
+                vec![quit, tray_quit],
+                #[cfg(target_os = "macos")]
+                about,
+            ));
+            let language = languages::snapshot(app.handle(), &app.state::<languages::Languages>())?;
+            languages::synchronize_menus(app.handle(), &language)?;
             app.on_menu_event(|app, event| match event.id().as_ref() {
                 "show" => restore(app),
                 "quit" => app.exit(0),
@@ -255,7 +316,7 @@ fn main() {
             });
             let mut tray = TrayIconBuilder::new()
                 .menu(&tray_menu)
-                .tooltip("ITM 技术验证");
+                .tooltip("IMDb Tech Manager");
             if let Some(icon) = app.default_window_icon() {
                 tray = tray.icon(icon.clone());
             }
@@ -288,6 +349,7 @@ fn main() {
             restore(handle);
         }
         if matches!(event, tauri::RunEvent::Exit) {
+            languages::shutdown(handle);
             handle.state::<desktop::Desktop>().shutdown();
             if let Err(e) = report_event("process-exit") {
                 eprintln!("{e}");
@@ -297,6 +359,7 @@ fn main() {
 }
 
 fn prepare_update_exit(app: &tauri::AppHandle) -> product_core::Result<()> {
+    languages::shutdown(app);
     app.state::<desktop::Desktop>().shutdown();
     app.state::<lifecycle::Lifecycle>()
         .allow_exit

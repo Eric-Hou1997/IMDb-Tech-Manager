@@ -1,7 +1,7 @@
 //! An isolated, temporary system WebView. It has no capability grant and cannot
 //! invoke manager commands. Rust reads the page through the native eval callback.
 use crate::desktop::Desktop;
-use product_core::{specs::SourceSpecs, AppError, Result};
+use product_core::{AppError, Result};
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -44,7 +44,7 @@ impl Drop for PageOwner {
         }
     }
 }
-pub fn fetch(app: &tauri::AppHandle, id: &str, imdb: &str) -> Result<SourceSpecs> {
+pub fn fetch(app: &tauri::AppHandle, id: &str, imdb: &str) -> Result<String> {
     let url = product_core::specs::imdb_url(imdb)?;
     let title_path = format!("/title/{imdb}/");
     let label = format!("imdb-{}", product_core::hash(id.as_bytes()));
@@ -94,7 +94,7 @@ pub fn fetch(app: &tauri::AppHandle, id: &str, imdb: &str) -> Result<SourceSpecs
                 ));
             }
             let (tx, rx) = mpsc::sync_channel(1);
-            owner.window.eval_with_callback("(() => { const s=document.querySelector('script#__NEXT_DATA__'); return s && s.textContent.length <= 8388608 ? '<script id=\"__NEXT_DATA__\">'+s.textContent+'</script>' : ''; })()",move |value|{let _=tx.try_send(value);}).map_err(|e|AppError::new("imdb-page-read",e))?;
+            owner.window.eval_with_callback("(() => { if(document.readyState==='loading')return {page:''}; const page=document.documentElement?.outerHTML||''; if(page.length>8388608||new TextEncoder().encode(page).length>8388608)return {too_large:true}; return {page}; })()",move |value|{let _=tx.try_send(value);}).map_err(|e|AppError::new("imdb-page-read",e))?;
             let poll_deadline = Instant::now() + Duration::from_millis(700);
             while Instant::now() < poll_deadline {
                 if desktop.stopping()
@@ -105,11 +105,10 @@ pub fn fetch(app: &tauri::AppHandle, id: &str, imdb: &str) -> Result<SourceSpecs
                 }
                 match rx.recv_timeout(Duration::from_millis(50)) {
                     Ok(value) => {
-                        let page: String = serde_json::from_str(&value)
-                            .map_err(|e| AppError::new("imdb-page-read", e))?;
+                        let page = decode_page(&value)?;
                         if !page.is_empty() {
                             match product_core::specs::parse_page(imdb, &page) {
-                                Ok(source) => return Ok(source),
+                                Ok(_) => return Ok(page),
                                 Err(error)
                                     if error.code == "imdb-no-tech"
                                         || error.code == "imdb-title-mismatch" =>
@@ -131,4 +130,55 @@ pub fn fetch(app: &tauri::AppHandle, id: &str, imdb: &str) -> Result<SourceSpecs
     })();
     owner.close()?;
     result
+}
+
+#[derive(serde::Deserialize)]
+struct PageSnapshot {
+    #[serde(default)]
+    page: String,
+    #[serde(default)]
+    too_large: bool,
+}
+fn decode_page(value: &str) -> Result<String> {
+    let value: PageSnapshot =
+        serde_json::from_str(value).map_err(|e| AppError::new("imdb-page-read", e))?;
+    if value.too_large || value.page.len() > 8 * 1024 * 1024 {
+        return Err(AppError::new(
+            "imdb-response-too-large",
+            "IMDb response exceeds 8 MiB",
+        ));
+    }
+    Ok(value.page)
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn full_page_callback_preserves_html_fallback_and_distinguishes_loading_from_oversize() {
+        let page="<link rel='canonical' href='https://www.imdb.com/title/tt1234567/technical/'><h3>Camera</h3><li>DOM Camera</li>";
+        let decoded = decode_page(&serde_json::json!({"page":page}).to_string()).unwrap();
+        assert_eq!(decoded, page);
+        assert_eq!(
+            product_core::specs::parse_page("tt1234567", &decoded)
+                .unwrap()
+                .specs["Camera"],
+            ["DOM Camera"]
+        );
+        assert_eq!(decode_page(r#"{"page":""}"#).unwrap(), "");
+        assert_eq!(
+            decode_page(r#"{"too_large":true}"#).unwrap_err().code,
+            "imdb-response-too-large"
+        );
+        assert!(decode_page(r#"{"page":5}"#).is_err());
+    }
+    #[test]
+    fn native_boundary_rechecks_utf8_bytes_independently_of_webview_character_count() {
+        let body = "中".repeat(3 * 1024 * 1024);
+        assert_eq!(
+            decode_page(&serde_json::json!({"page":body}).to_string())
+                .unwrap_err()
+                .code,
+            "imdb-response-too-large"
+        );
+    }
 }

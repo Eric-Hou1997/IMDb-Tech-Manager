@@ -69,7 +69,7 @@ impl Store {
         expected_revision: Option<&str>,
     ) -> Result<Settings> {
         valid_id(id)?;
-        settings.validate()?;
+        settings.validate_saved()?;
         let previous = match self.operation_result(id) {
             Ok(OperationResult::AiSettings(value)) => Some(value),
             Ok(_) => {
@@ -146,6 +146,12 @@ impl Store {
         credentials: &dyn crate::services::CredentialStore,
     ) -> Result<job::Profile> {
         let settings = self.ai_settings()?;
+        Self::profile_for_settings(settings, credentials)
+    }
+    fn profile_for_settings(
+        settings: Settings,
+        credentials: &dyn crate::services::CredentialStore,
+    ) -> Result<job::Profile> {
         let (credential_ready, credential_error) = if settings.credential_account.is_empty() {
             (false, None)
         } else {
@@ -161,6 +167,35 @@ impl Store {
             credential_error,
         })
     }
+    pub fn save_ai_profile_receipt(
+        &self,
+        id: &str,
+        settings: Settings,
+        secret: Option<&str>,
+        credentials: &dyn crate::services::CredentialStore,
+        expected_revision: &str,
+    ) -> Result<job::Profile> {
+        let saved =
+            self.save_ai_profile_checked(id, settings, secret, credentials, expected_revision)?;
+        // Build the receipt from this operation's committed settings, not from
+        // another database read that could fail or observe a competing save.
+        Self::profile_for_settings(saved, credentials)
+    }
+    pub fn ai_settings_receipt(
+        &self,
+        id: &str,
+        credentials: &dyn crate::services::CredentialStore,
+    ) -> Result<job::Profile> {
+        match self.operation_result(id)? {
+            OperationResult::AiSettings(settings) => {
+                Self::profile_for_settings(settings, credentials)
+            }
+            _ => Err(AppError::new(
+                "operation-conflict",
+                "Operation is not an AI settings save",
+            )),
+        }
+    }
     pub fn save_ai_settings(&self, id: &str, settings: Settings) -> Result<Settings> {
         self.save_ai_settings_inner(id, settings, None)
     }
@@ -171,7 +206,7 @@ impl Store {
         expected_revision: Option<&str>,
     ) -> Result<Settings> {
         valid_id(id)?;
-        settings.validate()?;
+        settings.validate_saved()?;
         let fingerprint = hash(&serde_json::to_vec(&("ai-settings", &settings))?);
         if let Some(body) = self.operation(id, &fingerprint)? {
             return match serde_json::from_str(&body)? {
@@ -277,7 +312,12 @@ impl Store {
                 AppError::new("source-conflict", "NFO changed since inspection").at(&item.path),
             );
         }
-        let current = library::parse(root, Path::new(&item.path), &raw)?;
+        let mut current = library::parse(root, Path::new(&item.path), &raw)?;
+        // Original AI payload includes authoritatively recovered generated
+        // tags, while its expected source hash remains the actual NFO bytes.
+        if let Some((_, recovered)) = self.recovered_nfo(Path::new(&item.path), &raw)? {
+            current = library::parse(root, Path::new(&item.path), &recovered)?;
+        }
         let specs = crate::tags::effective_specs(&raw)?;
         if !crate::specs::TAG_SECTIONS
             .iter()
@@ -636,6 +676,21 @@ impl Store {
             }
         }
         Ok(out)
+    }
+    /// Explicit retry uses the current failure queue, never the visible
+    /// selection or a full-library scope. A later success supersedes failure.
+    pub fn ai_failure_items(&self) -> Result<Vec<MediaItem>> {
+        let db = self.db()?;
+        let failures = super::inspector::ai_failures(&db)?;
+        let mut query = db.prepare("SELECT body FROM items ORDER BY id")?;
+        let mut items = vec![];
+        for body in query.query_map([], |r| r.get::<_, String>(0))? {
+            let item: MediaItem = serde_json::from_str(&body?)?;
+            if failures.get(&item.path).is_some_and(|e| e.retryable) {
+                items.push(item);
+            }
+        }
+        Ok(items)
     }
     pub fn preview_ai(&self, id: &str, ai_id: &str) -> Result<crate::writing::WritePreview> {
         valid_id(id)?;

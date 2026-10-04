@@ -11,6 +11,23 @@ pub mod legacy_failure;
 pub mod runtime;
 pub const DEFAULT_PROMPT: &str = include_str!("../assets/default-ai-prompt.txt");
 pub const LANGUAGE_BOUNDARY: &str = include_str!("../assets/language-boundary.txt");
+/// v4.1 accepts the current effective prompt and its narrowly compatible
+/// pre-language hashes. This is presentation only; request identities stay exact.
+pub fn accepted_prompt_hashes(config: &Config) -> BTreeSet<String> {
+    let prompt = config.prompt.trim();
+    let mut values = vec![format!("{prompt}\n\n{LANGUAGE_BOUNDARY}"), prompt.into()];
+    if prompt == DEFAULT_PROMPT.trim() {
+        values.push(DEFAULT_PROMPT.replacen(
+            "15. 输入包含 output_language，仅用于 warnings（复核说明/警告）的自然语言。zh-CN 使用简体中文，en-US 使用美国英语。此字段绝不改变 tags.value、field、source_indexes、confidence、operation、JSON 键名或 Technical Specifications；这些结构化事实和标签必须保持原始内容、既定英文枚举与原有拼写，禁止因界面语言而翻译。\n16. 只返回 JSON，不要 Markdown，不要自然语言解释。",
+            "15. 只返回 JSON，不要 Markdown，不要自然语言解释。", 1));
+    }
+    values
+        .iter()
+        .map(|v| &v[..])
+        .filter(|v| !v.is_empty())
+        .map(|v| hash(v.trim().as_bytes())[..16].into())
+        .collect()
+}
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 #[serde(rename_all = "lowercase")]
 #[ts(rename = "AiProtocol")]

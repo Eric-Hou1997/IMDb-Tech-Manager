@@ -294,13 +294,28 @@ fn old_preferences_import_without_starting_work_or_changing_login_ownership() {
     let plan = store
         .prepare_migration("import", &source, "itm-manager")
         .unwrap();
-    assert_eq!(plan.adapters.len(), 1);
-    assert_eq!(plan.adapters[0].target, "automatic");
+    assert_eq!(plan.adapters.len(), 2);
+    assert!(plan.adapters.iter().any(|a| a.target == "automatic"));
+    assert!(plan
+        .adapters
+        .iter()
+        .any(|a| a.target == "lifecycle-settings"));
     store.apply_migration("import", &plan.fingerprint).unwrap();
     let status = store.automatic_status().unwrap();
     assert!(!status.enabled && status.settings.on_app_start);
     assert_eq!(status.settings.interval_seconds, 60);
-    assert_eq!(store.lifecycle_settings().unwrap(), before);
+    assert_eq!(
+        store.lifecycle_settings().unwrap(),
+        itm_core::lifecycle::Settings {
+            launch_at_login: true,
+            ..before
+        }
+    );
+    assert!(store
+        .preferences("lifecycle-pending")
+        .unwrap()
+        .as_str()
+        .is_none());
     assert_eq!(
         store.legacy_artifact("import", "settings.json").unwrap(),
         original
@@ -357,4 +372,48 @@ fn cold_index_is_read_only_and_owned_by_automatic_stop() {
         )
         .unwrap()
         .is_none());
+}
+#[test]
+fn reviewed_settings_reject_changed_configuration_or_run_state_and_replay_exactly() {
+    let (_temp, store, now) = setup();
+    let status = store.automatic_status().unwrap();
+    let expected = Expected {
+        settings: status.settings.clone(),
+        enabled: status.enabled,
+    };
+    let settings = Settings {
+        interval_seconds: 300,
+        on_app_start: false,
+    };
+    let saved = store
+        .set_automatic_checked("checked", settings.clone(), false, now, expected.clone())
+        .unwrap();
+    assert_eq!(
+        store
+            .set_automatic_checked("checked", settings, false, now, expected.clone())
+            .unwrap(),
+        saved
+    );
+    assert_eq!(
+        store
+            .set_automatic_checked("stale", Settings::default(), true, now, expected)
+            .unwrap_err()
+            .code,
+        "automatic-settings-conflict"
+    );
+    let expected = Expected {
+        settings: saved.settings.clone(),
+        enabled: false,
+    };
+    store
+        .set_automatic("start", saved.settings.clone(), true, now)
+        .unwrap();
+    assert_eq!(
+        store
+            .set_automatic_checked("stale-state", saved.settings, false, now, expected)
+            .unwrap_err()
+            .code,
+        "automatic-settings-conflict"
+    );
+    assert!(store.automatic_status().unwrap().enabled);
 }

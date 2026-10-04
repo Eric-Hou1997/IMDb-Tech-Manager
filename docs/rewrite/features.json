@@ -7,7 +7,7 @@
     "linux-x64",
     "linux-arm64"
   ],
-  "status": "partial-functional-migration-with-native-and-cloud-slices-final-parity-pending",
+  "status": "baseline-only-typescript-vue-migration-pixel-parity-pending",
   "features": [
     {
       "id": "ITM-OWNERSHIP",
@@ -65,6 +65,19 @@
           "scope": "Authoritative generated/manual/external tag writes, Inspector edits, sidecar recovery and undo; legacy sidecar ingestion remains pending",
           "evidence": "docs/rewrite/evidence/native-tag-edit.json",
           "recorded_at": "2026-09-11"
+        },
+        {
+          "sources": [
+            "rewrite/src/editor-drafts.ts",
+            "rewrite/src/SpecsEditor.vue",
+            "rewrite/src/TagEditor.vue",
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [
+            "rewrite/tests/editor-drafts.test.ts"
+          ],
+          "scope": "Independent specs/tag drafts and nested AI settings close protection; explicit discard, conflict-aware rebase, stale preview invalidation, and Inspector refresh after authoritative write receipts. Six host model tests and Vue build passed; native focus, real write/reload/receipt and cross-platform acceptance remain pending.",
+          "evidence": "docs/rewrite/12-local-completion.md"
         }
       ],
       "supplemental_evidence": [
@@ -310,6 +323,20 @@
           ],
           "scope": "Cross-view profile synchronization with retained drafts and transactional compare-and-swap; bounded macOS read-only credential child authenticated to the same application image; native old failure/cache import and reviewed write/undo verified. Other platforms and full behavior parity remain pending.",
           "evidence": "docs/rewrite/evidence/native-ai-profile-coordination.json"
+        },
+        {
+          "sources": [
+            "rewrite/src-tauri/core/src/store/ai_operations.rs",
+            "rewrite/src-tauri/src/ai_jobs.rs",
+            "rewrite/src/ai-settings-save.ts",
+            "rewrite/src/AiGenerator.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/ai_flow.rs",
+            "rewrite/tests/ai-settings-save.test.ts"
+          ],
+          "scope": "Committed settings receipts with stable revision, independent credential-read errors, read-only recovery after a lost IPC reply and draft baseline update before later status reads. Core 24 and frontend receipt 4 tests passed; real keyring/native settings acceptance remains pending.",
+          "evidence": "docs/rewrite/12-local-completion.md"
         }
       ],
       "supplemental_evidence": [
@@ -612,6 +639,19 @@
           "scope": "NFO-derived status, independent hash-bound issue/status annotations, typed legacy migration, status/issue filters and misplaced-media generation guards; final native follow-up, AI dynamic overlays, sidecar recovery and locales pending",
           "evidence": "docs/rewrite/evidence/native-inspector-annotations.json",
           "recorded_at": "2026-09-12"
+        },
+        {
+          "sources": [
+            "rewrite/src/editor-drafts.ts",
+            "rewrite/src/SpecsEditor.vue",
+            "rewrite/src/TagEditor.vue",
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [
+            "rewrite/tests/editor-drafts.test.ts"
+          ],
+          "scope": "Independent specs/tag drafts and nested AI settings close protection; explicit discard, conflict-aware rebase, stale preview invalidation, and Inspector refresh after authoritative write receipts. Six host model tests and Vue build passed; native focus, real write/reload/receipt and cross-platform acceptance remain pending.",
+          "evidence": "docs/rewrite/12-local-completion.md"
         }
       ],
       "supplemental_evidence": [
@@ -811,14 +851,13 @@
           "sources": [
             "rewrite/src-tauri/core/src/migration/ai_profile.rs",
             "rewrite/src-tauri/core/src/store.rs",
-            "rewrite/src-tauri/src/credentials.rs",
-            "rewrite/src/MigrationPanel.vue"
+            "rewrite/src-tauri/src/credentials.rs"
           ],
           "tests": [
             "rewrite/src-tauri/core/tests/migration_ai.rs",
             "rewrite/src-tauri/core/tests/migration.rs"
           ],
-          "scope": "Legacy AI profile mapping, original custom prompt bytes, destination CAS, transaction rollback, credential boundary; native fixture import verified without reading actual legacy secrets",
+          "scope": "Legacy AI profile mapping, original custom prompt bytes, destination CAS, transaction rollback, credential boundary; native fixture import verified without reading actual legacy secrets The generic import panel and its IPC were retired; this is backend/fixture evidence, not acceptance of original product data migration.",
           "evidence": "docs/rewrite/evidence/native-ai-migration.json",
           "recorded_at": "2026-09-11"
         },
@@ -856,6 +895,36 @@
             "docs/rewrite/evidence/native-html-fallback.json"
           ],
           "recorded_at": "2026-09-12"
+        },
+        {
+          "slice": "read-only-legacy-history",
+          "sources": [
+            "rewrite/src-tauri/core/src/history.rs",
+            "rewrite/src-tauri/core/src/store/history.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/history.rs"
+          ],
+          "scope": "Preserved core reads of imported log/task bytes with checksum and paging regressions. Independent history UI and its IPC were removed; use original task/log entrypoints for any required compatibility. Original-flow acceptance remains pending.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "local-tests-passed-native-and-cross-platform-acceptance-pending"
+        },
+        {
+          "slice": "cache-maintenance-and-new-raw-pages",
+          "sources": [
+            "rewrite/src-tauri/core/src/store/cache_maintenance.rs",
+            "rewrite/src-tauri/core/src/store/raw_cache.rs",
+            "rewrite/src-tauri/src/acquisition.rs",
+            "rewrite/src-tauri/src/imdb_webview.rs",
+            "rewrite/src/CacheSettings.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/cache_maintenance.rs",
+            "rewrite/src-tauri/core/tests/migration_cache.rs"
+          ],
+          "scope": "Bounded cache maintenance, old capacity adaptation and validated storage/reuse of newly fetched raw pages; earlier capacity/clear native evidence covers its own binary only. Latest network/WebView chain and full cross-platform cache acceptance remain pending.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "local-tests-passed-native-and-cross-platform-acceptance-pending"
         }
       ],
       "current_slices": [
@@ -987,9 +1056,9 @@
     {
       "id": "ITM-DIAGNOSTICS",
       "title": "诊断、日志和路径定位",
-      "contract": "可导出诊断、打开日志/数据和受影响路径；错误包含可用的媒体身份、路径与任务。",
-      "negative_paths": "无权限、路径不存在、导出失败；不泄露凭据。",
-      "planned_destination": "application/diagnostics / diagnostics",
+      "contract": "保留原任务日志、错误定位和原生路径入口；兼容原日志字节，不新增独立诊断导出或历史浏览面板。",
+      "negative_paths": "无权限、路径不存在、日志读取失败；不泄露凭据。",
+      "planned_destination": "application/task logs / original native path actions",
       "entrypoints": [
         "ITM-E-96afdd07f516",
         "ITM-E-f38edd1e2e79",
@@ -1024,14 +1093,46 @@
         "macos/tests/startup_catalog_contract.py"
       ],
       "test_mapping_status": "candidate-references-not-proof",
-      "new_implementation": "not-implemented",
+      "new_implementation": "partial",
       "platforms": {
         "macos-arm64": "not-implemented",
         "windows-x64": "not-implemented",
         "windows-arm64": "not-implemented",
         "linux-x64": "not-implemented",
         "linux-arm64": "not-implemented"
-      }
+      },
+      "implementation_slices": [
+        {
+          "slice": "read-only-legacy-history",
+          "sources": [
+            "rewrite/src-tauri/core/src/history.rs",
+            "rewrite/src-tauri/core/src/store/history.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/history.rs"
+          ],
+          "scope": "Preserved core reads of imported log/task bytes with checksum and paging regressions. Independent history UI and its IPC were removed; use original task/log entrypoints for any required compatibility. Original-flow acceptance remains pending.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "local-tests-passed-native-and-cross-platform-acceptance-pending"
+        }
+      ],
+      "retired_slices": [
+        {
+          "slice": "local-diagnostic-report",
+          "sources": [
+            "rewrite/src-tauri/core/src/store/diagnostics.rs",
+            "rewrite/src-tauri/src/diagnostics.rs",
+            "rewrite/src/DiagnosticsPanel.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/diagnostics.rs",
+            "rewrite/src-tauri/src/diagnostics.rs"
+          ],
+          "scope": "Historical experiment removed during baseline correction: ITM v4.1.0 has no corresponding standalone diagnostics/export panel. Retained here only as history, not a current implementation or acceptance requirement.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "retired-nonbaseline-feature"
+        }
+      ]
     },
     {
       "id": "ITM-LIFECYCLE",
@@ -1089,6 +1190,35 @@
           ],
           "scope": "Owned scan worker and shutdown; all platform lifecycle paths pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "slice": "lifecycle-settings-draft",
+          "sources": [
+            "rewrite/src/lifecycle-settings.ts",
+            "rewrite/src/LifecyclePanel.vue"
+          ],
+          "tests": [
+            "rewrite/tests/lifecycle-settings.test.ts"
+          ],
+          "scope": "Retained drafts, exact operation replay after lost replies, read recovery and visible window failures; actual native settings, dialogs and all platform lifecycle acceptance remain pending.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "local-tests-passed-native-and-cross-platform-acceptance-pending"
+        },
+        {
+          "slice": "automatic-settings-concurrency-and-drafts",
+          "sources": [
+            "rewrite/src-tauri/core/src/store/automatic.rs",
+            "rewrite/src/automatic-settings.ts",
+            "rewrite/src/AutomaticPanel.vue",
+            "rewrite/src/AiGenerator.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/automatic.rs",
+            "rewrite/tests/automatic-settings.test.ts"
+          ],
+          "scope": "Reviewed automatic settings and enabled-state comparison, exact request replay, draft-preserving stop and settings close protection; native acceptance remains pending.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "local-tests-passed-native-acceptance-pending"
         }
       ],
       "current_slices": [
@@ -1178,6 +1308,35 @@
           "scope": "Durable per-file checkpoint, pause/cancel after current item, idempotent resume, explicit failure retry, whole-batch AI budget and schema 7 migration; automatic scheduling and old task import pending",
           "evidence": "docs/rewrite/evidence/native-batch-generation.json",
           "recorded_at": "2026-09-11"
+        },
+        {
+          "slice": "read-only-legacy-history",
+          "sources": [
+            "rewrite/src-tauri/core/src/history.rs",
+            "rewrite/src-tauri/core/src/store/history.rs"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/history.rs"
+          ],
+          "scope": "Preserved core reads of imported log/task bytes with checksum and paging regressions. Independent history UI and its IPC were removed; use original task/log entrypoints for any required compatibility. Original-flow acceptance remains pending.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "local-tests-passed-native-and-cross-platform-acceptance-pending"
+        },
+        {
+          "slice": "automatic-settings-concurrency-and-drafts",
+          "sources": [
+            "rewrite/src-tauri/core/src/store/automatic.rs",
+            "rewrite/src/automatic-settings.ts",
+            "rewrite/src/AutomaticPanel.vue",
+            "rewrite/src/AiGenerator.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/automatic.rs",
+            "rewrite/tests/automatic-settings.test.ts"
+          ],
+          "scope": "Reviewed automatic settings and enabled-state comparison, exact request replay, draft-preserving stop and settings close protection; native acceptance remains pending.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "local-tests-passed-native-acceptance-pending"
         }
       ],
       "current_scope": "Durable per-file checkpoint, pause/cancel after current item, idempotent resume, explicit failure retry, whole-batch AI budget and schema 7 migration; automatic scheduling and old task import pending",
@@ -1392,6 +1551,23 @@
           ],
           "scope": "Read index, search, incremental scan and error location; full hierarchy and real library pending",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "slice": "cache-maintenance-and-new-raw-pages",
+          "sources": [
+            "rewrite/src-tauri/core/src/store/cache_maintenance.rs",
+            "rewrite/src-tauri/core/src/store/raw_cache.rs",
+            "rewrite/src-tauri/src/acquisition.rs",
+            "rewrite/src-tauri/src/imdb_webview.rs",
+            "rewrite/src/CacheSettings.vue"
+          ],
+          "tests": [
+            "rewrite/src-tauri/core/tests/cache_maintenance.rs",
+            "rewrite/src-tauri/core/tests/migration_cache.rs"
+          ],
+          "scope": "Bounded cache maintenance, old capacity adaptation and validated storage/reuse of newly fetched raw pages; earlier capacity/clear native evidence covers its own binary only. Latest network/WebView chain and full cross-platform cache acceptance remain pending.",
+          "evidence": "docs/rewrite/12-local-completion.md",
+          "status": "local-tests-passed-native-and-cross-platform-acceptance-pending"
         }
       ],
       "supplemental_evidence": [
@@ -1441,6 +1617,19 @@
           "tests": [],
           "scope": "Read workspace only, incomplete product UI",
           "evidence": "docs/rewrite/evidence/phase58-checks.json"
+        },
+        {
+          "sources": [
+            "rewrite/src/editor-drafts.ts",
+            "rewrite/src/SpecsEditor.vue",
+            "rewrite/src/TagEditor.vue",
+            "rewrite/src/LibraryPanel.vue"
+          ],
+          "tests": [
+            "rewrite/tests/editor-drafts.test.ts"
+          ],
+          "scope": "Independent specs/tag drafts and nested AI settings close protection; explicit discard, conflict-aware rebase, stale preview invalidation, and Inspector refresh after authoritative write receipts. Six host model tests and Vue build passed; native focus, real write/reload/receipt and cross-platform acceptance remain pending.",
+          "evidence": "docs/rewrite/12-local-completion.md"
         }
       ]
     },
@@ -1462,5 +1651,122 @@
         "linux-arm64": "not-implemented"
       }
     }
-  ]
+  ],
+  "current_direction": "docs/rewrite/16-replan-2026-09-13.md",
+  "scope_rule": "v5.0 is this product v4.1.0 on Rust + Tauri 2 + TypeScript/Vue 3/Vite and the agreed five targets: no added or removed product functionality, UI or operating behavior.",
+  "current_delivery": {
+    "product": "ITM",
+    "original_flow": "original catalog, Inspector edits, task-center logs/recovery, owned preview adoption and original ZIP languages; dynamic AI Inspector/failure queue and original AI/root settings; original two-directory startup settings and server-saved layout compatibility; original first-run confirmation and read-only TMM candidates; original stripped-manifest Sidecar recovery through inspection, preview, approved transactions and undo; original App login preference and verified old login handoff; frozen task language, per-item status and actionable error presentation with compatible r1 and v5 r2 ZIP descriptors; confirmed roots-save read-only indexing after the startup timeout",
+    "status": "startup-task-language-source-verified-native-acceptance-pending",
+    "sources": [
+      "rewrite/src/LibraryPanel.vue",
+      "rewrite/src/CatalogList.vue",
+      "rewrite/src/CatalogItem.vue",
+      "rewrite/src/catalog-presentation.ts",
+      "rewrite/src/product-layout.ts",
+      "rewrite/src-tauri/core/src/library.rs",
+      "rewrite/src-tauri/core/src/store.rs",
+      "rewrite/src-tauri/src/desktop.rs",
+      "rewrite/src/InspectorOverview.vue",
+      "rewrite/src/InspectorStatus.vue",
+      "rewrite/src/inspector-presentation.ts",
+      "rewrite/src-tauri/core/src/store/inspector.rs",
+      "rewrite/src-tauri/core/src/tags/sidecar.rs",
+      "rewrite/src/InspectorSpecs.vue",
+      "rewrite/src/InspectorTags.vue",
+      "rewrite/src/inspector-write.ts",
+      "rewrite/src/original-dialogs.ts",
+      "rewrite/src-tauri/src/native_dialogs.rs",
+      "rewrite/src/CatalogContext.vue",
+      "rewrite/src/catalog-context.ts",
+      "rewrite/src/PreviewResults.vue",
+      "rewrite/src/preview-presentation.ts",
+      "rewrite/src/preview-approval.ts",
+      "rewrite/src/batch-submission.ts",
+      "rewrite/src/scope-presentation.ts",
+      "rewrite/src-tauri/core/src/store/batches.rs",
+      "rewrite/src-tauri/src/batches.rs",
+      "rewrite/src/TaskCenter.vue",
+      "rewrite/src/task-center.ts",
+      "rewrite/src/ai-recovery.ts",
+      "rewrite/src/preview-adoption.ts",
+      "rewrite/src-tauri/core/src/task_log.rs",
+      "rewrite/src-tauri/core/src/store/history.rs",
+      "rewrite/src/LanguagePicker.vue",
+      "rewrite/src/baseline-language.ts",
+      "rewrite/src/baseline-ui-patterns.ts",
+      "rewrite/src-tauri/core/src/languages.rs",
+      "rewrite/src-tauri/core/src/store/languages.rs",
+      "rewrite/src-tauri/src/languages.rs",
+      "rewrite/src/AiGenerator.vue",
+      "rewrite/src/RootSettings.vue",
+      "rewrite/src-tauri/core/src/ai/job.rs",
+      "rewrite/src-tauri/core/src/migration/ai_profile.rs",
+      "rewrite/src-tauri/core/src/store/startup_migration.rs",
+      "rewrite/src-tauri/core/src/migration/ui_layout.rs",
+      "rewrite/src-tauri/core/src/paths.rs",
+      "rewrite/src-tauri/core/src/ui.rs",
+      "rewrite/src-tauri/src/main.rs",
+      "rewrite/src/Onboarding.vue",
+      "rewrite/src-tauri/core/src/onboarding.rs",
+      "rewrite/src-tauri/core/src/tags/recovery.rs",
+      "rewrite/src-tauri/core/src/store/ownership.rs",
+      "rewrite/src-tauri/core/src/writing.rs",
+      "rewrite/src-tauri/core/src/transaction.rs",
+      "rewrite/src-tauri/core/src/lifecycle.rs",
+      "rewrite/src-tauri/core/src/legacy_startup.rs",
+      "rewrite/src-tauri/src/lifecycle.rs",
+      "rewrite/language-packs/task-messages.json",
+      "rewrite/tools/build-language-packs.py",
+      ".github/workflows/rewrite-validation.yml"
+    ],
+    "verification": [
+      "rewrite/tests/catalog-baseline.test.ts",
+      "rewrite/tests/catalog-layout.test.ts",
+      "rewrite/src-tauri/core/tests/catalog_presentation.rs",
+      "rewrite/src-tauri/core/tests/reading.rs",
+      "rewrite/src-tauri/core/tests/ui_tv.rs",
+      "rewrite/src-tauri/core/tests/window_state.rs",
+      "rewrite/src-tauri/core/tests/inspector.rs",
+      "rewrite/tests/inspector-write.test.ts",
+      "rewrite/src-tauri/core/tests/writing.rs",
+      "rewrite/src-tauri/core/tests/write_flow.rs",
+      "rewrite/src-tauri/core/tests/tag_writes.rs",
+      "rewrite/src-tauri/core/tests/source_specs.rs",
+      "rewrite/tests/batch-submission.test.ts",
+      "rewrite/tests/preview-approval.test.ts",
+      "rewrite/src-tauri/core/tests/batches.rs",
+      "rewrite/tests/task-center.test.ts",
+      "rewrite/tests/ai-recovery.test.ts",
+      "rewrite/tests/preview-adoption.test.ts",
+      "rewrite/src-tauri/core/tests/history.rs",
+      "rewrite/src-tauri/core/tests/ai_flow.rs",
+      "rewrite/src-tauri/core/tests/legacy_ai_failure.rs",
+      "rewrite/tests/language-baseline.test.ts",
+      "rewrite/src-tauri/core/tests/languages.rs",
+      "rewrite/tests/root-settings.test.ts",
+      "rewrite/tests/ai-settings-save.test.ts",
+      "rewrite/src-tauri/core/tests/migration_ai.rs",
+      "rewrite/src-tauri/core/tests/ai_policy.rs",
+      "rewrite/src-tauri/core/tests/startup_migration.rs",
+      "rewrite/src-tauri/core/tests/migration.rs",
+      "rewrite/src-tauri/core/tests/migration_cache.rs",
+      "rewrite/src-tauri/core/tests/automatic.rs",
+      "rewrite/src-tauri/src/desktop.rs::startup_tests",
+      "rewrite/tests/onboarding.test.ts",
+      "rewrite/src-tauri/core/tests/onboarding.rs",
+      "rewrite/src-tauri/core/tests/ownership_recovery.rs",
+      "rewrite/src-tauri/core/tests/legacy_startup.rs",
+      "rewrite/src-tauri/core/tests/lifecycle.rs",
+      "rewrite/tests/lifecycle-settings.test.ts",
+      "rewrite/src-tauri/core/tests/acquisition.rs"
+    ],
+    "pending": [
+      "native first-run/TMM candidate confirmation, legacy process/login-item takeover and restored Sidecar ownership through native edits/adoption/undo",
+      "full native edit/copy/undo/generation/review and AI hint/retry operations",
+      "full native settings save/reopen and selectors; detailed task/error presentation, all native languages and real release-bound r2 downloads",
+      "native task controls, preview adoption/exit recovery and pixel comparison",
+      "other target compilation and runtime acceptance"
+    ]
+  }
 }

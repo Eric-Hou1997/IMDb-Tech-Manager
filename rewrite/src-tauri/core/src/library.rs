@@ -4,7 +4,7 @@ use std::io::Read;
 use std::{collections::BTreeMap, path::Path};
 pub const MAX_NFO_BYTES: u64 = 32 * 1024 * 1024;
 // Bump whenever parsing/ownership semantics change, including validation builds.
-pub const PARSER_REVISION: u32 = 4;
+pub const PARSER_REVISION: u32 = 7;
 fn text(node: Node<'_, '_>) -> String {
     node.descendants()
         .filter(|n| n.is_text())
@@ -53,10 +53,50 @@ pub fn parse(root: &LibraryRoot, path: &Path, raw: &[u8]) -> Result<MediaItem> {
     let mut item = empty(root, path);
     item.source_hash = hash(raw);
     item.title = direct(xml, "title");
+    item.series_key = direct(xml, "showtitle");
     item.year = direct(xml, "year");
+    static DATE_ADDED: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+    item.added_date = DATE_ADDED
+        .get_or_init(|| regex::Regex::new(r"\d{4}-\d{2}-\d{2}").expect("constant date pattern"))
+        .find(&direct(xml, "dateadded"))
+        .map(|value| value.as_str().to_owned())
+        .unwrap_or_default();
     item.kind = kind.into();
     item.season = direct(xml, "season");
     item.episode = direct(xml, "episode");
+    if kind == "Episode" {
+        let prefix = if !item.series_key.is_empty() {
+            &item.series_key
+        } else if !item.title.trim().is_empty() {
+            item.title.trim()
+        } else {
+            "TV Episode"
+        };
+        let mut display = prefix.to_owned();
+        if item.season.bytes().all(|b| b.is_ascii_digit())
+            && item.episode.bytes().all(|b| b.is_ascii_digit())
+            && !item.season.is_empty()
+            && !item.episode.is_empty()
+        {
+            if let (Ok(season), Ok(episode)) =
+                (item.season.parse::<u64>(), item.episode.parse::<u64>())
+            {
+                display.push_str(&format!(" S{season:02}E{episode:02}"));
+            }
+        }
+        if !item.title.is_empty() && item.title != item.series_key {
+            display.push(' ');
+            display.push_str(&item.title);
+        }
+        item.title = display;
+    }
+    if item.title.is_empty() {
+        item.title = path
+            .file_stem()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .into_owned();
+    }
     let tech = xml.children().rfind(|n| {
         n.has_tag_name("technicalspecs")
             && n.attribute("source")
@@ -139,6 +179,7 @@ pub fn parse(root: &LibraryRoot, path: &Path, raw: &[u8]) -> Result<MediaItem> {
                         canonical_tag(&text(tag)),
                         ownership.clone(),
                         manifest.attribute("engine").unwrap_or("").to_lowercase(),
+                        tag.attribute("field").unwrap_or("").to_owned(),
                         false,
                     ));
                 }
@@ -153,17 +194,18 @@ pub fn parse(root: &LibraryRoot, path: &Path, raw: &[u8]) -> Result<MediaItem> {
     {
         let found = owners
             .iter_mut()
-            .find(|o| !o.3 && o.0 == canonical_tag(&value));
-        let (ownership, engine) = if let Some(o) = found {
-            o.3 = true;
-            (o.1.clone(), o.2.clone())
+            .find(|o| !o.4 && o.0 == canonical_tag(&value));
+        let (ownership, engine, field) = if let Some(o) = found {
+            o.4 = true;
+            (o.1.clone(), o.2.clone(), o.3.clone())
         } else {
-            (Ownership::External, String::new())
+            (Ownership::External, String::new(), String::new())
         };
         item.tags.push(Tag {
             value,
             ownership,
             engine,
+            field,
         });
     }
     crate::inspector::derive(&mut item, tech, raw)?;
@@ -174,6 +216,7 @@ pub fn empty(root: &LibraryRoot, path: &Path) -> MediaItem {
     MediaItem {
         inspection: Default::default(),
         modified_at: 0,
+        added_date: String::new(),
         spec_status: "missing".into(),
         parser_revision: PARSER_REVISION,
         id: hash(path.as_bytes()),
@@ -182,6 +225,7 @@ pub fn empty(root: &LibraryRoot, path: &Path) -> MediaItem {
         path,
         source_hash: String::new(),
         title: String::new(),
+        series_key: String::new(),
         year: String::new(),
         imdb: String::new(),
         kind: String::new(),

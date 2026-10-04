@@ -86,6 +86,12 @@ pub struct Status {
     pub next_due: i64,
     pub task_ids: Vec<String>,
 }
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(rename = "AutomaticExpected")]
+pub struct Expected {
+    pub settings: Settings,
+    pub enabled: bool,
+}
 /// The old resident engine prioritizes stable recent files, then attempts one
 /// missing older item. It never discovers roots or walks directories per cycle.
 pub fn candidates(

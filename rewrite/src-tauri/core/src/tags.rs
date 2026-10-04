@@ -9,8 +9,9 @@ use std::{
 use ts_rs::TS;
 
 const OWNER: &str = "IMDb Tech Manager";
+pub mod recovery;
 mod sidecar;
-pub use sidecar::mirror;
+pub use sidecar::{mirror, mirror_match};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct GeneratedEntry {
     pub value: String,
@@ -152,6 +153,37 @@ fn render(name: &str, m: &Manifest<'_, '_>) -> String {
             .collect::<String>(),
     )
 }
+fn owned_roots(
+    generated: &Manifest<'_, '_>,
+    manual: &Manifest<'_, '_>,
+    roots: &[Node<'_, '_>],
+) -> Result<BTreeMap<String, (&'static str, usize)>> {
+    let mut owned = BTreeMap::new();
+    let mut ids = BTreeSet::new();
+    for (kind, m) in [("generated", generated), ("manual", manual)] {
+        for (i, e) in m.entries.iter().enumerate() {
+            let key = canonical_tag(&e.value);
+            let id = e
+                .attrs
+                .get("id")
+                .filter(|s| !s.is_empty())
+                .ok_or_else(|| unsafe_skip("Ownership entry has no stable ID"))?;
+            if !ids.insert(id)
+                || owned.insert(key.clone(), (kind, i)).is_some()
+                || roots
+                    .iter()
+                    .filter(|n| canonical_tag(&text(**n)) == key)
+                    .count()
+                    != 1
+            {
+                return Err(unsafe_skip(
+                    "Conflicting, missing or ambiguous owned root tag",
+                ));
+            }
+        }
+    }
+    Ok(owned)
+}
 // Match the original Python sorted, UTF-8 JSON representation, including separators.
 fn entry_id(
     prefix: &str,
@@ -264,30 +296,7 @@ pub fn candidate(raw: &[u8], plan: &Plan) -> Result<Vec<u8>> {
         return Err(unsafe_skip("Nested root tag content"));
     }
     // A single authoritative entry cannot disambiguate two identical root tags.
-    let mut owned = BTreeMap::new();
-    let mut ids = BTreeSet::new();
-    for (kind, m) in [("generated", &generated), ("manual", &manual_tags)] {
-        for (i, e) in m.entries.iter().enumerate() {
-            let key = canonical_tag(&e.value);
-            let id = e
-                .attrs
-                .get("id")
-                .filter(|s| !s.is_empty())
-                .ok_or_else(|| unsafe_skip("Ownership entry has no stable ID"))?;
-            if !ids.insert(id)
-                || owned.insert(key.clone(), (kind, i)).is_some()
-                || roots
-                    .iter()
-                    .filter(|n| canonical_tag(&text(**n)) == key)
-                    .count()
-                    != 1
-            {
-                return Err(unsafe_skip(
-                    "Conflicting, missing or ambiguous owned root tag",
-                ));
-            }
-        }
-    }
+    let owned = owned_roots(&generated, &manual_tags, &roots)?;
     let mut edits: Vec<(Range<usize>, String)> = vec![];
     let mut additions = vec![];
     let mut change_generated = false;

@@ -44,10 +44,38 @@ impl Default for Settings {
 }
 impl Settings {
     pub fn validate(&self) -> Result<()> {
+        self.validate_saved()?;
         endpoint(&self.config)?;
         request(&self.config, &Specs::new(), &[])?;
+        if self.config.prompt.trim().is_empty() {
+            return Err(AppError::new(
+                "invalid-ai-config",
+                "AI system prompt is empty",
+            ));
+        }
+        Ok(())
+    }
+    /// Saving a disabled profile is not an authorization to make a request.
+    /// The original settings flow permits an incomplete supplier configuration.
+    pub fn validate_saved(&self) -> Result<()> {
+        if self.enabled
+            && [
+                self.config.base_url.as_str(),
+                self.config.model.as_str(),
+                self.config.prompt.as_str(),
+            ]
+            .iter()
+            .any(|v| v.trim().is_empty())
+        {
+            return Err(AppError::new(
+                "invalid-ai-config",
+                "启用 AI 时 Base URL、模型名和提示词不能为空",
+            ));
+        }
         if !(10..=600).contains(&self.timeout_seconds)
+            || !self.config.temperature.is_finite()
             || !(0.0..2.0).contains(&self.config.temperature)
+            || !self.config.top_p.is_finite()
             || self.config.top_p <= 0.0
             || self.config.top_p > 1.0
             || !(128..=32768).contains(&self.config.max_tokens)
@@ -55,6 +83,8 @@ impl Settings {
             || self.retry_count > 5
             || !(4096..=32768).contains(&self.output_token_cap)
             || !["auto", "on", "off"].contains(&self.json_mode.as_str())
+            || !["auto", "on", "off"].contains(&self.config.thinking_mode.as_str())
+            || !["auto", "on", "off"].contains(&self.config.prompt_cache_mode.as_str())
             || !["review", "accept"].contains(&self.warning_policy.as_str())
             || !["abort", "local-rules"].contains(&self.fallback_mode.as_str())
             || !["strict", "inferred"].contains(&self.legacy_cleanup_mode.as_str())

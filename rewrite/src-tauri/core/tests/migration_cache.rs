@@ -610,3 +610,43 @@ fn old_parser_revision_does_not_block_valid_legacy_cache_and_is_in_conflict_snap
         PARSER_VERSION
     );
 }
+
+#[test]
+fn raw_import_compares_live_downloads_and_rejects_changes_after_review() {
+    let (_tmp, store, item, legacy) = setup();
+    raw_page(&legacy, 600, &html());
+    let reviewed = store
+        .prepare_migration("review-before-fetch", &legacy, "itm-engine")
+        .unwrap();
+    store
+        .begin_fetch(request(&item, "live-fetch", true))
+        .unwrap();
+    store.retain_fetch_page("live-fetch", &html()).unwrap();
+    store.cancel_fetch("live-fetch").unwrap();
+    assert_eq!(
+        store
+            .apply_migration("review-before-fetch", &reviewed.fingerprint)
+            .unwrap_err()
+            .code,
+        "migration-cache-conflict"
+    );
+    assert!(store
+        .legacy_artifact("review-before-fetch", "cache/raw-tt1234567.json")
+        .is_err());
+    let plan = store
+        .prepare_migration("after-live-fetch", &legacy, "itm-engine")
+        .unwrap();
+    assert_eq!(plan.cache_entries[0].state, "kept-current");
+    assert_eq!(
+        store
+            .apply_migration("after-live-fetch", &plan.fingerprint)
+            .unwrap()
+            .applied_cache_entries,
+        0
+    );
+    let (record, execute) = store
+        .begin_fetch(request(&item, "reused-live", false))
+        .unwrap();
+    assert!(!execute && record.cached);
+    assert_eq!(store.imdb_cache_status().unwrap().raw_count, 1);
+}

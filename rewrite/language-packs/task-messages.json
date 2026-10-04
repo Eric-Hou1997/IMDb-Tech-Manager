@@ -1,0 +1,198 @@
+{
+  "Interrupted": [
+    "Interrompu",
+    "Прервано",
+    "中断",
+    "Interrumpido",
+    "หยุดชะงัก"
+  ],
+  "Cancelled": [
+    "Annulé",
+    "Отменено",
+    "キャンセル済み",
+    "Cancelado",
+    "ยกเลิกแล้ว"
+  ],
+  "Job": [
+    "Tâche",
+    "Задача",
+    "タスク",
+    "Tarea",
+    "งาน"
+  ],
+  "Action": [
+    "Opération",
+    "Операция",
+    "操作",
+    "Operación",
+    "การดำเนินการ"
+  ],
+  "Started": [
+    "Début",
+    "Начало",
+    "開始",
+    "Inicio",
+    "เริ่มเมื่อ"
+  ],
+  "HTTP attempts": [
+    "Tentatives HTTP",
+    "Попытки HTTP",
+    "HTTP リクエスト回数",
+    "Intentos HTTP",
+    "จำนวนครั้งที่ส่งคำขอ HTTP"
+  ],
+  "Successful responses": [
+    "Réponses réussies",
+    "Успешные ответы",
+    "成功した応答",
+    "Respuestas correctas",
+    "การตอบกลับที่สำเร็จ"
+  ],
+  "Current usage": [
+    "Utilisation actuelle",
+    "Текущее использование",
+    "今回の使用量",
+    "Uso actual",
+    "การใช้งานครั้งนี้"
+  ],
+  "Historical cache usage": [
+    "Utilisation historique du cache",
+    "Историческое использование кэша",
+    "キャッシュの過去の使用量",
+    "Uso histórico de la caché",
+    "การใช้งานแคชในอดีต"
+  ],
+  "Current cost": [
+    "Coût actuel",
+    "Текущая стоимость",
+    "今回の費用",
+    "Coste actual",
+    "ค่าใช้จ่ายครั้งนี้"
+  ],
+  "Pause requested; stop taking new items after the current NFO finishes.": [
+    "Pause demandée ; aucun nouvel élément ne sera traité après le NFO en cours.",
+    "Запрошена пауза; обработка новых элементов прекратится после завершения текущего NFO.",
+    "一時停止を要求しました。現在の NFO の処理後、新しい項目の処理を停止します。",
+    "Pausa solicitada; no se procesarán nuevos elementos cuando termine el NFO actual.",
+    "ขอหยุดชั่วคราวแล้ว โดยจะหยุดรับรายการใหม่หลังประมวลผล NFO ปัจจุบันเสร็จ"
+  ],
+  "Superseded by a new user-requested task; prior records and completed results are preserved.": [
+    "Remplacée par une nouvelle tâche demandée par l’utilisateur ; les enregistrements précédents et les résultats terminés sont conservés.",
+    "Заменено новой задачей, запущенной пользователем; прежние записи и завершённые результаты сохранены.",
+    "ユーザーが開始した新しいタスクに置き換えられました。以前の記録と完了した結果は保持されます。",
+    "Sustituida por una nueva tarea solicitada por el usuario; se conservan los registros anteriores y los resultados completados.",
+    "แทนที่ด้วยงานใหม่ที่ผู้ใช้สั่ง โดยเก็บบันทึกเดิมและผลลัพธ์ที่เสร็จแล้วไว้"
+  ],
+  "Unchanged": [
+    "Inchangé",
+    "Без изменений",
+    "変更なし",
+    "Sin cambios",
+    "ไม่มีการเปลี่ยนแปลง"
+  ],
+  "Missing Tags": [
+    "Balises manquantes",
+    "Отсутствуют теги",
+    "タグが欠落",
+    "Faltan etiquetas",
+    "แท็กหายไป"
+  ],
+  "Index refresh required": [
+    "Actualisation de l’index nécessaire",
+    "Требуется обновление индекса",
+    "インデックスの更新が必要です",
+    "Es necesario actualizar el índice",
+    "จำเป็นต้องรีเฟรชดัชนี"
+  ],
+  "Skipped": [
+    "Ignoré",
+    "Пропущено",
+    "スキップ済み",
+    "Omitido",
+    "ข้ามแล้ว"
+  ],
+  "AI authentication failed. Check the API Key and test the connection before resuming.": [
+    "Échec d’authentification IA. Vérifiez la clé API et testez la connexion avant de reprendre.",
+    "Ошибка аутентификации ИИ. Проверьте ключ API и соединение перед возобновлением.",
+    "AI の認証に失敗しました。再開前に API キーを確認し、接続をテストしてください。",
+    "Falló la autenticación de IA. Compruebe la clave API y pruebe la conexión antes de reanudar.",
+    "การยืนยันตัวตน AI ล้มเหลว โปรดตรวจสอบคีย์ API และทดสอบการเชื่อมต่อก่อนดำเนินการต่อ"
+  ],
+  "AI quota is exhausted. Check the provider quota and test the connection before resuming.": [
+    "Quota IA épuisé. Vérifiez le quota du fournisseur et testez la connexion avant de reprendre.",
+    "Квота ИИ исчерпана. Проверьте квоту поставщика и соединение перед возобновлением.",
+    "AI の利用枠を使い切りました。再開前にプロバイダーの利用枠を確認し、接続をテストしてください。",
+    "Cuota de IA agotada. Compruebe la cuota del proveedor y pruebe la conexión antes de reanudar.",
+    "โควตา AI หมดแล้ว โปรดตรวจสอบโควตาของผู้ให้บริการและทดสอบการเชื่อมต่อก่อนดำเนินการต่อ"
+  ],
+  "AI requests are rate limited. Wait for the limit to clear and test the connection before resuming.": [
+    "Requêtes IA limitées. Attendez la levée de la limite et testez la connexion avant de reprendre.",
+    "Частота запросов ИИ ограничена. Дождитесь снятия ограничения и проверьте соединение перед возобновлением.",
+    "AI リクエストの頻度が制限されています。制限の解除を待ち、接続をテストしてから再開してください。",
+    "Solicitudes de IA limitadas. Espere a que se levante el límite y pruebe la conexión antes de reanudar.",
+    "คำขอ AI ถูกจำกัดอัตรา โปรดรอจนพ้นข้อจำกัดและทดสอบการเชื่อมต่อก่อนดำเนินการต่อ"
+  ],
+  "The AI run budget is exhausted. Completed results are preserved; review the run budget before resuming.": [
+    "Budget de cette tâche d’IA épuisé. Les résultats terminés sont conservés ; vérifiez le budget avant de reprendre.",
+    "Бюджет запуска ИИ исчерпан. Завершённые результаты сохранены; проверьте бюджет перед возобновлением.",
+    "今回の AI 実行予算を使い切りました。完了した結果は保持されています。再開前に実行予算を確認してください。",
+    "Presupuesto de esta ejecución de IA agotado. Los resultados completados se conservan; revise el presupuesto antes de reanudar.",
+    "งบประมาณการทำงาน AI ครั้งนี้หมดแล้ว โดยเก็บผลลัพธ์ที่เสร็จแล้วไว้ โปรดตรวจสอบงบประมาณก่อนดำเนินการต่อ"
+  ],
+  "AI output was truncated. Increase the output limit before an explicit retry.": [
+    "Sortie IA tronquée. Augmentez la limite de sortie avant de relancer explicitement.",
+    "Вывод ИИ обрезан. Увеличьте лимит вывода перед явной повторной попыткой.",
+    "AI の出力が途中で切れました。出力上限を増やしてから明示的に再試行してください。",
+    "Salida de IA truncada. Aumente el límite de salida antes de reintentar explícitamente.",
+    "ผลลัพธ์ AI ถูกตัดทอน โปรดเพิ่มขีดจำกัดผลลัพธ์ก่อนสั่งลองใหม่"
+  ],
+  "AI output JSON or Tag structure is invalid. Inspect the model response before an explicit retry.": [
+    "JSON ou structure des balises IA invalide. Vérifiez la réponse du modèle avant de relancer explicitement.",
+    "Недопустимый JSON или структура тегов ИИ. Проверьте ответ модели перед явной повторной попыткой.",
+    "AI が出力した JSON またはタグ構造が無効です。モデルの応答を確認してから明示的に再試行してください。",
+    "JSON o estructura de etiquetas de IA no válido. Revise la respuesta del modelo antes de reintentar explícitamente.",
+    "JSON หรือโครงสร้างแท็กที่ AI ส่งกลับไม่ถูกต้อง โปรดตรวจสอบคำตอบของโมเดลก่อนสั่งลองใหม่"
+  ],
+  "The NFO changed after review. Refresh and review it again before writing.": [
+    "Le NFO a changé après vérification. Actualisez et vérifiez-le à nouveau avant d’écrire.",
+    "NFO изменился после проверки. Обновите данные и проверьте его повторно перед записью.",
+    "確認後に NFO が変更されました。更新して再確認してから書き込んでください。",
+    "El NFO cambió después de la revisión. Actualice y revíselo de nuevo antes de escribir.",
+    "NFO เปลี่ยนไปหลังตรวจสอบ โปรดรีเฟรชและตรวจสอบอีกครั้งก่อนเขียน"
+  ],
+  "Safety validation rejected this write. Refresh Inspector and inspect the affected NFO.": [
+    "La validation de sécurité a refusé l’écriture. Actualisez Inspector et vérifiez le NFO concerné.",
+    "Проверка безопасности отклонила запись. Обновите Inspector и проверьте затронутый NFO.",
+    "安全性の検証により書き込みが拒否されました。Inspector を更新し、対象の NFO を確認してください。",
+    "La validación de seguridad rechazó la escritura. Actualice Inspector y revise el NFO afectado.",
+    "การตรวจสอบความปลอดภัยปฏิเสธการเขียนนี้ โปรดรีเฟรช Inspector และตรวจสอบ NFO ที่ได้รับผลกระทบ"
+  ],
+  "The NFO cannot be read. Check the library mount and read permissions before retrying.": [
+    "NFO illisible. Vérifiez le montage de la bibliothèque et les droits de lecture avant de réessayer.",
+    "Не удалось прочитать NFO. Проверьте подключение библиотеки и права чтения перед повторной попыткой.",
+    "NFO を読み取れません。ライブラリのマウント状態と読み取り権限を確認してから再試行してください。",
+    "NFO ilegible. Compruebe el montaje de la biblioteca y los permisos de lectura antes de reintentar.",
+    "ไม่สามารถอ่าน NFO ได้ โปรดตรวจสอบการเมานต์คลังและสิทธิ์การอ่านก่อนลองใหม่"
+  ],
+  "NFO XML is invalid. Repair the file and refresh the index before retrying.": [
+    "XML du NFO invalide. Corrigez le fichier et actualisez l’index avant de réessayer.",
+    "Недопустимый XML в NFO. Исправьте файл и обновите индекс перед повторной попыткой.",
+    "NFO の XML が無効です。ファイルを修復してインデックスを更新してから再試行してください。",
+    "XML del NFO no válido. Corrija el archivo y actualice el índice antes de reintentar.",
+    "XML ของ NFO ไม่ถูกต้อง โปรดแก้ไขไฟล์และรีเฟรชดัชนีก่อนลองใหม่"
+  ],
+  "AI is paused. Test the connection before resuming.": [
+    "IA en pause. Testez la connexion avant de reprendre.",
+    "ИИ приостановлен. Проверьте соединение перед возобновлением.",
+    "AI は一時停止中です。接続をテストしてから再開してください。",
+    "IA en pausa. Pruebe la conexión antes de reanudar.",
+    "AI หยุดชั่วคราว โปรดทดสอบการเชื่อมต่อก่อนดำเนินการต่อ"
+  ],
+  "The AI network request failed. Check the network or proxy before retrying.": [
+    "Échec de la requête réseau IA. Vérifiez le réseau ou le proxy avant de réessayer.",
+    "Ошибка сетевого запроса ИИ. Проверьте сеть или прокси перед повторной попыткой.",
+    "AI のネットワークリクエストに失敗しました。ネットワークまたはプロキシを確認してから再試行してください。",
+    "Falló la solicitud de red de IA. Compruebe la red o el proxy antes de reintentar.",
+    "คำขอเครือข่าย AI ล้มเหลว โปรดตรวจสอบเครือข่ายหรือพร็อกซีก่อนลองใหม่"
+  ]
+}

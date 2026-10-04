@@ -10,6 +10,7 @@ use std::{
 };
 use ts_rs::TS;
 pub mod ai_profile;
+pub mod ui_layout;
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct AdapterPlan {
     pub source: String,
@@ -89,7 +90,7 @@ fn category(relative: &str) -> Option<&'static str> {
         "ai-cache" => Some("ai-cache"),
         "ownership" => Some("ownership"),
         "undo" | "backup" | "backups" => Some("backup"),
-        "language-packs" => Some("language-pack"),
+        "language-packs" | "Language Packs" => Some("language-pack"),
         _ if matches!(name, "settings.json" | "config.json" | "ui-layout.json") => {
             Some("configuration")
         }
@@ -103,8 +104,12 @@ fn walk(
     dir: &Path,
     out: &mut Vec<LegacyFile>,
     warnings: &mut Vec<String>,
+    cancelled: &dyn Fn() -> bool,
 ) -> Result<()> {
     for entry in fs::read_dir(dir).map_err(|e| error("migration-read", e, dir))? {
+        if cancelled() {
+            return Err(error("startup-cancelled", "Startup import stopped", dir));
+        }
         let path = entry.map_err(|e| error("migration-read", e, dir))?.path();
         let relative = path
             .strip_prefix(root)
@@ -125,10 +130,11 @@ fn walk(
                     | "backup"
                     | "backups"
                     | "language-packs"
+                    | "Language Packs"
             ) || relative.contains('/') && category(&relative).is_some()
             {
                 paths::checked(&path)?;
-                walk(root, &path, out, warnings)?;
+                walk(root, &path, out, warnings, cancelled)?;
             }
             continue;
         }
@@ -217,6 +223,15 @@ pub fn prepare(
     kind: &str,
     current: &Configuration,
 ) -> Result<MigrationPlan> {
+    prepare_cancellable(id, source, kind, current, &|| false)
+}
+pub fn prepare_cancellable(
+    id: &str,
+    source: &Path,
+    kind: &str,
+    current: &Configuration,
+    cancelled: &dyn Fn() -> bool,
+) -> Result<MigrationPlan> {
     if !matches!(
         kind,
         "itm-manager" | "itm-engine" | "tcm-portable" | "tcm-state"
@@ -229,7 +244,7 @@ pub fn prepare(
     let source = paths::checked(source)?;
     let mut files = Vec::new();
     let mut warnings = Vec::new();
-    walk(&source, &source, &mut files, &mut warnings)?;
+    walk(&source, &source, &mut files, &mut warnings, cancelled)?;
     files.sort_by(|a, b| a.relative.cmp(&b.relative));
     if files.is_empty() {
         return Err(error(
@@ -409,11 +424,19 @@ pub fn merged_configuration(
     let mut next = current.clone();
     let mut pending = Vec::new();
     for root in &plan.roots {
-        if root.state != "ready" {
+        let offline =
+            root.enabled && root.space.is_some() && root.state == "unavailable-or-needs-mapping";
+        if root.state != "ready" && !offline {
             pending.push(root.clone());
             continue;
         }
-        let real = paths::checked(Path::new(&root.path))?;
+        let real = match paths::checked_or_missing(Path::new(&root.path)) {
+            Ok(path) if !path.exists() || path.is_dir() => path,
+            _ => {
+                pending.push(root.clone());
+                continue;
+            }
+        };
         if next
             .roots
             .iter()
@@ -455,6 +478,11 @@ pub fn merged_configuration(
             "zh-CN" => Locale::Simplified,
             "zh-Hant" => Locale::Traditional,
             "en-US" => Locale::English,
+            "fr-FR" => Locale::French,
+            "ru-RU" => Locale::Russian,
+            "ja-JP" => Locale::Japanese,
+            "es-ES" => Locale::Spanish,
+            "th-TH" => Locale::Thai,
             _ => next.locale,
         };
     }

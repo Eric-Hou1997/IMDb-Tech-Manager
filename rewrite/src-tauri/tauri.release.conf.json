@@ -1,0 +1,8 @@
+{
+  "identifier": "io.github.eric-hou1997.itm",
+  "mainBinaryName": "IMDb-Tech-Manager",
+  "bundle": {
+    "macOS": {"signingIdentity": "-"},
+    "linux": {"rpm": {"depends": ["webkit2gtk4.1", "gtk3", "libayatana-appindicator-gtk3", "dbus-libs"]}}
+  }
+}

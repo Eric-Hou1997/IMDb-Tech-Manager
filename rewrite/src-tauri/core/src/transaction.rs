@@ -214,6 +214,19 @@ impl Writer {
                 proof.validate_candidate(&path, expected, candidate)?
             }
             WriteIntent::Specs => crate::specs::validate_specs_only(&original, candidate)?,
+            WriteIntent::RecoveredSpecs { ownership } => {
+                let restored = crate::tags::recovery::restore(&original, &path, ownership)?;
+                crate::specs::validate_specs_only(&restored, candidate)?;
+            }
+            WriteIntent::RecoveredTags { plan, ownership } => {
+                let restored = crate::tags::recovery::restore(&original, &path, ownership)?;
+                if crate::tags::candidate(&restored, plan)? != candidate {
+                    return Err(AppError::new(
+                        "unsafe-candidate",
+                        "Recovered tag candidate differs from the authorized mutation",
+                    ));
+                }
+            }
             WriteIntent::Tags { plan } => {
                 if crate::tags::candidate(&original, plan)? != candidate {
                     return Err(AppError::new(

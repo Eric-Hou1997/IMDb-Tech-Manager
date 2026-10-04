@@ -274,6 +274,12 @@ fn element(name: &str, attrs: Vec<(String, String)>, body: &str) -> String {
 }
 // Pure candidate construction. No disk writes and no mutation of root tags.
 pub fn manual_candidate(raw: &[u8], specs: &Specs) -> Result<Vec<u8>> {
+    edited_candidate(raw, specs, false)
+}
+pub fn restore_candidate(raw: &[u8], source_specs: &Specs) -> Result<Vec<u8>> {
+    edited_candidate(raw, source_specs, true)
+}
+fn edited_candidate(raw: &[u8], specs: &Specs, restore: bool) -> Result<Vec<u8>> {
     if specs.keys().any(|k| !SECTIONS.contains(&k.as_str())) {
         return Err(AppError::new(
             "invalid-spec-field",
@@ -338,7 +344,9 @@ pub fn manual_candidate(raw: &[u8], specs: &Specs) -> Result<Vec<u8>> {
                 .collect(),
         );
     }
-    if fingerprint(&current)? == fingerprint(specs)? {
+    if fingerprint(&current)? == fingerprint(specs)?
+        && (!restore || tech.attribute("modified") != Some("manual"))
+    {
         return Ok(raw.to_vec());
     }
     let nl = if source.contains("\r\n") {
@@ -420,11 +428,13 @@ pub fn manual_candidate(raw: &[u8], specs: &Specs) -> Result<Vec<u8>> {
         attributes.retain(|(name, _)| name != "sourceSpecHash");
         attributes.push(("sourceSpecHash".into(), fingerprint(&current)?));
     }
-    attributes.push(("modified".into(), "manual".into()));
-    attributes.push((
-        "modifiedAt".into(),
-        chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
-    ));
+    if !restore {
+        attributes.push(("modified".into(), "manual".into()));
+        attributes.push((
+            "modifiedAt".into(),
+            chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        ));
+    }
     attributes.push(("specHash".into(), fingerprint(specs)?));
     let replacement = element("technicalspecs", attributes, &body);
     let range = tech.range();

@@ -14,6 +14,18 @@ pub enum BatchMode {
     Preview,
     Generate,
     Rebuild,
+    AdoptPreview,
+}
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct ReviewedCandidate {
+    pub write_id: String,
+    pub reviewed_hash: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct PreviewAdoption {
+    pub operation_id: String,
+    pub task_id: String,
+    pub items: Vec<ReviewedCandidate>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct BatchRequest {

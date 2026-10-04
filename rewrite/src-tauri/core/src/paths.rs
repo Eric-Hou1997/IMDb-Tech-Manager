@@ -3,10 +3,20 @@ use std::path::{Component, Path, PathBuf};
 
 // Platform path policy lives here; callers never authorize a path using a string prefix.
 pub fn checked(path: &Path) -> Result<PathBuf> {
+    checked_path(path, false)
+}
+/// Retain an already configured offline library without granting file access.
+/// Existing ancestors still must pass the same symlink/reparse policy; every
+/// actual NFO operation continues to use `checked`/`within`.
+pub fn checked_or_missing(path: &Path) -> Result<PathBuf> {
+    checked_path(path, true)
+}
+fn checked_path(path: &Path, allow_missing: bool) -> Result<PathBuf> {
     if !path.is_absolute() {
         return Err(AppError::new("invalid-path", "Absolute path required").at(path.display()));
     }
     let mut walked = PathBuf::new();
+    let mut missing = false;
     for part in path.components() {
         if matches!(part, Component::ParentDir) {
             return Err(
@@ -18,8 +28,15 @@ pub fn checked(path: &Path) -> Result<PathBuf> {
         if matches!(part, Component::Prefix(_)) {
             continue;
         }
-        let meta = std::fs::symlink_metadata(&walked)
-            .map_err(|e| AppError::new("path-unavailable", e).at(walked.display()))?;
+        let meta = match std::fs::symlink_metadata(&walked) {
+            Err(e) if allow_missing && e.kind() == std::io::ErrorKind::NotFound => {
+                missing = true;
+                continue;
+            }
+            result => {
+                result.map_err(|e| AppError::new("path-unavailable", e).at(walked.display()))?
+            }
+        };
         if meta.file_type().is_symlink() {
             return Err(AppError::new(
                 "ambiguous-path",
@@ -36,6 +53,9 @@ pub fn checked(path: &Path) -> Result<PathBuf> {
                 );
             }
         }
+    }
+    if missing {
+        return Ok(walked);
     }
     path.canonicalize()
         .map_err(|e| AppError::new("path-unavailable", e).at(path.display()))

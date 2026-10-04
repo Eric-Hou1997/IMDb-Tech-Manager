@@ -86,7 +86,7 @@ pub fn select<'a>(
     if identity.package_managed() {
         return Err(AppError::new(
             "update-package-manager",
-            "Use the configured signed system package repository",
+            "Download the matching DEB/RPM package from this GitHub Release and upgrade with the system package manager",
         ));
     }
     let target = identity.target();

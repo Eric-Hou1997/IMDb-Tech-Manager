@@ -21,13 +21,13 @@ fn network(error: reqwest::Error) -> AppError {
     value.retryable = true;
     value
 }
-async fn fetch_page(imdb: &str) -> Result<SourceSpecs> {
+async fn fetch_page(imdb: &str) -> Result<String> {
     let client = reqwest::Client::builder()
         .https_only(true)
         .redirect(reqwest::redirect::Policy::none())
         .timeout(Duration::from_secs(30))
         .connect_timeout(Duration::from_secs(10))
-        .user_agent("IMDb-Tech-Manager/4.1.0")
+        .user_agent(concat!("IMDb-Tech-Manager/", env!("CARGO_PKG_VERSION")))
         .build()
         .map_err(network)?;
     let mut response = client
@@ -56,9 +56,29 @@ async fn fetch_page(imdb: &str) -> Result<SourceSpecs> {
         }
         bytes.extend_from_slice(&chunk);
     }
-    let page =
-        std::str::from_utf8(&bytes).map_err(|e| AppError::new("imdb-response-encoding", e))?;
-    product_core::specs::parse_page(imdb, page)
+    String::from_utf8(bytes).map_err(|e| AppError::new("imdb-response-encoding", e))
+}
+fn parse_download(
+    app: &tauri::AppHandle,
+    desktop: &Desktop,
+    id: &str,
+    imdb: &str,
+    download: Result<String>,
+) -> Result<SourceSpecs> {
+    let page = download?;
+    let parsed = product_core::specs::parse_page(imdb, &page);
+    // Challenge and mismatched-title responses are never reusable pages.
+    if !parsed.as_ref().is_err_and(|error| {
+        matches!(
+            error.code.as_str(),
+            "imdb-waf-challenge" | "imdb-title-mismatch"
+        )
+    }) {
+        if let Err(error) = desktop.store.retain_fetch_page(id, &page) {
+            let _ = app.emit("cache-maintenance-failed", &error);
+        }
+    }
+    parsed
 }
 #[tauri::command]
 pub async fn fetch_specs(request: FetchRequest, app: tauri::AppHandle) -> Result<FetchRecord> {
@@ -79,6 +99,9 @@ pub(crate) async fn run_fetch(
             None => desktop.store.begin_fetch(request)?,
         };
         if !execute {
+            if record.cached {
+                maintain_cache(&app, &desktop.store);
+            }
             return Ok(record);
         }
         let id = &record.request.operation_id;
@@ -98,7 +121,7 @@ pub(crate) async fn run_fetch(
         if let Err(error) = app.emit("fetch-changed", &record) {
             eprintln!("fetch-event: {error}");
         }
-        let mut result = tauri::async_runtime::block_on(async {
+        let download = tauri::async_runtime::block_on(async {
             let mut work = Box::pin(fetch_page(&record.imdb));
             loop {
                 if desktop.stopping() || desktop.store.fetch_record(id)?.phase != "requested" {
@@ -110,6 +133,7 @@ pub(crate) async fn run_fetch(
                 }
             }
         });
+        let mut result = parse_download(&app, &desktop, id, &record.imdb, download);
         desktop
             .store
             .record_fetch_attempt(id, "http", result.as_ref().err().cloned())?;
@@ -129,7 +153,8 @@ pub(crate) async fn run_fetch(
             if let Err(error) = app.emit("fetch-browser-fallback", &record) {
                 eprintln!("fetch-event: {error}");
             }
-            result = crate::imdb_webview::fetch(&app, id, &record.imdb);
+            let download = crate::imdb_webview::fetch(&app, id, &record.imdb);
+            result = parse_download(&app, &desktop, id, &record.imdb, download);
             desktop.store.record_fetch_attempt(
                 id,
                 "system-webview",
@@ -137,6 +162,7 @@ pub(crate) async fn run_fetch(
             )?;
         }
         let record = desktop.store.finish_fetch(id, result)?;
+        maintain_cache(&app, &desktop.store);
         if let Err(error) = app.emit("fetch-changed", &record) {
             eprintln!("fetch-event: {error}");
         }
@@ -172,4 +198,35 @@ pub fn fetch_history(
     state: tauri::State<'_, Desktop>,
 ) -> Result<Vec<FetchRecord>> {
     state.store.fetch_history(&item_id)
+}
+
+#[tauri::command]
+pub async fn imdb_cache_status(
+    app: tauri::AppHandle,
+) -> Result<product_core::imdb_cache::CacheStatus> {
+    tauri::async_runtime::spawn_blocking(move || app.state::<Desktop>().store.imdb_cache_status())
+        .await
+        .map_err(|e| AppError::new("cache-worker", e))?
+}
+#[tauri::command]
+pub async fn maintain_imdb_cache(
+    request: product_core::imdb_cache::CacheRequest,
+    app: tauri::AppHandle,
+) -> Result<product_core::imdb_cache::CacheStatus> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<Desktop>().store.maintain_imdb_cache(request)
+    })
+    .await
+    .map_err(|e| AppError::new("cache-worker", e))?
+}
+
+pub(crate) fn maintain_cache(app: &tauri::AppHandle, store: &product_core::store::Store) {
+    match store.maintain_imdb_cache_automatically() {
+        Ok(status) => {
+            let _ = app.emit("cache-changed", &status);
+        }
+        Err(error) => {
+            let _ = app.emit("cache-maintenance-failed", &error);
+        }
+    }
 }

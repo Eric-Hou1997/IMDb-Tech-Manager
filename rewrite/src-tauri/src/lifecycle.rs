@@ -93,11 +93,172 @@ pub struct LifecycleStatus {
     closing: bool,
     error: Option<AppError>,
 }
-pub fn initialize(app: &tauri::AppHandle) {
-    let result = lifecycle::reconcile(&app.state::<Desktop>().store, &Native(app));
+pub fn initialize(app: &tauri::AppHandle) -> Result<()> {
+    let result: Result<()> = (|| {
+        lifecycle::reconcile(&app.state::<Desktop>().store, &Native(app))?;
+        #[cfg(target_os = "macos")]
+        handoff_legacy_login(app)?;
+        Ok(())
+    })();
     if let Err(error) = result {
-        set_error(app, error);
+        set_error(app, error.clone());
+        return Err(error);
     }
+    *app.state::<Lifecycle>()
+        .error
+        .lock()
+        .map_err(|e| AppError::new("lifecycle-state", e))? = None;
+    Ok(())
+}
+#[cfg(target_os = "macos")]
+fn handoff_legacy_login(app: &tauri::AppHandle) -> Result<()> {
+    let desktop = app.state::<Desktop>();
+    let Some(sources) = desktop.legacy_sources() else {
+        return Ok(());
+    };
+    if desktop.stopping() {
+        return Err(AppError::new("startup-cancelled", "Application is closing"));
+    }
+    Desktop::ensure_legacy_idle(sources)?;
+    let directory = app
+        .path()
+        .home_dir()
+        .map_err(|e| AppError::new("legacy-login-directory", e))?
+        .join("Library/LaunchAgents");
+    let mut registrations = vec![];
+    for label in [
+        "com.local.imdb-tech-manager",
+        "com.local.imdb-tech-manager.app",
+    ] {
+        if let Some(value) = product_core::legacy_startup::Registration::read(
+            &directory.join(format!("{label}.plist")),
+            label,
+        )? {
+            registrations.push(value);
+        }
+    }
+    let pending = desktop
+        .store
+        .preferences("legacy-login-handoff-pending")?
+        .as_bool()
+        .unwrap_or(false);
+    if registrations.is_empty() && !pending {
+        return Ok(());
+    }
+    // Use the imported explicit preference; an old Agent setting never enables
+    // App login startup. Unbundled development identities do not reach here.
+    let mut desired = desktop.store.lifecycle_settings()?;
+    if desktop
+        .store
+        .preferences("lifecycle-settings")?
+        .get("revision")
+        .is_none()
+        && registrations
+            .iter()
+            .any(|r| r.label == "com.local.imdb-tech-manager.app")
+    {
+        desired.launch_at_login = true;
+        desktop
+            .store
+            .save_preference("lifecycle-settings", &serde_json::to_value(&desired)?)?;
+    }
+    Native(app).enabled()?;
+    let uid = std::process::Command::new("/usr/bin/id")
+        .arg("-u")
+        .output()
+        .map_err(|e| AppError::new("legacy-login-user", e))?;
+    let uid = String::from_utf8(uid.stdout).map_err(|e| AppError::new("legacy-login-user", e))?;
+    let uid = uid
+        .trim()
+        .parse::<u32>()
+        .map_err(|e| AppError::new("legacy-login-user", e))?;
+    let archive = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| AppError::new("legacy-login-archive", e))?
+        .join("legacy-login-items");
+    // Durable pending intent survives a crash after old items are retired but
+    // before the new registration exists. Never leave two login owners enabled.
+    desktop
+        .store
+        .save_preference("legacy-login-handoff-pending", &serde_json::json!(true))?;
+    for registration in registrations {
+        if desktop.stopping() {
+            return Err(AppError::new("startup-cancelled", "Application is closing"));
+        }
+        Desktop::ensure_legacy_idle(sources)?;
+        registration.unchanged()?;
+        registration.backup(&archive)?;
+        let service = format!("gui/{uid}/{}", registration.label);
+        let output = std::process::Command::new("/bin/launchctl")
+            .args(["print", &service])
+            .output()
+            .map_err(|e| AppError::new("legacy-login-state", e))?;
+        let exists = output.status.success();
+        if exists
+            && !String::from_utf8_lossy(&output.stdout)
+                .lines()
+                .any(|line| line.trim().strip_prefix("path = ") == registration.path.to_str())
+        {
+            return Err(AppError::new(
+                "legacy-login-owner",
+                "已加载的旧登录服务与文件归属不一致，未撤除",
+            ));
+        }
+        if exists
+            && String::from_utf8_lossy(&output.stdout)
+                .lines()
+                .any(|line| line.trim().starts_with("pid = "))
+        {
+            return Err(AppError::new(
+                "legacy-runtime-active",
+                "旧登录服务仍在运行，请从旧版正常退出后重试",
+            ));
+        }
+        if !exists && !String::from_utf8_lossy(&output.stderr).contains("Could not find service") {
+            return Err(AppError::new(
+                "legacy-login-state",
+                "无法确认旧登录服务状态，未撤除旧登录项",
+            ));
+        }
+        let output = std::process::Command::new("/bin/launchctl")
+            .args(["disable", &service])
+            .output()
+            .map_err(|e| AppError::new("legacy-login-disable", e))?;
+        if !output.status.success() {
+            return Err(AppError::new(
+                "legacy-login-disable",
+                "旧登录项停用失败，请重试",
+            ));
+        }
+        if exists {
+            let output = std::process::Command::new("/bin/launchctl")
+                .args(["bootout", &service])
+                .output()
+                .map_err(|e| AppError::new("legacy-login-stop", e))?;
+            if !output.status.success() {
+                return Err(AppError::new(
+                    "legacy-login-stop",
+                    "旧登录服务撤除未确认，请重试",
+                ));
+            }
+        }
+        registration.archive(&archive)?;
+    }
+    Desktop::ensure_legacy_idle(sources)?;
+    if desktop.stopping() {
+        return Err(AppError::new("startup-cancelled", "Application is closing"));
+    }
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| AppError::new("legacy-login-clock", e))?
+        .as_nanos();
+    let id = format!("legacy-login-{nonce}");
+    lifecycle::apply(&desktop.store, &id, desired, &Native(app))?;
+    desktop
+        .store
+        .save_preference("legacy-login-handoff-pending", &serde_json::json!(false))?;
+    Ok(())
 }
 fn set_error(app: &tauri::AppHandle, error: AppError) {
     if let Ok(mut current) = app.state::<Lifecycle>().error.lock() {
@@ -177,6 +338,7 @@ pub fn first_window(app: &tauri::AppHandle) -> Result<()> {
     Ok(())
 }
 pub fn close_requested(app: &tauri::AppHandle) {
+    crate::native_dialogs::cancel(app);
     match app.state::<Desktop>().store.lifecycle_settings() {
         Ok(settings) if settings.close_action == CloseAction::Background => {
             if let Err(error) = background_window(app.clone()) {
@@ -192,6 +354,7 @@ pub fn close_requested(app: &tauri::AppHandle) {
     }
 }
 pub fn request_exit(app: &tauri::AppHandle) {
+    crate::native_dialogs::cancel(app);
     let state = app.state::<Lifecycle>();
     if state.closing.swap(true, Ordering::SeqCst) {
         return;

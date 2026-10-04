@@ -61,6 +61,164 @@ fn success() -> Outcome {
     }
 }
 #[test]
+fn original_selected_preflight_reads_fresh_bytes_without_creating_or_expanding_a_task() {
+    let (_tmp, store, items) = setup();
+    let item = &items[0];
+    let bytes = fs::read_to_string(&item.path)
+        .unwrap()
+        .replace("<title>a</title>", "<title>Changed by TMM</title>")
+        .replace("<title>b</title>", "<title>Changed by TMM</title>");
+    fs::write(&item.path, &bytes).unwrap();
+    let modified = fs::metadata(&item.path).unwrap().modified().unwrap();
+    let tasks = store.tasks().unwrap();
+    let scope = store
+        .preflight_items(Space::Movie, vec![item.id.clone(), item.id.clone()])
+        .unwrap();
+    assert_eq!(scope.len(), 1);
+    assert_eq!(scope[0].title, "Changed by TMM");
+    assert_ne!(scope[0].source_hash, item.source_hash);
+    assert_eq!(scope[0].tags[0].ownership, Ownership::External);
+    assert_eq!(store.tasks().unwrap(), tasks);
+    assert_eq!(fs::read(&item.path).unwrap(), bytes.as_bytes());
+    assert_eq!(
+        fs::metadata(&item.path).unwrap().modified().unwrap(),
+        modified
+    );
+    assert_eq!(
+        store
+            .preflight_items(Space::Tv, vec![item.id.clone()])
+            .unwrap_err()
+            .code,
+        "invalid-scope"
+    );
+    assert_eq!(
+        store
+            .preflight_items(Space::Movie, vec![])
+            .unwrap_err()
+            .code,
+        "invalid-scope"
+    );
+    assert_eq!(
+        store
+            .preflight_items(Space::Movie, vec!["missing".into()])
+            .unwrap_err()
+            .code,
+        "invalid-scope"
+    );
+    fs::remove_file(&item.path).unwrap();
+    assert!(store
+        .preflight_items(Space::Movie, vec![item.id.clone()])
+        .is_err());
+    assert_eq!(store.tasks().unwrap(), tasks);
+}
+
+#[test]
+fn a_confirmed_new_scope_supersedes_stopped_scans_and_same_engine_without_erasing_results() {
+    let (_tmp, store, items) = setup();
+    let old = store.plan_batch(request(&items, "old-plan")).unwrap();
+    store
+        .submit(ScanRequest {
+            operation_id: "old-index".into(),
+            space: Space::Movie,
+            root_ids: vec!["r".into()],
+        })
+        .unwrap();
+    store
+        .control(TaskControl {
+            operation_id: "pause-index".into(),
+            task_id: "old-index".into(),
+            state: TaskState::Paused,
+        })
+        .unwrap();
+    let new = store.plan_batch(request(&items, "new-plan")).unwrap();
+    assert_eq!(store.task("old-plan").unwrap(), old);
+    assert_eq!(store.task("old-index").unwrap().state, TaskState::Paused);
+    store
+        .approve_batch_scope(&new.id, &new.batch.unwrap().plan_hash)
+        .unwrap();
+    assert_eq!(store.task("old-plan").unwrap().state, TaskState::Cancelled);
+    assert_eq!(
+        store.task("old-plan").unwrap().batch.unwrap().items.len(),
+        items.len()
+    );
+    assert_eq!(store.task("old-index").unwrap().state, TaskState::Cancelled);
+    assert!(store
+        .task_job("old-plan")
+        .unwrap()
+        .log
+        .contains("原记录与已完成结果保留"));
+    let new_task = store.task("new-plan").unwrap();
+    store
+        .run_batch_next(
+            || false,
+            |_| {},
+            |_, _| {
+                Ok(Outcome {
+                    phase: "skipped-current".into(),
+                    error: None,
+                    candidate_hash: None,
+                })
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        store.task(&new_task.id).unwrap().state,
+        TaskState::Completed
+    );
+    assert_eq!(store.all_items().unwrap().len(), items.len());
+}
+
+#[test]
+fn a_new_read_only_scan_preserves_the_paused_ai_queue_and_pending_write_blocks_superseding() {
+    let (tmp, store, items) = setup();
+    let mut settings = itm_core::ai::job::Settings {
+        enabled: true,
+        ..Default::default()
+    };
+    settings.config.base_url = "https://provider.example/v1".into();
+    settings.config.model = "fixture".into();
+    store.save_ai_settings("ai-settings", settings).unwrap();
+    let mut req = request(&items, "ai-paused");
+    req.engine = BatchEngine::Ai;
+    let ai = store.plan_batch(req).unwrap();
+    store
+        .submit(ScanRequest {
+            operation_id: "new-index".into(),
+            space: Space::Movie,
+            root_ids: vec!["r".into()],
+        })
+        .unwrap();
+    assert_eq!(store.task("ai-paused").unwrap(), ai);
+    store
+        .control(TaskControl {
+            operation_id: "pause".into(),
+            task_id: "new-index".into(),
+            state: TaskState::Paused,
+        })
+        .unwrap();
+    let mut pending = store
+        .preview_rules("pending-write", &items[0].id, &items[0].source_hash)
+        .unwrap();
+    pending.phase = "writing".into();
+    let db = rusqlite::Connection::open(tmp.path().join("state.sqlite")).unwrap();
+    db.execute(
+        "UPDATE operations SET result=?1 WHERE id='pending-write'",
+        [serde_json::to_string(&OperationResult::Write(pending)).unwrap()],
+    )
+    .unwrap();
+    let new = store.plan_batch(request(&items, "guarded")).unwrap();
+    assert_eq!(
+        store
+            .approve_batch_scope(&new.id, &new.batch.unwrap().plan_hash)
+            .unwrap_err()
+            .code,
+        "recovery-required"
+    );
+    assert_eq!(store.task("new-index").unwrap().state, TaskState::Paused);
+    assert!(!store.task("guarded").unwrap().batch.unwrap().approved);
+    assert_eq!(store.task("ai-paused").unwrap(), ai);
+}
+#[test]
 fn scope_approval_pause_boundary_resume_and_cancel_preserve_completed_items() {
     let (_tmp, store, items) = setup();
     let plan = store.plan_batch(request(&items, "batch")).unwrap();
@@ -213,6 +371,143 @@ fn preview_approval_reuses_exact_candidate_and_external_edit_blocks_write() {
             .code,
         "source-conflict"
     );
+}
+
+#[test]
+fn reviewed_adoption_is_an_owned_job_that_reuses_writes_preserves_preview_history_and_continues_after_conflict(
+) {
+    for engine in [BatchEngine::Rules, BatchEngine::Ai] {
+        let (tmp, store, items) = setup();
+        if engine == BatchEngine::Ai {
+            let mut settings = itm_core::ai::job::Settings {
+                enabled: true,
+                ..Default::default()
+            };
+            settings.config.base_url = "https://provider.example/v1".into();
+            settings.config.model = "fixture".into();
+            store.save_ai_settings("settings", settings).unwrap();
+        }
+        let mut req = request(&items, "review");
+        req.mode = BatchMode::Preview;
+        req.engine = engine.clone();
+        let planned = store.plan_batch(req).unwrap();
+        store
+            .approve_batch_scope(&planned.id, &planned.batch.unwrap().plan_hash)
+            .unwrap();
+        let preview = store
+            .run_batch_next(
+                || false,
+                |_| {},
+                |_, row| {
+                    let p =
+                        store.preview_rules(&row.write_id, &row.item.id, &row.item.source_hash)?;
+                    Ok(Outcome {
+                        phase: "review-ready".into(),
+                        candidate_hash: Some(p.after_hash),
+                        error: None,
+                    })
+                },
+            )
+            .unwrap()
+            .unwrap();
+        let rows = &preview.batch.as_ref().unwrap().items;
+        let adoption = PreviewAdoption {
+            operation_id: "adopt".into(),
+            task_id: preview.id.clone(),
+            items: rows
+                .iter()
+                .map(|r| ReviewedCandidate {
+                    write_id: r.write_id.clone(),
+                    reviewed_hash: r.candidate_hash.clone().unwrap(),
+                })
+                .collect(),
+        };
+        let planned = store.adopt_preview(adoption.clone()).unwrap();
+        assert_eq!(
+            planned.batch.as_ref().unwrap().mode,
+            BatchMode::AdoptPreview
+        );
+        assert_eq!(store.adopt_preview(adoption.clone()).unwrap(), planned);
+        let mut changed = adoption.clone();
+        changed.items[0].reviewed_hash = "other".into();
+        assert_eq!(
+            store.adopt_preview(changed).unwrap_err().code,
+            "operation-conflict"
+        );
+        let external = b"<movie><title>Changed externally</title><tag>Protected</tag></movie>";
+        fs::write(&rows[0].item.path, external).unwrap();
+        let journal = tmp.path().canonicalize().unwrap().join("journal");
+        let mut applied = 0;
+        let completed = store
+            .run_batch_next(
+                || false,
+                |_| {},
+                |task, row| {
+                    let candidate = store.adoption_candidate(task, row)?;
+                    assert_eq!(candidate.after_hash, row.candidate_hash.as_deref().unwrap());
+                    let receipt = store.apply_specs(
+                        &row.write_id,
+                        &candidate.after_hash,
+                        &journal,
+                        || false,
+                    )?;
+                    applied += 1;
+                    Ok(Outcome {
+                        phase: receipt.phase,
+                        error: receipt.error,
+                        candidate_hash: Some(receipt.after_hash),
+                    })
+                },
+            )
+            .unwrap()
+            .unwrap();
+        assert_eq!(completed.state, TaskState::Failed);
+        assert_eq!(completed.processed, 2);
+        assert_eq!(completed.errors, 1);
+        assert_eq!(applied, 1);
+        assert_eq!(fs::read(&rows[0].item.path).unwrap(), external);
+        assert_eq!(
+            store.item(&rows[1].item.id).unwrap().tags[0].ownership,
+            Ownership::External
+        );
+        assert_eq!(store.task("review").unwrap(), preview);
+        assert!(store.ai_history(None).unwrap().is_empty());
+        assert_eq!(
+            store.task_job("adopt").unwrap().action,
+            if engine == BatchEngine::Ai {
+                "ai-approve-selected"
+            } else {
+                "local-approve-selected"
+            }
+        );
+        assert!(store
+            .task_job("adopt")
+            .unwrap()
+            .log
+            .contains("source-conflict"));
+        assert_eq!(store.job_history().unwrap().len(), 3);
+        assert_eq!(
+            store.adopt_preview(adoption).unwrap().state,
+            TaskState::Failed
+        );
+    }
+}
+
+#[test]
+fn adoption_rejects_unreviewed_hashes_and_cannot_be_requested_as_new_generation() {
+    let (_tmp, store, items) = setup();
+    let mut req = request(&items, "forged");
+    req.mode = BatchMode::AdoptPreview;
+    assert_eq!(store.plan_batch(req).unwrap_err().code, "review-mismatch");
+    assert!(store
+        .adopt_preview(PreviewAdoption {
+            operation_id: "empty".into(),
+            task_id: "missing".into(),
+            items: vec![]
+        })
+        .is_err());
+    assert_eq!(store.tasks().unwrap().len(), 1);
+    assert!(store.write_history().unwrap().is_empty());
 }
 #[test]
 fn crash_after_write_replays_receipt_without_rewriting_or_duplicating_backup() {

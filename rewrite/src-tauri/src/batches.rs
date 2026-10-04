@@ -2,10 +2,30 @@ use crate::desktop::Desktop;
 use product_core::{batch::*, writing::WritePreview, *};
 use tauri::{Emitter, Manager};
 #[tauri::command]
+pub async fn preflight_items(
+    space: Space,
+    ids: Vec<String>,
+    app: tauri::AppHandle,
+) -> Result<Vec<MediaItem>> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<Desktop>().store.preflight_items(space, ids)
+    })
+    .await
+    .map_err(|e| AppError::new("batch-worker", e))?
+}
+#[tauri::command]
 pub async fn plan_batch(request: BatchRequest, app: tauri::AppHandle) -> Result<Task> {
     tauri::async_runtime::spawn_blocking(move || app.state::<Desktop>().store.plan_batch(request))
         .await
         .map_err(|e| AppError::new("batch-worker", e))?
+}
+#[tauri::command]
+pub async fn adopt_preview(request: PreviewAdoption, app: tauri::AppHandle) -> Result<Task> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<Desktop>().store.adopt_preview(request)
+    })
+    .await
+    .map_err(|e| AppError::new("batch-worker", e))?
 }
 #[tauri::command]
 pub fn approve_batch_scope(
@@ -42,7 +62,9 @@ pub fn execute(app: &tauri::AppHandle, task: &Task, row: &BatchItem) -> Result<O
         }
     };
     let mut review_required = false;
-    let candidate = if let Some(p) = existing {
+    let candidate = if batch.mode == BatchMode::AdoptPreview {
+        desktop.store.adoption_candidate(task, row)?
+    } else if let Some(p) = existing {
         p
     } else {
         if let Some(reason) = product_core::batch::skip_reason(task, row)? {
@@ -111,7 +133,7 @@ pub fn execute(app: &tauri::AppHandle, task: &Task, row: &BatchItem) -> Result<O
             }
         }
     };
-    if batch.engine == BatchEngine::Ai {
+    if batch.engine == BatchEngine::Ai && batch.mode != BatchMode::AdoptPreview {
         review_required = ai::job::needs_review(&desktop.store.ai_record(&row.request_id)?);
     }
     if candidate.phase == "committed" || candidate.phase == "unchanged" {

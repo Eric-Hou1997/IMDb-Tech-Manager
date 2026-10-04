@@ -1,6 +1,59 @@
 use super::*;
 use crate::batch::*;
 impl Store {
+    /// Original current/selected preflight: read explicit NFOs, never expand
+    /// to a whole library or create a task before the user confirms.
+    pub fn preflight_items(&self, space: Space, ids: Vec<String>) -> Result<Vec<MediaItem>> {
+        if ids.is_empty() || ids.len() > 10000 {
+            return Err(AppError::new(
+                "invalid-scope",
+                "Select between 1 and 10000 indexed NFO entries",
+            ));
+        }
+        let mut seen = std::collections::HashSet::new();
+        let mut items = vec![];
+        for id in ids {
+            if !seen.insert(id.clone()) {
+                continue;
+            }
+            if !self.db()?.query_row(
+                "SELECT EXISTS(SELECT 1 FROM items WHERE id=?1)",
+                [&id],
+                |row| row.get::<_, bool>(0),
+            )? {
+                return Err(AppError::new(
+                    "invalid-scope",
+                    "Selected NFO is no longer indexed; reload the library",
+                ));
+            }
+            if self.item(&id)?.space != space {
+                return Err(AppError::new(
+                    "invalid-scope",
+                    "Movie and TV scopes must remain separate",
+                ));
+            }
+            let item = self.inspect_item(&id)?;
+            if ["Movie", "Series", "Episode"].contains(&item.kind.as_str())
+                && !item
+                    .inspection
+                    .issues
+                    .iter()
+                    .any(|issue| issue == "library-type-mismatch")
+            {
+                if let Some(error) = item.error {
+                    return Err(error);
+                }
+                items.push(item);
+            }
+        }
+        if items.is_empty() {
+            return Err(AppError::new(
+                "invalid-scope",
+                "No processable NFO entries in the selected scope",
+            ));
+        }
+        Ok(items)
+    }
     pub fn plan_batch(&self, request: BatchRequest) -> Result<Task> {
         self.plan_batch_context(request, false)
     }
@@ -10,6 +63,12 @@ impl Store {
         automatic: bool,
     ) -> Result<Task> {
         valid_id(&request.operation_id)?;
+        if request.mode == BatchMode::AdoptPreview {
+            return Err(AppError::new(
+                "review-mismatch",
+                "Adoption requires the exact reviewed preview candidates",
+            ));
+        }
         let fingerprint = if automatic {
             hash(&serde_json::to_vec(&("automatic-batch", &request))?)
         } else {
@@ -124,7 +183,8 @@ impl Store {
             items,
         };
         batch.plan_hash = hash(&serde_json::to_vec(&(&batch, &config.locale))?);
-        let task = Task {
+        let mut task = Task {
+            journal: None,
             automatic,
             id: request.operation_id,
             state: if automatic {
@@ -145,6 +205,7 @@ impl Store {
         let mut db = self.db()?;
         self.writable()?;
         let tx = db.transaction()?;
+        Self::begin_task_log(&tx, &mut task)?;
         if automatic {
             super::automatic::planned(&tx)?;
         }
@@ -215,13 +276,219 @@ impl Store {
             ));
         }
         batch.approved = true;
+        let engine = batch.engine.clone();
         task.state = TaskState::Requested;
+        if !task.automatic {
+            Self::supersede_stopped(&tx, id, Some((&engine, &task.space)))?;
+        }
+        Self::record_task(&tx, &mut task)?;
+        tx.commit()?;
+        Ok(task)
+    }
+    /// Original preview adoption is a new owned job using already reviewed
+    /// write operations. It cannot generate a replacement candidate or call AI.
+    pub fn adopt_preview(&self, request: PreviewAdoption) -> Result<Task> {
+        valid_id(&request.operation_id)?;
+        if request.items.is_empty() || request.items.len() > 10 {
+            return Err(AppError::new(
+                "invalid-scope",
+                "Select 1–10 reviewed preview candidates",
+            ));
+        }
+        let fingerprint = hash(&serde_json::to_vec(&("preview-adoption", &request))?);
+        if let Ok(task) = self.task(&request.operation_id) {
+            let old: String = self.db()?.query_row(
+                "SELECT fingerprint FROM tasks WHERE id=?1",
+                [&task.id],
+                |r| r.get(0),
+            )?;
+            if old != fingerprint {
+                return Err(AppError::new(
+                    "operation-conflict",
+                    "Adoption ID belongs to another review",
+                ));
+            }
+            return Ok(task);
+        }
+        let source = self.task(&request.task_id)?;
+        let preview = source
+            .batch
+            .as_ref()
+            .filter(|b| {
+                b.approved && b.mode == BatchMode::Preview && b.engine != BatchEngine::Specs
+            })
+            .ok_or_else(|| {
+                AppError::new("review-mismatch", "A saved AI or rule preview is required")
+            })?;
+        if matches!(source.state, TaskState::Requested | TaskState::Running) {
+            return Err(AppError::new(
+                "active-task",
+                "Wait until the preview job stops",
+            ));
+        }
+        let config = self.configuration()?;
+        let mut seen = std::collections::HashSet::new();
+        let mut items = vec![];
+        for reviewed in &request.items {
+            if !seen.insert(&reviewed.write_id) {
+                return Err(AppError::new(
+                    "invalid-scope",
+                    "Duplicate reviewed candidate",
+                ));
+            }
+            let row = preview
+                .items
+                .iter()
+                .find(|row| {
+                    row.write_id == reviewed.write_id
+                        && row.candidate_hash.as_deref() == Some(&reviewed.reviewed_hash)
+                        && ["review-ready", "committed", "unchanged"].contains(&row.phase.as_str())
+                })
+                .ok_or_else(|| {
+                    AppError::new(
+                        "review-mismatch",
+                        "Candidate differs from the saved preview",
+                    )
+                })?;
+            let root = source
+                .roots
+                .iter()
+                .find(|r| r.id == row.item.root_id)
+                .ok_or_else(|| AppError::new("invalid-root", "Preview root is missing"))?;
+            if !config.roots.contains(root) {
+                return Err(AppError::new(
+                    "root-identity-changed",
+                    "Reviewed root configuration changed",
+                )
+                .at(&row.item.path));
+            }
+            let candidate = match self.operation_result(&row.write_id)? {
+                OperationResult::Write(p) => p,
+                _ => {
+                    return Err(AppError::new(
+                        "review-mismatch",
+                        "Preview operation has another owner",
+                    ))
+                }
+            };
+            if candidate.operation_id != row.write_id
+                || candidate.item_id != row.item.id
+                || candidate.after_hash != reviewed.reviewed_hash
+            {
+                return Err(AppError::new(
+                    "review-mismatch",
+                    "Candidate receipt does not match the review",
+                )
+                .at(&row.item.path));
+            }
+            let mut row = row.clone();
+            row.request_id = child_id(&request.operation_id, items.len(), "adoption");
+            row.phase = "pending".into();
+            row.error = None;
+            items.push(row);
+        }
+        let mut batch = Batch {
+            engine: preview.engine.clone(),
+            mode: BatchMode::AdoptPreview,
+            plan_hash: String::new(),
+            approved: true,
+            retry_failed: false,
+            pause_requested: false,
+            cancel_requested: false,
+            settings: preview.settings.clone(),
+            total: items.len() as u32,
+            items,
+        };
+        batch.plan_hash = hash(&serde_json::to_vec(&(
+            &batch,
+            &config.locale,
+            &request.task_id,
+        ))?);
+        let mut task = Task {
+            journal: None,
+            automatic: false,
+            batch: Some(batch),
+            id: request.operation_id,
+            state: TaskState::Requested,
+            locale: config.locale.clone(),
+            space: source.space,
+            roots: source.roots,
+            attempt: 0,
+            processed: 0,
+            errors: 0,
+            current_path: None,
+            failure: None,
+        };
+        let mut db = self.db()?;
+        self.writable()?;
+        let tx = db.transaction()?;
+        Self::begin_task_log(&tx, &mut task)?;
+        let latest: String =
+            tx.query_row("SELECT body FROM configuration WHERE id=1", [], |r| {
+                r.get(0)
+            })?;
+        if serde_json::from_str::<Configuration>(&latest)? != config {
+            return Err(AppError::new(
+                "configuration-conflict",
+                "Settings changed while submitting the reviewed candidates",
+            ));
+        }
+        if tx.query_row("SELECT EXISTS(SELECT 1 FROM operations WHERE id=?1) OR EXISTS(SELECT 1 FROM tasks WHERE id=?1)",[&task.id],|r|r.get::<_,bool>(0))?{return Err(AppError::new("operation-conflict","Adoption ID already has an owner"));}
+        if tx.query_row("SELECT EXISTS(SELECT 1 FROM tasks WHERE json_extract(body,'$.state') IN ('requested','running'))",[],|r|r.get::<_,bool>(0))?{return Err(AppError::new("active-task","Another task is already running"));}
+        Self::supersede_stopped(&tx, &task.id, None)?;
+        let mut summary = task.clone();
+        for (ordinal, row) in summary.batch.as_mut().unwrap().items.drain(..).enumerate() {
+            tx.execute(
+                "INSERT INTO batch_items VALUES(?1,?2,?3,?4,?5)",
+                params![
+                    task.id,
+                    ordinal as u32,
+                    row.request_id,
+                    row.phase,
+                    serde_json::to_string(&row)?
+                ],
+            )?;
+        }
         tx.execute(
-            "UPDATE tasks SET body=?2 WHERE id=?1",
-            params![id, serde_json::to_string(&task)?],
+            "INSERT INTO tasks VALUES(?1,?2,?3)",
+            params![task.id, fingerprint, serde_json::to_string(&summary)?],
         )?;
         tx.commit()?;
         Ok(task)
+    }
+    pub fn adoption_candidate(
+        &self,
+        task: &Task,
+        row: &BatchItem,
+    ) -> Result<crate::writing::WritePreview> {
+        if !task
+            .batch
+            .as_ref()
+            .is_some_and(|b| b.approved && b.mode == BatchMode::AdoptPreview)
+        {
+            return Err(AppError::new(
+                "review-mismatch",
+                "Not a reviewed adoption task",
+            ));
+        }
+        let candidate = match self.operation_result(&row.write_id)? {
+            OperationResult::Write(p) => p,
+            _ => {
+                return Err(AppError::new(
+                    "review-mismatch",
+                    "Reviewed write operation is missing",
+                ))
+            }
+        };
+        if candidate.operation_id != row.write_id
+            || candidate.item_id != row.item.id
+            || row.candidate_hash.as_deref() != Some(&candidate.after_hash)
+        {
+            return Err(
+                AppError::new("review-mismatch", "Reviewed candidate changed").at(&row.item.path),
+            );
+        }
+        Ok(candidate)
     }
     /// One worker owns the queue; every completed item is persisted before the
     /// next item starts. Re-entering an interrupted item uses its original IDs.
@@ -317,6 +584,19 @@ impl Store {
                     params![t.id, index, row.phase, serde_json::to_string(&row)?],
                 )?;
                 t.processed += 1;
+                t.log_line(&format!(
+                    "[{}] {} · {} · {} · {} · {}{}",
+                    t.processed,
+                    row.item.title,
+                    row.item.year,
+                    row.item.imdb,
+                    row.item.path,
+                    t.result_label(&row.phase),
+                    row.error
+                        .as_ref()
+                        .map(|e| format!(" · {}", t.error_message(e)))
+                        .unwrap_or_default()
+                ));
                 if row.phase == "failed" {
                     t.errors += 1;
                     t.failure = row.error.clone();
@@ -461,10 +741,7 @@ impl Store {
             tx.query_row("SELECT body FROM tasks WHERE id=?1", [id], |r| r.get(0))?;
         let mut task: Task = serde_json::from_str(&body)?;
         change(&mut task, &tx)?;
-        tx.execute(
-            "UPDATE tasks SET body=?2 WHERE id=?1",
-            params![id, serde_json::to_string(&task)?],
-        )?;
+        Self::record_task(&tx, &mut task)?;
         tx.commit()?;
         Ok(task)
     }

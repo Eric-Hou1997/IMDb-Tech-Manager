@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref,shallowRef,watch} from 'vue';
+import {ref,shallowRef,watch,computed} from 'vue';
 import {invoke} from '@tauri-apps/api/core';
 import type {Task,Space,BatchEngine,BatchMode,BatchItem,WritePreview} from './contracts';
 const props=defineProps<{space:Space;selected:string[];roots:string[];tasks:Task[]}>();
@@ -20,6 +20,8 @@ async function plan(engine:BatchEngine,retry?:Task){await run(async()=>{
 async function approve(task:Task){await run(async()=>{active.value=await invoke<Task>('approve_batch_scope',{id:task.id,reviewedHash:task.batch!.plan_hash});emit('refresh');});}
 async function show(task:Task,row:BatchItem){await run(async()=>{const result=await invoke<{kind:string;result:WritePreview}>('operation_result',{id:row.write_id});if(result.kind!=='write')throw Error('候选记录类型不匹配');review.value=result.result;pending.value={task,row};});}
 async function apply(){if(!review.value||!pending.value)return;const value=review.value;await run(async()=>{review.value=await invoke<WritePreview>('apply_batch_item',{taskId:pending.value!.task.id,writeId:value.operation_id,reviewedHash:value.after_hash});if(detailTask.value)detailTask.value=await invoke<Task>('batch_detail',{id:detailTask.value.id});emit('refresh');});}
+async function start(engine:BatchEngine,nextMode:BatchMode){mode.value=nextMode;full.value=false;await plan(engine);}
+defineExpose({start,load,isBusy:computed(()=>busy.value)});
 </script>
 <template>
  <section class="batch-panel"><h3>批量操作</h3>

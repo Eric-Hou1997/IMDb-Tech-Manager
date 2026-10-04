@@ -15,6 +15,9 @@ fn read(db: &Connection) -> Result<Status> {
     body.map(|b| serde_json::from_str(&b).map_err(Into::into))
         .unwrap_or_else(|| Ok(Status::default()))
 }
+fn active_automatic(db: &Connection) -> Result<Vec<String>> {
+    Ok(db.prepare("SELECT id FROM tasks WHERE json_extract(body,'$.automatic')=1 AND json_extract(body,'$.state') IN ('requested','running','paused','interrupted') ORDER BY rowid DESC")?.query_map([], |row| row.get(0))?.collect::<std::result::Result<_,_>>()?)
+}
 fn write(db: &Connection, status: &Status) -> Result<()> {
     db.execute("INSERT INTO preferences VALUES('automatic',?1) ON CONFLICT(key) DO UPDATE SET body=excluded.body", [serde_json::to_string(status)?])?;
     Ok(())
@@ -24,13 +27,11 @@ pub(super) fn enabled(db: &Connection) -> Result<bool> {
 }
 impl Store {
     pub fn automatic_status(&self) -> Result<Status> {
-        let mut status = read(&*self.db()?)?;
-        status.task_ids = self
-            .tasks()?
-            .into_iter()
-            .filter(|t| t.automatic && !t.state.terminal())
-            .map(|t| t.id)
-            .collect();
+        let mut db = self.db()?;
+        let tx = db.transaction()?;
+        let mut status = read(&tx)?;
+        status.task_ids = active_automatic(&tx)?;
+        tx.commit()?;
         Ok(status)
     }
     /// Startup preference is independent of the previous process's run state.
@@ -47,7 +48,7 @@ impl Store {
             .prepare("SELECT id,body FROM tasks")?
             .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?
             .collect::<std::result::Result<_, _>>()?;
-        for (id, body) in rows {
+        for (_id, body) in rows {
             let mut task: Task = serde_json::from_str(&body)?;
             if task.automatic && !task.state.terminal() {
                 if enabled && task.state == TaskState::Interrupted {
@@ -55,10 +56,7 @@ impl Store {
                 } else if !enabled {
                     task.state = TaskState::Cancelled;
                 }
-                tx.execute(
-                    "UPDATE tasks SET body=?2 WHERE id=?1",
-                    params![id, serde_json::to_string(&task)?],
-                )?;
+                Self::record_task(&tx, &mut task)?;
             }
         }
         tx.commit()?;
@@ -72,9 +70,38 @@ impl Store {
         enabled: bool,
         now: i64,
     ) -> Result<Status> {
+        self.set_automatic_inner(id, settings, enabled, now, None)
+    }
+    pub fn set_automatic_checked(
+        &self,
+        id: &str,
+        settings: Settings,
+        enabled: bool,
+        now: i64,
+        expected: crate::automatic::Expected,
+    ) -> Result<Status> {
+        self.set_automatic_inner(id, settings, enabled, now, Some(expected))
+    }
+    fn set_automatic_inner(
+        &self,
+        id: &str,
+        settings: Settings,
+        enabled: bool,
+        now: i64,
+        expected: Option<crate::automatic::Expected>,
+    ) -> Result<Status> {
         valid_id(id)?;
         settings.validate()?;
-        let fingerprint = hash(&serde_json::to_vec(&("automatic", &settings, enabled))?);
+        let fingerprint = if let Some(expected) = &expected {
+            hash(&serde_json::to_vec(&(
+                "automatic-checked",
+                &settings,
+                enabled,
+                expected,
+            ))?)
+        } else {
+            hash(&serde_json::to_vec(&("automatic", &settings, enabled))?)
+        };
         let mut db = self.db()?;
         self.writable()?;
         let tx = db.transaction()?;
@@ -125,6 +152,14 @@ impl Store {
             }
         }
         let mut status = read(&tx)?;
+        if expected.is_some_and(|previous| {
+            previous.settings != status.settings || previous.enabled != status.enabled
+        }) {
+            return Err(AppError::new(
+                "automatic-settings-conflict",
+                "Automatic settings or run state changed; reload before saving",
+            ));
+        }
         if enabled && !status.enabled {
             status.next_due = now;
         }
@@ -135,7 +170,7 @@ impl Store {
                 .prepare("SELECT id,body FROM tasks")?
                 .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?
                 .collect::<std::result::Result<_, _>>()?;
-            for (id, body) in rows {
+            for (_id, body) in rows {
                 let mut task: Task = serde_json::from_str(&body)?;
                 if task.automatic && !task.state.terminal() {
                     if let Some(batch) = task.batch.as_mut() {
@@ -147,13 +182,11 @@ impl Store {
                     } else {
                         task.state = TaskState::Cancelled;
                     }
-                    tx.execute(
-                        "UPDATE tasks SET body=?2 WHERE id=?1",
-                        params![id, serde_json::to_string(&task)?],
-                    )?;
+                    Self::record_task(&tx, &mut task)?;
                 }
             }
         }
+        status.task_ids = active_automatic(&tx)?;
         write(&tx, &status)?;
         tx.execute(
             "INSERT INTO operations VALUES(?1,?2,?3)",
@@ -177,8 +210,7 @@ impl Store {
         if !status.enabled {
             return Ok(vec![]);
         }
-        let tasks = self.tasks()?;
-        if tasks.iter().any(|t| !t.state.terminal()) {
+        if self.db()?.query_row("SELECT EXISTS(SELECT 1 FROM tasks WHERE json_extract(body,'$.state') IN ('requested','running','paused','interrupted'))", [], |row|row.get::<_,bool>(0))? {
             return Ok(vec![]);
         }
         if status.next_due == 0 {

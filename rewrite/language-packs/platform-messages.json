@@ -1,0 +1,17 @@
+{
+  "请从 GitHub Release 下载对应 DEB/RPM 包，并使用系统包管理器升级。": {
+    "english": "Download the matching DEB/RPM package from this GitHub Release and upgrade with the system package manager",
+    "traditional": "請從 GitHub Release 下載對應 DEB/RPM 套件，並使用系統套件管理員升級。",
+    "translations": ["Téléchargez le paquet DEB/RPM correspondant depuis cette GitHub Release et mettez à niveau avec le gestionnaire de paquets système.", "Загрузите соответствующий пакет DEB/RPM из этого GitHub Release и обновите приложение через системный менеджер пакетов.", "この GitHub Release から対応する DEB/RPM パッケージをダウンロードし、システムのパッケージマネージャーで更新してください。", "Descargue el paquete DEB/RPM correspondiente de esta GitHub Release y actualice con el gestor de paquetes del sistema.", "ดาวน์โหลดแพ็กเกจ DEB/RPM ที่ตรงกันจาก GitHub Release นี้ แล้วอัปเกรดด้วยตัวจัดการแพ็กเกจของระบบ"]
+  },
+  "将下载并验证新版；软件会退出，运行对应架构的安装程序，然后尝试重新启动。": {
+    "english": "The update will be downloaded and verified; the app will exit, run the installer for its architecture, then attempt to restart.",
+    "traditional": "將下載並驗證新版；軟體會退出，執行對應架構的安裝程式，然後嘗試重新啟動。",
+    "translations": ["La mise à jour sera téléchargée et vérifiée ; l’application se fermera, exécutera le programme d’installation adapté à son architecture, puis tentera de redémarrer.", "Обновление будет загружено и проверено; приложение закроется, запустит установщик для своей архитектуры, затем попытается перезапуститься.", "更新をダウンロードして検証します。アプリを終了し、対応するアーキテクチャのインストーラーを実行してから、再起動を試みます。", "Se descargará y verificará la actualización; la aplicación se cerrará, ejecutará el instalador de su arquitectura y después intentará reiniciarse.", "ระบบจะดาวน์โหลดและตรวจสอบเวอร์ชันใหม่ แอปจะปิด เรียกใช้ตัวติดตั้งที่ตรงกับสถาปัตยกรรม แล้วพยายามเปิดใหม่"]
+  },
+  "将下载并验证新版；软件会退出、替换当前 AppImage，然后尝试重新启动。": {
+    "english": "The update will be downloaded and verified; the app will exit, replace the current AppImage, then attempt to restart.",
+    "traditional": "將下載並驗證新版；軟體會退出、替換目前 AppImage，然後嘗試重新啟動。",
+    "translations": ["La mise à jour sera téléchargée et vérifiée ; l’application se fermera, remplacera l’AppImage actuelle, puis tentera de redémarrer.", "Обновление будет загружено и проверено; приложение закроется, заменит текущий AppImage, затем попытается перезапуститься.", "更新をダウンロードして検証します。アプリを終了し、現在の AppImage を置き換えてから、再起動を試みます。", "Se descargará y verificará la actualización; la aplicación se cerrará, reemplazará el AppImage actual y después intentará reiniciarse.", "ระบบจะดาวน์โหลดและตรวจสอบเวอร์ชันใหม่ แอปจะปิด แทนที่ AppImage ปัจจุบัน แล้วพยายามเปิดใหม่"]
+  }
+}

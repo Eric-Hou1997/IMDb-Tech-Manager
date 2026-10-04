@@ -18,8 +18,55 @@ impl Store {
         &self,
         request: crate::writing::SpecsEdit,
     ) -> Result<crate::writing::WritePreview> {
+        self.preview_specs_mode(request, false)
+    }
+    pub fn preview_restore_specs(
+        &self,
+        id: &str,
+        item_id: &str,
+        expected_hash: &str,
+    ) -> Result<crate::writing::WritePreview> {
+        valid_id(id)?;
+        let fingerprint = hash(&serde_json::to_vec(&(
+            "specs-restore",
+            item_id,
+            expected_hash,
+        ))?);
+        if let Some(body) = self.operation(id, &fingerprint)? {
+            return match serde_json::from_str(&body)? {
+                OperationResult::Write(value) => Ok(value),
+                _ => Err(AppError::new(
+                    "operation-conflict",
+                    "Operation belongs to another action",
+                )),
+            };
+        }
+        let item = self.inspect_item(item_id)?;
+        self.preview_specs_mode(
+            crate::writing::SpecsEdit {
+                operation_id: id.into(),
+                item_id: item_id.into(),
+                expected_hash: expected_hash.into(),
+                specs: item.inspection.source_specs.clone(),
+            },
+            true,
+        )
+    }
+    fn preview_specs_mode(
+        &self,
+        request: crate::writing::SpecsEdit,
+        restore: bool,
+    ) -> Result<crate::writing::WritePreview> {
         valid_id(&request.operation_id)?;
-        let fingerprint = hash(&serde_json::to_vec(&("specs-edit", &request))?);
+        let fingerprint = if restore {
+            hash(&serde_json::to_vec(&(
+                "specs-restore",
+                &request.item_id,
+                &request.expected_hash,
+            ))?)
+        } else {
+            hash(&serde_json::to_vec(&("specs-edit", &request))?)
+        };
         if let Some(result) = self.operation(&request.operation_id, &fingerprint)? {
             return match serde_json::from_str(&result)? {
                 OperationResult::Write(value) => Ok(value),
@@ -44,14 +91,27 @@ impl Store {
             )
             .at(path.display()));
         }
-        let candidate = crate::specs::manual_candidate(&raw, &request.specs)?;
+        let recovery = self.recovered_nfo(&path, &raw)?;
+        let source = recovery
+            .as_ref()
+            .map(|(_, bytes)| bytes.as_slice())
+            .unwrap_or(&raw);
+        let candidate = if restore {
+            crate::specs::restore_candidate(source, &request.specs)?
+        } else {
+            crate::specs::manual_candidate(source, &request.specs)?
+        };
         self.save_write_preview(
             &request.operation_id,
             &fingerprint,
             &item,
             root,
             (&raw, &candidate),
-            WriteIntent::Specs,
+            recovery
+                .map(|(ownership, _)| WriteIntent::RecoveredSpecs {
+                    ownership: Box::new(ownership),
+                })
+                .unwrap_or(WriteIntent::Specs),
         )
     }
     pub fn preview_source(&self, id: &str, fetch_id: &str) -> Result<crate::writing::WritePreview> {
@@ -91,14 +151,23 @@ impl Store {
             )
             .at(&item.path));
         }
-        let candidate = crate::specs::source_candidate(&raw, &source)?;
+        let recovery = self.recovered_nfo(Path::new(&item.path), &raw)?;
+        let original = recovery
+            .as_ref()
+            .map(|(_, bytes)| bytes.as_slice())
+            .unwrap_or(&raw);
+        let candidate = crate::specs::source_candidate(original, &source)?;
         self.save_write_preview(
             id,
             &fingerprint,
             &item,
             root,
             (&raw, &candidate),
-            WriteIntent::Specs,
+            recovery
+                .map(|(ownership, _)| WriteIntent::RecoveredSpecs {
+                    ownership: Box::new(ownership),
+                })
+                .unwrap_or(WriteIntent::Specs),
         )
     }
     pub fn preview_tags(
@@ -209,15 +278,26 @@ impl Store {
             action,
             timestamp: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
         };
-        let candidate = crate::tags::candidate(&raw, &plan)?;
-        self.save_write_preview(
-            id,
-            fingerprint,
-            &item,
-            root,
-            (&raw, &candidate),
-            WriteIntent::Tags { plan },
-        )
+        let recovery = if matches!(plan.action, crate::tags::Action::Generate { .. }) {
+            self.recovered_nfo(Path::new(&item.path), &raw)?
+        } else {
+            // Original Inspector manual actions use embedded _tag_rows, not
+            // tag_state's sidecar overlay. Keep external edits external.
+            None
+        };
+        let source = recovery
+            .as_ref()
+            .map(|(_, bytes)| bytes.as_slice())
+            .unwrap_or(&raw);
+        let candidate = crate::tags::candidate(source, &plan)?;
+        let intent = match recovery {
+            Some((ownership, _)) => WriteIntent::RecoveredTags {
+                plan,
+                ownership: Box::new(ownership),
+            },
+            None => WriteIntent::Tags { plan },
+        };
+        self.save_write_preview(id, fingerprint, &item, root, (&raw, &candidate), intent)
     }
     pub(super) fn save_write_preview(
         &self,
@@ -236,6 +316,12 @@ impl Store {
                     action: crate::tags::Action::Generate { .. },
                     ..
                 }
+            } | WriteIntent::RecoveredTags {
+                plan: crate::tags::Plan {
+                    action: crate::tags::Action::Generate { .. },
+                    ..
+                },
+                ..
             }
         ) {
             crate::inspector::generation_allowed(&library::parse(
@@ -250,6 +336,21 @@ impl Store {
                 proof.validate_candidate(Path::new(&item.path), &hash(original), candidate)?;
             }
             WriteIntent::Specs => crate::specs::validate_specs_only(original, candidate)?,
+            WriteIntent::RecoveredSpecs { ownership } => {
+                let restored =
+                    crate::tags::recovery::restore(original, Path::new(&item.path), ownership)?;
+                crate::specs::validate_specs_only(&restored, candidate)?;
+            }
+            WriteIntent::RecoveredTags { plan, ownership } => {
+                let restored =
+                    crate::tags::recovery::restore(original, Path::new(&item.path), ownership)?;
+                if crate::tags::candidate(&restored, plan)? != candidate {
+                    return Err(AppError::new(
+                        "unsafe-candidate",
+                        "Recovered tag candidate does not match the plan",
+                    ));
+                }
+            }
             WriteIntent::Tags { plan } => {
                 if crate::tags::candidate(original, plan)? != candidate {
                     return Err(AppError::new(
@@ -262,7 +363,8 @@ impl Store {
             // Writer checks its identity and exact bytes again before replacement.
             WriteIntent::Undo { .. } => {}
         }
-        let before = library::parse(root, Path::new(&item.path), original)?;
+        let mut before = library::parse(root, Path::new(&item.path), original)?;
+        super::ownership::overlay(&*self.db()?, &mut before);
         let after = library::parse(root, Path::new(&item.path), candidate)?;
         let legacy_restore = matches!(intent, WriteIntent::LegacyUndo { .. });
         if legacy_restore && before.kind != after.kind {
@@ -421,6 +523,12 @@ impl Store {
                     action: crate::tags::Action::Generate { .. },
                     ..
                 }
+            } | WriteIntent::RecoveredTags {
+                plan: crate::tags::Plan {
+                    action: crate::tags::Action::Generate { .. },
+                    ..
+                },
+                ..
             }
         ) {
             crate::inspector::generation_allowed(&library::parse(
@@ -431,6 +539,20 @@ impl Store {
         }
         let writer =
             crate::transaction::Writer::new(journal, vec![std::path::PathBuf::from(&root.path)])?;
+        if let WriteIntent::RecoveredSpecs { ownership }
+        | WriteIntent::RecoveredTags { ownership, .. } = &preview.intent
+        {
+            let (_, raw) = library::read_bytes(root, Path::new(&preview.path))?;
+            if hash(&raw) == preview.before_hash
+                && super::ownership::record(&db, Path::new(&preview.path))?.as_ref()
+                    != Some(ownership.as_ref())
+            {
+                return Err(
+                    AppError::new("unsafe-skip", "Ownership sidecar changed after review")
+                        .at(&preview.path),
+                );
+            }
+        }
         if let WriteIntent::LegacyUndo { proof } = &preview.intent {
             super::legacy_undo::validate_proof(&db, proof, &candidate)?;
             if let Some(state) = super::legacy_undo::restore_state(&db, &proof.archive_hash, id)? {

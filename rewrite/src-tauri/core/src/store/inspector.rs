@@ -1,6 +1,113 @@
 use super::*;
 use crate::inspector::{self, Annotation, AnnotationAction, AnnotationRequest};
 use std::collections::BTreeMap;
+
+/// Read the settled per-NFO failure queue without loading prompts, response
+/// bodies or touching library paths. Running/cancelled retries retain failures;
+/// a validated result clears them, as in the original engine.
+pub(super) fn ai_failures(db: &Connection) -> Result<BTreeMap<String, AppError>> {
+    let mut failures = BTreeMap::new();
+    let mut legacy = db.prepare("SELECT body FROM preferences WHERE key LIKE 'legacy-ai-failure:%' AND json_extract(body,'$.active')=1")?;
+    for body in legacy.query_map([], |r| r.get::<_, String>(0))? {
+        let value: crate::ai::legacy_failure::Failure = serde_json::from_str(&body?)?;
+        value.validate()?;
+        let mut error = AppError::new(
+            value.kind(),
+            value.entry["message"].as_str().unwrap_or("AI 处理失败"),
+        )
+        .at(&value.path);
+        error.operation_id = value.entry["task_id"]
+            .as_str()
+            .filter(|s| !s.is_empty())
+            .map(str::to_owned);
+        error.retryable = value.entry["retryable"].as_bool().unwrap_or(true);
+        failures.insert(value.path, error);
+    }
+    let mut query = db.prepare(
+        "SELECT json_extract(result,'$.result.path'),
+                json_extract(result,'$.result.phase'),
+                json_extract(result,'$.result.error'), id
+         FROM operations WHERE rowid IN (
+             SELECT MAX(rowid) FROM operations
+             WHERE json_extract(result,'$.kind')='ai'
+               AND COALESCE(json_extract(result,'$.result.purpose'),'generate')='generate'
+               AND json_extract(result,'$.result.path')<>''
+               AND (json_extract(result,'$.result.phase')='review-ready' OR (
+                   json_extract(result,'$.result.phase') IN ('failed','skipped-unchanged-failure')
+                   AND json_extract(result,'$.result.error.code') IN (
+                       'transient','request','provider-response','output-truncated',
+                       'content-filter','provider-refusal','context-length','malformed-json',
+                       'schema-invalid','nfo-read','config','exception','known-failure','ai-failure')))
+             GROUP BY json_extract(result,'$.result.path'))",
+    )?;
+    for row in query.query_map([], |r| {
+        Ok((
+            r.get::<_, String>(0)?,
+            r.get::<_, String>(1)?,
+            r.get::<_, Option<String>>(2)?,
+            r.get::<_, String>(3)?,
+        ))
+    })? {
+        let (path, phase, body, id) = row?;
+        if phase == "review-ready" {
+            failures.remove(&path);
+        } else if let Some(body) = body {
+            let mut error: AppError = serde_json::from_str(&body)?;
+            error.path = Some(path.clone());
+            error.operation_id = Some(id);
+            error.retryable |= [
+                "transient",
+                "request",
+                "provider-response",
+                "output-truncated",
+                "malformed-json",
+                "schema-invalid",
+                "nfo-read",
+                "exception",
+            ]
+            .contains(&error.code.as_str());
+            failures.insert(path, error);
+        }
+    }
+    Ok(failures)
+}
+pub(super) struct AiHints {
+    model: String,
+    prompt_hashes: std::collections::BTreeSet<String>,
+    failures: BTreeMap<String, AppError>,
+}
+impl AiHints {
+    pub(super) fn read(db: &Connection) -> Result<Self> {
+        let settings: crate::ai::job::Settings = db
+            .query_row(
+                "SELECT body FROM preferences WHERE key='ai-settings'",
+                [],
+                |r| r.get::<_, String>(0),
+            )
+            .optional()?
+            .map(|s| serde_json::from_str(&s))
+            .transpose()?
+            .unwrap_or_default();
+        Ok(Self {
+            model: settings
+                .config
+                .model
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" "),
+            prompt_hashes: crate::ai::accepted_prompt_hashes(&settings.config),
+            failures: ai_failures(db)?,
+        })
+    }
+    pub(super) fn apply(&self, item: &mut MediaItem) {
+        crate::inspector::apply_ai_hints(
+            item,
+            &self.model,
+            &self.prompt_hashes,
+            self.failures.get(&item.path),
+        );
+    }
+}
 pub(super) fn annotations(db: &Connection) -> Result<BTreeMap<String, Annotation>> {
     let mut statement =
         db.prepare("SELECT key,body FROM preferences WHERE key LIKE 'inspector:%'")?;
@@ -41,12 +148,45 @@ impl Store {
             }
         };
         item.id = indexed.id;
+        if item.error.is_none() {
+            let mirror = self
+                .db()?
+                .path()
+                .and_then(|p| Path::new(p).parent())
+                .map(|p| p.join("ownership"));
+            if let Some(mirror) = mirror {
+                // The NFO is authoritative. Reuse the qualified mirror writer
+                // to repair older mirrors without replacing any media bytes.
+                let (_, raw) = library::read_bytes(root, Path::new(&item.path))?;
+                if hash(&raw) != item.source_hash {
+                    return Err(
+                        AppError::new("source-conflict", "NFO changed during inspection")
+                            .at(&item.path),
+                    );
+                }
+                let mut matches = crate::tags::mirror_match(&mirror, Path::new(&item.path), &raw)
+                    .unwrap_or(Some(false));
+                if matches == Some(false)
+                    && crate::tags::mirror(&mirror, Path::new(&item.path), &item.source_hash)
+                        .is_ok()
+                {
+                    matches = crate::tags::mirror_match(&mirror, Path::new(&item.path), &raw)
+                        .unwrap_or(Some(false));
+                }
+                item.inspection.manifest_sidecar_match = matches;
+                if matches == Some(false) {
+                    item.inspection.issues.push("ownership-mismatch".into());
+                }
+            }
+        }
         let db = self.db()?;
         db.execute(
             "UPDATE items SET body=?2 WHERE id=?1",
             params![id, serde_json::to_string(&item)?],
         )?;
         let value = annotation(&db, &hash(item.path.as_bytes()))?;
+        super::ownership::overlay(&db, &mut item);
+        AiHints::read(&db)?.apply(&mut item);
         inspector::apply(&mut item, Some(&value));
         Ok(item)
     }

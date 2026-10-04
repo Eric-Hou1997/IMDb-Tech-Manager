@@ -42,7 +42,7 @@ fn source() -> SourceSpecs {
         status: Default::default(),
         imdb: "tt1234567".into(),
         specs: Specs::from([("Camera".into(), vec!["Example".into()])]),
-        fetched_at: "2026-09-11T00:00:00Z".into(),
+        fetched_at: itm_core::ai::job::now(),
         parser: "next-data".into(),
     }
 }

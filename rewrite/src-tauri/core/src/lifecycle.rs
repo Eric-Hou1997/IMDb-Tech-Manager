@@ -25,6 +25,29 @@ impl Default for Settings {
         }
     }
 }
+/// The original App login checkbox is independent of the Agent/automatic mode.
+pub fn legacy_settings(value: &serde_json::Value) -> Result<Option<Settings>> {
+    let Some(object) = value.as_object() else {
+        return Ok(None);
+    };
+    if !object.contains_key("app_auto_start") && !object.contains_key("app_auto_start_configured") {
+        return Ok(None);
+    }
+    let flag = |key: &str| -> Result<bool> {
+        match object.get(key) {
+            None => Ok(false),
+            Some(value) => value.as_bool().ok_or_else(|| {
+                AppError::new("legacy-login-settings", format!("{key} must be boolean"))
+            }),
+        }
+    };
+    let configured = flag("app_auto_start_configured")?;
+    let enabled = flag("app_auto_start")?;
+    Ok(Some(Settings {
+        launch_at_login: configured && enabled,
+        ..Settings::default()
+    }))
+}
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct SettingsOperation {
     pub id: String,

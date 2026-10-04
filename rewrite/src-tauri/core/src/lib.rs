@@ -14,6 +14,7 @@ pub mod rules;
 pub mod services;
 pub mod specs;
 pub mod store;
+pub mod task_log;
 pub mod transaction;
 pub mod update;
 mod windows_replace;
@@ -44,9 +45,18 @@ pub mod ui;
 
 pub mod tv;
 
+pub mod legacy_startup;
 pub mod lifecycle;
 
 pub mod startup_file;
 
 pub mod tags;
 pub mod writing;
+
+pub mod history;
+
+pub mod presentation;
+
+pub mod languages;
+
+pub mod onboarding;

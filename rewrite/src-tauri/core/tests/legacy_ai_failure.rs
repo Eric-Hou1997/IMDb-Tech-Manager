@@ -63,6 +63,26 @@ fn fixture(unfingerprinted: bool) -> Fixture {
         .unwrap();
     store.run_next(|| false, |_| {}).unwrap();
     let item = store.all_items().unwrap().remove(0);
+    assert!(item.inspection.issues.contains(&"schema-invalid".into()));
+    assert_eq!(
+        item.inspection.issue_details["schema-invalid"].message,
+        "Original fixture error"
+    );
+    assert_eq!(
+        item.inspection.issue_details["schema-invalid"]
+            .operation_id
+            .as_deref(),
+        Some("old-task")
+    );
+    assert_eq!(
+        store
+            .ai_failure_items()
+            .unwrap()
+            .iter()
+            .map(|i| &i.id)
+            .collect::<Vec<_>>(),
+        vec![&item.id]
+    );
     Fixture {
         _temp: temp,
         root,

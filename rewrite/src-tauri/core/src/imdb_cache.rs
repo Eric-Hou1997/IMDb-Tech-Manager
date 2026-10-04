@@ -273,3 +273,49 @@ pub fn cacheable(error: &AppError) -> bool {
     ]
     .contains(&error.code.as_str())
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+pub struct CacheSettings {
+    pub revision: u32,
+    pub limit_mb: u32,
+}
+impl Default for CacheSettings {
+    fn default() -> Self {
+        Self {
+            revision: 0,
+            limit_mb: 2048,
+        }
+    }
+}
+impl CacheSettings {
+    pub fn validate(&self) -> Result<()> {
+        if !(64..=65536).contains(&self.limit_mb) {
+            return Err(AppError::new(
+                "invalid-cache-limit",
+                "IMDb cache limit must be between 64 and 65536 MiB",
+            ));
+        }
+        Ok(())
+    }
+}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+pub struct CacheRequest {
+    pub operation_id: String,
+    pub settings: CacheSettings,
+    pub clear: bool,
+}
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+pub struct CacheStatus {
+    pub error: Option<AppError>,
+    pub settings: CacheSettings,
+    pub state: String,
+    #[ts(type = "number")]
+    pub used_bytes: u64,
+    pub parsed_count: u32,
+    pub raw_count: u32,
+    pub removed_count: u32,
+    pub protected_count: u32,
+    pub last_cleanup: Option<String>,
+    #[ts(type = "number")]
+    pub archive_bytes: u64,
+}

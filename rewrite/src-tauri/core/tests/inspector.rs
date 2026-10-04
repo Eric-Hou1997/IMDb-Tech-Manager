@@ -39,6 +39,278 @@ fn request(i: &MediaItem, id: &str, action: AnnotationAction) -> AnnotationReque
     }
 }
 #[test]
+fn ai_config_hints_are_read_time_only_keep_ownership_and_use_hash_bound_acknowledgements() {
+    let (_temp, store, item) = fixture();
+    let mut settings = itm_core::ai::job::Settings::default();
+    settings.config.base_url = "https://provider.example/v1".into();
+    settings.config.model = "model".into();
+    let prompt_hash = hash(
+        format!(
+            "{}\n\n{}",
+            settings.config.prompt.trim(),
+            itm_core::ai::LANGUAGE_BOUNDARY
+        )
+        .as_bytes(),
+    );
+    let raw = format!("\u{feff}<movie>\r\n<title>Fixture</title><uniqueid type=\"imdb\">tt1234567</uniqueid><tag>ARRI</tag><tag>External</tag><technicalspecs source=\"IMDb\" imdbid=\"tt1234567\"><section name=\"Camera\"><item>ARRI</item></section><generatedtags owner=\"IMDb Tech Manager\" schema=\"2\" engine=\"ai\" model=\"model\" promptHash=\"{}\"><tag id=\"g1\" field=\"Camera\">ARRI</tag></generatedtags></technicalspecs></movie>\r\n", &prompt_hash[..16]);
+    fs::write(&item.path, &raw).unwrap();
+    let modified = fs::metadata(&item.path).unwrap().modified().unwrap();
+    store
+        .save_ai_settings("current-settings", settings.clone())
+        .unwrap();
+    let before = store.inspect_item(&item.id).unwrap();
+    assert_eq!(before.inspection.lifecycle, "ai-complete");
+    assert!(!before.inspection.issues.contains(&"prompt-stale".into()));
+    settings.config.model = "other model".into();
+    store
+        .save_ai_settings("changed-model", settings.clone())
+        .unwrap();
+    for stale in [
+        store.inspect_item(&item.id).unwrap(),
+        store.all_items().unwrap().remove(0),
+    ] {
+        assert!(stale.inspection.issues.contains(&"prompt-stale".into()));
+        assert_eq!(stale.inspection.lifecycle, "ai-complete");
+        assert_eq!(stale.tags, before.tags);
+    }
+    // Neither presentation hints nor acknowledgements enter the cached NFO layer.
+    assert!(!store
+        .item(&item.id)
+        .unwrap()
+        .inspection
+        .issues
+        .contains(&"prompt-stale".into()));
+    store
+        .annotate(request(
+            &before,
+            "ignore-prompt",
+            AnnotationAction::Ignore {
+                issue: "prompt-stale".into(),
+            },
+        ))
+        .unwrap();
+    let ignored = store.inspect_item(&item.id).unwrap();
+    assert!(!ignored.inspection.issues.contains(&"prompt-stale".into()));
+    assert!(ignored
+        .inspection
+        .ignored_issues
+        .contains(&"prompt-stale".into()));
+    assert!(!store.all_items().unwrap()[0]
+        .inspection
+        .issues
+        .contains(&"prompt-stale".into()));
+    store
+        .annotate(request(
+            &before,
+            "restore-prompt",
+            AnnotationAction::RestoreIssues,
+        ))
+        .unwrap();
+    assert!(store
+        .inspect_item(&item.id)
+        .unwrap()
+        .inspection
+        .issues
+        .contains(&"prompt-stale".into()));
+    settings.config.model = "model".into();
+    settings.config.prompt = "User-customized Chinese prompt: 保留原文".into();
+    store
+        .save_ai_settings("changed-prompt", settings.clone())
+        .unwrap();
+    assert!(store.all_items().unwrap()[0]
+        .inspection
+        .issues
+        .contains(&"prompt-stale".into()));
+    settings.config.prompt = itm_core::ai::DEFAULT_PROMPT.into();
+    store.save_ai_settings("restored-config", settings).unwrap();
+    assert!(!store.all_items().unwrap()[0]
+        .inspection
+        .issues
+        .contains(&"prompt-stale".into()));
+    assert_eq!(fs::read(&item.path).unwrap(), raw.as_bytes());
+    assert_eq!(
+        fs::metadata(&item.path).unwrap().modified().unwrap(),
+        modified
+    );
+    assert!(store.ai_history(None).unwrap().is_empty());
+    assert_eq!(store.tasks().unwrap().len(), 1);
+}
+#[test]
+fn original_restore_source_flow_is_previewed_committed_replayable_and_undoable() {
+    let (temp, store, item) = fixture();
+    let source = Specs::from([("Camera".into(), vec!["ARRI".into()])]);
+    let source_hash = specs::fingerprint(&source).unwrap();
+    let raw = format!("\u{feff}<movie>\r\n<title>Restore</title><uniqueid type=\"imdb\">tt1234567</uniqueid><tag>TMM</tag><tag>ARRI</tag><tag>Protected</tag><unknown a=\"keep\"/><technicalspecs source=\"IMDb\" imdbid=\"tt1234567\" modified=\"manual\" modifiedAt=\"original-time\" fetched=\"source-time\"><section name=\"Camera\"><item>Human specs</item></section><sourcesnapshot fetched=\"source-time\"><section name=\"Camera\"><item>ARRI</item></section></sourcesnapshot><generatedtags owner=\"IMDb Tech Manager\" schema=\"2\" engine=\"ai\" specHash=\"{source_hash}\"><tag id=\"g1\" field=\"Camera\">ARRI</tag></generatedtags><manualtags owner=\"IMDb Tech Manager\" schema=\"1\"><tag id=\"m1\">Protected</tag></manualtags></technicalspecs>\r\n</movie>\r\n");
+    fs::write(&item.path, &raw).unwrap();
+    let modified = fs::metadata(&item.path).unwrap().modified().unwrap();
+    let before = store.inspect_item(&item.id).unwrap();
+    assert_eq!(before.spec_status, "manual");
+    assert_eq!(before.tags[1].field, "Camera");
+    let preview = store
+        .preview_restore_specs("restore", &item.id, &before.source_hash)
+        .unwrap();
+    assert_eq!(preview.before_specs["Camera"], vec!["Human specs"]);
+    assert_eq!(preview.after_specs["Camera"], vec!["ARRI"]);
+    assert_eq!(fs::read(&item.path).unwrap(), raw.as_bytes());
+    assert_eq!(
+        fs::metadata(&item.path).unwrap().modified().unwrap(),
+        modified
+    );
+    let journal = temp.path().canonicalize().unwrap().join("nfo-transactions");
+    let written = store
+        .apply_specs("restore", &preview.after_hash, &journal, || false)
+        .unwrap();
+    assert_eq!(written.phase, "committed");
+    assert_eq!(
+        store
+            .preview_restore_specs("restore", &item.id, &before.source_hash)
+            .unwrap()
+            .after_hash,
+        written.after_hash
+    );
+    assert_eq!(
+        store
+            .apply_specs("restore", &preview.after_hash, &journal, || false)
+            .unwrap()
+            .after_hash,
+        written.after_hash
+    );
+    let restored = store.inspect_item(&item.id).unwrap();
+    assert_eq!(restored.spec_status, "ready");
+    assert_eq!(restored.specs, source);
+    assert_eq!(restored.tags, before.tags);
+    assert_eq!(restored.inspection.fetched_at, "source-time");
+    assert_eq!(restored.inspection.source_fetched_at, "source-time");
+    let after = fs::read_to_string(&item.path).unwrap();
+    assert!(after.starts_with('\u{feff}'));
+    assert!(!after.replace("\r\n", "").contains('\n'));
+    assert!(!after.contains("modified=\"manual\"") && !after.contains("modifiedAt="));
+    assert!(after.contains("<unknown a=\"keep\"/>"));
+    assert_eq!(store.tasks().unwrap().len(), 1); // No implicit fetch or generation.
+    let undo = store
+        .preview_undo("undo-restore", "restore", &journal)
+        .unwrap();
+    store
+        .apply_specs("undo-restore", &undo.after_hash, &journal, || false)
+        .unwrap();
+    assert_eq!(fs::read(&item.path).unwrap(), raw.as_bytes());
+}
+#[test]
+fn source_restore_clears_a_manual_marker_even_when_values_are_equal_and_fails_closed() {
+    let raw = b"<movie><uniqueid type=\"imdb\">tt1234567</uniqueid><tag>External</tag><technicalspecs source=\"IMDb\" modified=\"manual\" modifiedAt=\"old\"><section name=\"Camera\"><item>ARRI</item></section></technicalspecs></movie>";
+    let source = Specs::from([("Camera".into(), vec!["ARRI".into()])]);
+    let restored = specs::restore_candidate(raw, &source).unwrap();
+    specs::validate_specs_only(raw, &restored).unwrap();
+    let text = String::from_utf8(restored).unwrap();
+    assert!(!text.contains("modified=\"manual\"") && !text.contains("modifiedAt="));
+    let future = String::from_utf8(raw.to_vec())
+        .unwrap()
+        .replace("source=\"IMDb\"", "source=\"IMDb\" formatVersion=\"99\"");
+    assert_eq!(
+        specs::restore_candidate(future.as_bytes(), &source)
+            .unwrap_err()
+            .code,
+        "unsafe-skip"
+    );
+    let (temp, store, item) = fixture();
+    fs::write(&item.path, raw).unwrap();
+    let before = store.inspect_item(&item.id).unwrap();
+    let preview = store
+        .preview_restore_specs("restore-cas", &item.id, &before.source_hash)
+        .unwrap();
+    let external = b"<movie><title>Later edit</title></movie>";
+    fs::write(&item.path, external).unwrap();
+    assert_eq!(
+        store
+            .apply_specs(
+                "restore-cas",
+                &preview.after_hash,
+                &temp.path().canonicalize().unwrap().join("nfo-transactions"),
+                || false
+            )
+            .unwrap_err()
+            .code,
+        "source-conflict"
+    );
+    assert_eq!(fs::read(&item.path).unwrap(), external);
+}
+#[test]
+fn inspector_compares_and_repairs_the_local_mirror_without_writing_nfo() {
+    let (temp, store, item) = fixture();
+    let path = std::path::Path::new(&item.path);
+    let bytes = b"\xef\xbb\xbf<movie>\r\n<title>Mirror</title><uniqueid type=\"imdb\">tt1234567</uniqueid><tag>ARRI</tag><technicalspecs source=\"IMDb\" imdbid=\"tt1234567\"><section name=\"Camera\"><item>ARRI</item></section><generatedtags owner=\"IMDb Tech Manager\" schema=\"2\" engine=\"ai\"><tag id=\"g-1\" field=\"Camera\">ARRI</tag></generatedtags></technicalspecs></movie>\r\n";
+    fs::write(path, bytes).unwrap();
+    let modified = fs::metadata(path).unwrap().modified().unwrap();
+    let mirror = temp.path().canonicalize().unwrap().join("ownership");
+    assert_eq!(tags::mirror_match(&mirror, path, bytes).unwrap(), None);
+    tags::mirror(&mirror, path, &hash(bytes)).unwrap();
+    assert_eq!(
+        tags::mirror_match(&mirror, path, bytes).unwrap(),
+        Some(true)
+    );
+    let target = mirror.join(format!("{}.json", hash(item.path.as_bytes())));
+    let saved = fs::read(&target).unwrap();
+    let mut older: serde_json::Value = serde_json::from_slice(&saved).unwrap();
+    older["entries"][0]["id"] = serde_json::json!("old-id");
+    fs::write(&target, serde_json::to_vec(&older).unwrap()).unwrap();
+    assert_eq!(
+        tags::mirror_match(&mirror, path, bytes).unwrap(),
+        Some(false)
+    );
+    let inspected = store.inspect_item(&item.id).unwrap();
+    assert_eq!(inspected.inspection.manifest_sidecar_match, Some(true));
+    assert!(!inspected
+        .inspection
+        .issues
+        .contains(&"ownership-mismatch".into()));
+    assert_eq!(fs::read(&target).unwrap(), saved);
+    assert_eq!(fs::read(path).unwrap(), bytes);
+    assert_eq!(fs::metadata(path).unwrap().modified().unwrap(), modified);
+    // Stripped manifests remain a recovery boundary; a read cannot guess
+    // ownership from a matching root tag or erase the retained mirror.
+    let stripped = b"<movie><title>Mirror</title><tag>ARRI</tag></movie>";
+    fs::write(path, stripped).unwrap();
+    assert_eq!(
+        store
+            .inspect_item(&item.id)
+            .unwrap()
+            .inspection
+            .manifest_sidecar_match,
+        None
+    );
+    assert_eq!(fs::read(&target).unwrap(), saved);
+}
+#[cfg(unix)]
+#[test]
+fn inspector_reports_an_unrepairable_mirror_without_following_its_symlink() {
+    let (temp, store, item) = fixture();
+    let raw = b"<movie><title>Mirror</title><uniqueid type=\"imdb\">tt1234567</uniqueid><tag>ARRI</tag><technicalspecs source=\"IMDb\"><section name=\"Camera\"><item>ARRI</item></section><generatedtags owner=\"IMDb Tech Manager\" schema=\"2\" engine=\"ai\"><tag id=\"g-1\">ARRI</tag></generatedtags></technicalspecs></movie>";
+    fs::write(&item.path, raw).unwrap();
+    let modified = fs::metadata(&item.path).unwrap().modified().unwrap();
+    let directory = temp.path().canonicalize().unwrap();
+    let mirror = directory.join("ownership");
+    fs::create_dir(&mirror).unwrap();
+    let outside = directory.join("unrelated.json");
+    fs::write(&outside, b"unrelated user file").unwrap();
+    std::os::unix::fs::symlink(
+        &outside,
+        mirror.join(format!("{}.json", hash(item.path.as_bytes()))),
+    )
+    .unwrap();
+    let inspected = store.inspect_item(&item.id).unwrap();
+    assert_eq!(inspected.inspection.manifest_sidecar_match, Some(false));
+    assert!(inspected
+        .inspection
+        .issues
+        .contains(&"ownership-mismatch".into()));
+    assert_eq!(fs::read(&outside).unwrap(), b"unrelated user file");
+    assert_eq!(fs::read(&item.path).unwrap(), raw);
+    assert_eq!(
+        fs::metadata(&item.path).unwrap().modified().unwrap(),
+        modified
+    );
+}
+#[test]
 fn ignored_issues_and_status_are_hash_bound_and_never_write_media() {
     let (t, s, i) = fixture();
     let raw = fs::read(&i.path).unwrap();

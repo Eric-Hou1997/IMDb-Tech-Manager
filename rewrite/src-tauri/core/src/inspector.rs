@@ -2,7 +2,7 @@
 //! An annotation never changes media bytes, ownership, or generation eligibility.
 use crate::*;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use ts_rs::TS;
 pub const OVERRIDES: &[&str] = &[
     "ai-complete",
@@ -27,6 +27,7 @@ pub struct Inspection {
     pub lifecycle: String,
     pub status_override: String,
     pub issues: Vec<String>,
+    pub issue_details: BTreeMap<String, AppError>,
     pub ignored_issues: Vec<String>,
     pub tag_engine: String,
     pub tag_model: String,
@@ -34,6 +35,36 @@ pub struct Inspection {
     pub fetched_at: String,
     pub source_fetched_at: String,
     pub source_specs: Specs,
+    pub manifest_sidecar_match: Option<bool>,
+}
+/// The original dynamic hints do not change ownership or the AI-complete bucket.
+pub(crate) fn apply_ai_hints(
+    item: &mut MediaItem,
+    model: &str,
+    prompt_hashes: &BTreeSet<String>,
+    failure: Option<&AppError>,
+) {
+    let inspection = &mut item.inspection;
+    if inspection.tag_engine.trim() == "ai"
+        && inspection.tag_status == "ai-current"
+        && (inspection
+            .tag_model
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+            != model
+            || !prompt_hashes.contains(inspection.tag_prompt_hash.trim()))
+    {
+        inspection.issues.push("prompt-stale".into());
+    }
+    if let Some(error) = failure {
+        if !inspection.issues.contains(&error.code) {
+            inspection.issues.push(error.code.clone());
+        }
+        inspection
+            .issue_details
+            .insert(error.code.clone(), error.clone());
+    }
 }
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct Annotation {

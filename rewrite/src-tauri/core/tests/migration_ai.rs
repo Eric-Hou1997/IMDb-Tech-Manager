@@ -5,6 +5,37 @@ fn profile() -> serde_json::Value {
     json!({"ai":{"enabled":true,"provider":"anthropic","base_url":"https://provider.example/v1/messages","model":"existing-model","prompt":"  用户自定义提示词\n保留空白与标点。\r\n","temperature":0.4,"top_p":0.8,"max_tokens":1800,"output_token_cap":8192,"json_mode":"off","thinking_mode":"on","prompt_cache_mode":"on","timeout_seconds":125,"retry_count":4,"extra_body":"{\"metadata\":{\"test\":true}}","input_price_per_million":2.5,"output_price_per_million":7.5,"run_request_limit":30,"run_token_limit":9000,"run_cost_limit":12.0,"warning_policy":"accept","fallback_mode":"local-rules","legacy_cleanup_mode":"inferred"}})
 }
 #[test]
+fn fresh_disabled_legacy_ai_profile_imports_without_inventing_supplier_settings_or_requests() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path().canonicalize().unwrap();
+    let legacy = root.join("legacy");
+    fs::create_dir(&legacy).unwrap();
+    let bytes=serde_json::to_vec(&json!({"ai":{"enabled":false,"api_protocol":"openai","base_url":"","model":"","prompt":"  原有自定义提示词\r\n"}})).unwrap();
+    fs::write(legacy.join("config.json"), &bytes).unwrap();
+    let modified = fs::metadata(legacy.join("config.json"))
+        .unwrap()
+        .modified()
+        .unwrap();
+    let store = Store::open(&root.join("state.sqlite")).unwrap();
+    let plan = store
+        .prepare_migration("disabled-profile", &legacy, "itm-engine")
+        .unwrap();
+    store.apply_migration(&plan.id, &plan.fingerprint).unwrap();
+    let settings = store.ai_settings().unwrap();
+    assert!(!settings.enabled);
+    assert!(settings.config.base_url.is_empty() && settings.config.model.is_empty());
+    assert_eq!(settings.config.prompt, "  原有自定义提示词\r\n");
+    assert!(store.ai_history(None).unwrap().is_empty());
+    assert_eq!(fs::read(legacy.join("config.json")).unwrap(), bytes);
+    assert_eq!(
+        fs::metadata(legacy.join("config.json"))
+            .unwrap()
+            .modified()
+            .unwrap(),
+        modified
+    );
+}
+#[test]
 fn legacy_profile_preserves_custom_prompt_protocol_policy_and_native_credential_boundary() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path().canonicalize().unwrap();

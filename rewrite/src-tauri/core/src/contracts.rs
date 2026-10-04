@@ -16,12 +16,45 @@ pub enum Locale {
     Traditional,
     #[serde(rename = "en-US")]
     English,
+    #[serde(rename = "fr-FR")]
+    French,
+    #[serde(rename = "ru-RU")]
+    Russian,
+    #[serde(rename = "ja-JP")]
+    Japanese,
+    #[serde(rename = "es-ES")]
+    Spanish,
+    #[serde(rename = "th-TH")]
+    Thai,
+}
+impl Locale {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Simplified => "zh-CN",
+            Self::Traditional => "zh-Hant",
+            Self::English => "en-US",
+            Self::French => "fr-FR",
+            Self::Russian => "ru-RU",
+            Self::Japanese => "ja-JP",
+            Self::Spanish => "es-ES",
+            Self::Thai => "th-TH",
+        }
+    }
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct LibraryRoot {
     pub id: String,
     pub space: Space,
     pub path: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+pub struct LibraryRootAccess {
+    pub path: String,
+    pub online: bool,
+    pub state: String,
+    pub access_error: Option<String>,
+    pub entry_count: Option<u32>,
+    pub checked_at: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct Configuration {
@@ -109,6 +142,9 @@ pub struct TaskControl {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 pub struct Task {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[ts(optional)]
+    pub journal: Option<crate::task_log::TaskJournal>,
     #[serde(default)]
     pub automatic: bool,
     #[serde(default)]
@@ -137,6 +173,8 @@ pub struct Tag {
     pub value: String,
     pub ownership: Ownership,
     pub engine: String,
+    #[serde(default)]
+    pub field: String,
 }
 pub type Specs = BTreeMap<String, Vec<String>>;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
@@ -146,6 +184,8 @@ pub struct MediaItem {
     #[serde(default)]
     #[ts(type = "number")]
     pub modified_at: i64,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub added_date: String,
     #[serde(default)]
     pub spec_status: String,
     #[serde(default)]
@@ -156,6 +196,8 @@ pub struct MediaItem {
     pub path: String,
     pub source_hash: String,
     pub title: String,
+    #[serde(default)]
+    pub series_key: String,
     pub year: String,
     pub imdb: String,
     pub kind: String,
@@ -183,6 +225,7 @@ pub struct CatalogPage {
 pub enum OperationResult {
     Annotation(crate::inspector::Annotation),
     Automatic(crate::automatic::Status),
+    Cache(crate::imdb_cache::CacheStatus),
     Fetch(crate::acquisition::FetchRecord),
     Write(crate::writing::WritePreview),
     Ai(Box<crate::ai::job::Record>),
@@ -199,9 +242,16 @@ pub enum OperationResult {
 
 pub fn typescript() -> String {
     let declarations = [
+        crate::presentation::Message::decl(),
+        crate::presentation::Descriptor::decl(),
+        crate::presentation::Catalog::decl(),
+        crate::presentation::Pack::decl(),
         Space::decl(),
         Locale::decl(),
         LibraryRoot::decl(),
+        LibraryRootAccess::decl(),
+        crate::onboarding::RootCandidate::decl(),
+        crate::onboarding::Info::decl(),
         Configuration::decl(),
         TaskState::decl(),
         AppError::decl(),
@@ -210,8 +260,11 @@ pub fn typescript() -> String {
         Task::decl(),
         crate::automatic::Settings::decl(),
         crate::automatic::Status::decl(),
+        crate::automatic::Expected::decl(),
         crate::batch::BatchEngine::decl(),
         crate::batch::BatchMode::decl(),
+        crate::batch::ReviewedCandidate::decl(),
+        crate::batch::PreviewAdoption::decl(),
         crate::batch::BatchRequest::decl(),
         crate::batch::BatchItem::decl(),
         crate::batch::Batch::decl(),
@@ -226,6 +279,14 @@ pub fn typescript() -> String {
         CatalogPage::decl(),
         crate::migration::AdapterPlan::decl(),
         crate::imdb_cache::CacheMigrationItem::decl(),
+        crate::imdb_cache::CacheSettings::decl(),
+        crate::imdb_cache::CacheRequest::decl(),
+        crate::imdb_cache::CacheStatus::decl(),
+        crate::history::HistoryArchive::decl(),
+        crate::history::HistoryArchives::decl(),
+        crate::history::HistoryPage::decl(),
+        crate::task_log::TaskJournal::decl(),
+        crate::task_log::TaskJob::decl(),
         crate::migration::LegacyFile::decl(),
         crate::migration::LegacyRoot::decl(),
         crate::migration::MigrationPlan::decl(),
@@ -234,8 +295,16 @@ pub fn typescript() -> String {
         crate::update::UpdateArtifact::decl(),
         crate::update::UpdateCatalog::decl(),
         crate::update::UpdateProgress::decl(),
+        crate::languages::LanguageOption::decl(),
+        crate::languages::LanguageSnapshot::decl(),
         crate::ui::Sort::decl(),
+        crate::ui::CatalogFilter::decl(),
+        crate::ui::MediaLevel::decl(),
         crate::ui::LibraryView::decl(),
+        crate::ui::InspectorTab::decl(),
+        crate::ui::CatalogColumn::decl(),
+        crate::ui::CatalogColumns::decl(),
+        crate::ui::PresentationState::decl(),
         crate::ui::UiState::decl(),
         crate::ui::UiReceipt::decl(),
         crate::tv::TvRow::decl(),

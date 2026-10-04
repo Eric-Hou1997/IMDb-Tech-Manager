@@ -200,12 +200,6 @@ pub async fn update_check(id: String, app: tauri::AppHandle) -> Result<UpdatePro
     let result = async {
         public_key()?;
         let identity = identity(&app)?;
-        if identity.package_managed() {
-            return Err(error(
-                "update-package-manager",
-                "Upgrade from the configured system software repository",
-            ));
-        }
         let mut response = client()?.get(endpoint()?).send().await.map_err(network)?;
         if !response.status().is_success() {
             return Err(product_core::update::http_failure(

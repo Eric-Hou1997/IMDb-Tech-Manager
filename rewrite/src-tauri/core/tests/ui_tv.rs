@@ -40,6 +40,7 @@ fn item(id: &str, path: &str, kind: &str, season: &str, episode: &str) -> MediaI
     MediaItem {
         inspection: Default::default(),
         modified_at: 0,
+        added_date: String::new(),
         spec_status: "missing".into(),
         parser_revision: 1,
         id: id.into(),
@@ -48,6 +49,7 @@ fn item(id: &str, path: &str, kind: &str, season: &str, episode: &str) -> MediaI
         path: path.into(),
         source_hash: String::new(),
         title: id.into(),
+        series_key: String::new(),
         year: "2020".into(),
         imdb: "tt0061452".into(),
         kind: kind.into(),
@@ -167,4 +169,49 @@ fn ambiguous_nearest_series_is_not_assigned_to_an_unrelated_show() {
     assert_eq!(tv::members(&items, &orphan.id).unwrap(), vec!["episode"]);
     assert_eq!(tv::members(&items, "outer").unwrap(), vec!["outer"]);
     assert_eq!(tv::members(&items, "one").unwrap(), vec!["one"]);
+}
+
+#[test]
+fn matched_nfo_count_is_independent_of_expansion_synthetic_seasons_and_paging() {
+    let items = vec![
+        item("series", "/tv/show/tvshow.nfo", "Series", "", ""),
+        item(
+            "episode-one",
+            "/tv/show/Season 1/a.nfo",
+            "Episode",
+            "1",
+            "1",
+        ),
+        item(
+            "episode-two",
+            "/tv/show/Season 1/b.nfo",
+            "Episode",
+            "1",
+            "2",
+        ),
+    ];
+    let mut view = LibraryView::default();
+    let closed = tv::page(&items, &view);
+    assert_eq!((closed.total, closed.matched_items), (1, 3));
+    view.expanded.push("series".into());
+    let series = tv::page(&items, &view);
+    let season = series
+        .rows
+        .iter()
+        .find(|row| row.kind == "season")
+        .unwrap()
+        .id
+        .clone();
+    view.expanded.push(season);
+    let expanded = tv::page(&items, &view);
+    assert_eq!((expanded.total, expanded.matched_items), (4, 3));
+    view.offset = 100;
+    let paged = tv::page(&items, &view);
+    assert!(paged.rows.is_empty());
+    assert_eq!(paged.matched_items, 3);
+    view.offset = 0;
+    view.search = "episode-one".into();
+    assert_eq!(tv::page(&items, &view).matched_items, 1);
+    view.roots = vec!["unrelated-root".into()];
+    assert_eq!(tv::page(&items, &view).matched_items, 0);
 }

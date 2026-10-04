@@ -16,7 +16,10 @@ pub struct TvRow {
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct TvPage {
+    // Flattened visible tree rows, used only for paging.
     pub total: u32,
+    // Actual matching NFO records; independent of expanded synthetic groups.
+    pub matched_items: u32,
     pub rows: Vec<TvRow>,
 }
 struct Node {
@@ -140,7 +143,18 @@ fn forest(items: &[MediaItem], view: &LibraryView) -> Vec<Node> {
             crate::ui::Sort::Title => name.to_lowercase(),
             crate::ui::Sort::Year => item.map(|i| i.year.clone()).unwrap_or_default(),
             crate::ui::Sort::Path => item.map(|i| i.path.clone()).unwrap_or_default(),
-            crate::ui::Sort::Status => item.is_some_and(|i| i.error.is_some()).to_string(),
+            crate::ui::Sort::Status => item
+                .map(|i| i.inspection.lifecycle.clone())
+                .unwrap_or_default(),
+            crate::ui::Sort::AddedDate => item.map(|i| i.added_date.clone()).unwrap_or_default(),
+            crate::ui::Sort::SpecsStatus => item
+                .map(|i| crate::ui::spec_rank(&i.spec_status))
+                .unwrap_or_default()
+                .to_string(),
+            crate::ui::Sort::TagsStatus => item
+                .map(|i| crate::ui::tag_rank(&i.inspection.tag_status))
+                .unwrap_or_default()
+                .to_string(),
         };
         let order = field(av, &a.name)
             .cmp(&field(bv, &b.name))
@@ -207,6 +221,12 @@ pub fn page(items: &[MediaItem], view: &LibraryView) -> TvPage {
         visit(root, 0, view, &selected, &expanded, &mut rows);
     }
     TvPage {
+        matched_items: items
+            .iter()
+            .filter(|item| crate::ui::matches(item, &Space::Tv, view))
+            .count()
+            .try_into()
+            .unwrap_or(u32::MAX),
         total: rows.len().try_into().unwrap_or(u32::MAX),
         rows: rows
             .into_iter()

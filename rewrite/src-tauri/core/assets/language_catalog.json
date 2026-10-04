@@ -1,0 +1,53 @@
+{
+  "app_version": "v5.0.0",
+  "languages": {
+    "es-ES": {
+      "asset": "ITM-Language-es-ES-r2.zip",
+      "catalog_schema": 1,
+      "message_set_hash": "36ba8f7c9f32af2b571a42a8ad9637d98d27abbf99bed2f390342a4a3c4c868a",
+      "released_with": "v5.0.0",
+      "revision": 2,
+      "sha256": "8fb3f1a8ebd501b3a771433016e2ede09a0da8c27a7380040509a68f823bd284"
+    },
+    "fr-FR": {
+      "asset": "ITM-Language-fr-FR-r2.zip",
+      "catalog_schema": 1,
+      "message_set_hash": "36ba8f7c9f32af2b571a42a8ad9637d98d27abbf99bed2f390342a4a3c4c868a",
+      "released_with": "v5.0.0",
+      "revision": 2,
+      "sha256": "35d1a46fc39d572a115f971592afae4f949b31e2e5b1ae23760aea80e1ec5828"
+    },
+    "ja-JP": {
+      "asset": "ITM-Language-ja-JP-r2.zip",
+      "catalog_schema": 1,
+      "message_set_hash": "36ba8f7c9f32af2b571a42a8ad9637d98d27abbf99bed2f390342a4a3c4c868a",
+      "released_with": "v5.0.0",
+      "revision": 2,
+      "sha256": "245e3bad2f07ddae387b6953f46c398dc72f3e81bf891558a04eee1b6feaec4c"
+    },
+    "ru-RU": {
+      "asset": "ITM-Language-ru-RU-r2.zip",
+      "catalog_schema": 1,
+      "message_set_hash": "36ba8f7c9f32af2b571a42a8ad9637d98d27abbf99bed2f390342a4a3c4c868a",
+      "released_with": "v5.0.0",
+      "revision": 2,
+      "sha256": "189674cc94b86dc6d7bd8fb316273cf40f7b9451cf529ddd9a218c719582c925"
+    },
+    "th-TH": {
+      "asset": "ITM-Language-th-TH-r2.zip",
+      "catalog_schema": 1,
+      "message_set_hash": "36ba8f7c9f32af2b571a42a8ad9637d98d27abbf99bed2f390342a4a3c4c868a",
+      "released_with": "v5.0.0",
+      "revision": 2,
+      "sha256": "5188bc7de00e0244396795d201038381157437ecc71c667a5a53e0902f7e93a3"
+    }
+  },
+  "product": "itm",
+  "schema": 1,
+  "sections": [
+    "web",
+    "core",
+    "engine",
+    "native"
+  ]
+}

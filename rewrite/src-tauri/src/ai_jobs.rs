@@ -29,9 +29,9 @@ pub async fn save_ai_settings(
     secret: Option<String>,
     expected_revision: String,
     app: tauri::AppHandle,
-) -> Result<Settings> {
+) -> Result<ai::job::Profile> {
     tauri::async_runtime::spawn_blocking(move || {
-        let settings = app.state::<Desktop>().store.save_ai_profile_checked(
+        let settings = app.state::<Desktop>().store.save_ai_profile_receipt(
             &id,
             settings,
             secret.as_deref(),
@@ -42,6 +42,16 @@ pub async fn save_ai_settings(
             eprintln!("ai-settings-event: {error}");
         }
         Ok(settings)
+    })
+    .await
+    .map_err(|e| AppError::new("ai-worker", e))?
+}
+#[tauri::command]
+pub async fn ai_settings_receipt(id: String, app: tauri::AppHandle) -> Result<ai::job::Profile> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<Desktop>()
+            .store
+            .ai_settings_receipt(&id, &credentials(&app))
     })
     .await
     .map_err(|e| AppError::new("ai-worker", e))?
@@ -61,7 +71,7 @@ fn client(settings: &Settings) -> Result<reqwest::Client> {
         .redirect(reqwest::redirect::Policy::none())
         .timeout(Duration::from_secs(settings.timeout_seconds.into()))
         .connect_timeout(Duration::from_secs(15))
-        .user_agent("IMDb-Tech-Manager/4.1.0")
+        .user_agent(concat!("IMDb-Tech-Manager/", env!("CARGO_PKG_VERSION")))
         .build()
         .map_err(network)
 }
@@ -124,6 +134,10 @@ fn emit(app: &tauri::AppHandle, value: &Record) {
 #[tauri::command]
 pub fn ai_runtime(state: tauri::State<'_, Desktop>) -> Result<ai::runtime::State> {
     state.store.ai_runtime()
+}
+#[tauri::command]
+pub fn ai_failure_items(state: tauri::State<'_, Desktop>) -> Result<Vec<product_core::MediaItem>> {
+    state.store.ai_failure_items()
 }
 #[tauri::command]
 pub fn resume_ai_runtime(id: String, app: tauri::AppHandle) -> Result<ai::runtime::State> {

@@ -175,6 +175,6 @@ pub fn adapt(root: &Value) -> Result<Option<Settings>> {
     value["credential_account"] = LEGACY_ACCOUNT.into();
     let settings: Settings =
         serde_json::from_value(value).map_err(|e| AppError::new("legacy-ai-config", e))?;
-    settings.validate()?;
+    settings.validate_saved()?;
     Ok(Some(settings))
 }

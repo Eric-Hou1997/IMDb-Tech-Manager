@@ -1,6 +1,78 @@
 use super::*;
 use serde_json::{json, Value};
 use std::{fs, io::Write, path::Path};
+/// Compare the same authoritative entries used by v4.1.0. Metadata and row
+/// ordering in an older mirror do not establish an ownership mismatch.
+pub fn mirror_match(directory: &Path, path: &Path, raw: &[u8]) -> Result<Option<bool>> {
+    let Some(expected) = record(raw, path)? else {
+        return Ok(None);
+    };
+    let target = directory.join(format!(
+        "{}.json",
+        crate::hash(path.to_string_lossy().as_bytes())
+    ));
+    if !target
+        .try_exists()
+        .map_err(|e| AppError::new("ownership-mirror", e))?
+    {
+        return Ok(None);
+    }
+    let target = crate::paths::checked(&target)?;
+    let metadata = fs::metadata(&target).map_err(|e| AppError::new("ownership-mirror", e))?;
+    if metadata.len() > crate::library::MAX_NFO_BYTES {
+        return Err(AppError::new(
+            "ownership-mirror",
+            "Ownership mirror exceeds read limit",
+        ));
+    }
+    use std::io::Read;
+    let mut bytes = Vec::new();
+    fs::File::open(&target)
+        .and_then(|f| {
+            f.take(crate::library::MAX_NFO_BYTES + 1)
+                .read_to_end(&mut bytes)
+        })
+        .map_err(|e| AppError::new("ownership-mirror", e))?;
+    if bytes.len() as u64 > crate::library::MAX_NFO_BYTES {
+        return Err(AppError::new(
+            "ownership-mirror",
+            "Ownership mirror grew beyond read limit",
+        ));
+    }
+    let actual: Value = serde_json::from_slice(&bytes)?;
+    if actual.is_null() || actual.as_object().is_some_and(|o| o.is_empty()) {
+        return Ok(None);
+    }
+    if !actual.is_object() {
+        return Ok(Some(false));
+    }
+    if expected["engine"].as_str().unwrap_or("").trim().is_empty()
+        && actual["entries"]
+            .as_array()
+            .is_some_and(|rows| !rows.is_empty())
+    {
+        return Ok(None);
+    }
+    let rows = |value: &Value, key: &str| {
+        let mut rows: Vec<_> = value[key]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .map(|row| {
+                (
+                    clean(row["id"].as_str().unwrap_or("")),
+                    crate::ownership_key(&clean(row["value"].as_str().unwrap_or(""))),
+                )
+            })
+            .collect();
+        rows.sort();
+        rows
+    };
+    Ok(Some(
+        rows(&expected, "entries") == rows(&actual, "entries")
+            && rows(&expected, "manual_entries") == rows(&actual, "manual_entries"),
+    ))
+}
 fn record(raw: &[u8], path: &Path) -> Result<Option<Value>> {
     let all = std::str::from_utf8(raw).map_err(|e| AppError::new("invalid-encoding", e))?;
     let doc = roxmltree::Document::parse(all.trim_start_matches('\u{feff}'))

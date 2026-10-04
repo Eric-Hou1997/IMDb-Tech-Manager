@@ -60,6 +60,221 @@ fn request(item: &MediaItem, id: &str) -> Request {
         retry_failed: false,
     }
 }
+#[test]
+fn task_center_and_inspector_keep_persistent_failures_until_success_and_exclude_connection_tests() {
+    let (_tmp, store, item, _root) = setup();
+    let before = fs::read(&item.path).unwrap();
+    let mtime = fs::metadata(&item.path).unwrap().modified().unwrap();
+    store.begin_ai(request(&item, "failed")).unwrap();
+    store
+        .end_ai("failed", AppError::new("transient", "Provider unavailable"))
+        .unwrap();
+    assert_eq!(
+        store
+            .ai_failure_items()
+            .unwrap()
+            .iter()
+            .map(|i| &i.id)
+            .collect::<Vec<_>>(),
+        vec![&item.id]
+    );
+    store.begin_ai_test("test-failed").unwrap();
+    store
+        .end_ai(
+            "test-failed",
+            AppError::new("transient", "Connection test failed"),
+        )
+        .unwrap();
+    assert_eq!(store.ai_failure_items().unwrap().len(), 1);
+    let failed = store.inspect_item(&item.id).unwrap();
+    assert_eq!(
+        failed.inspection.issue_details["transient"].message,
+        "Provider unavailable"
+    );
+    assert_eq!(
+        failed.inspection.issue_details["transient"].path.as_deref(),
+        Some(item.path.as_str())
+    );
+    assert!(!store
+        .item(&item.id)
+        .unwrap()
+        .inspection
+        .issues
+        .contains(&"transient".into()));
+    let mut retry = request(&item, "cancelled");
+    retry.retry_failed = true;
+    store.begin_ai(retry).unwrap();
+    store
+        .end_ai("cancelled", AppError::new("cancelled", "User cancelled"))
+        .unwrap();
+    assert_eq!(store.ai_failure_items().unwrap().len(), 1);
+    assert!(store.all_items().unwrap()[0]
+        .inspection
+        .issues
+        .contains(&"transient".into()));
+    let mut retry = request(&item, "unsafe");
+    retry.retry_failed = true;
+    store.begin_ai(retry).unwrap();
+    store
+        .end_ai("unsafe", AppError::new("source-conflict", "Changed NFO"))
+        .unwrap();
+    assert_eq!(store.ai_failure_items().unwrap().len(), 1);
+    for code in ["auth", "quota", "rate-limit"] {
+        let mut retry = request(&item, code);
+        retry.retry_failed = true;
+        store.begin_ai(retry).unwrap();
+        store
+            .end_ai(code, AppError::new(code, "Runtime paused"))
+            .unwrap();
+        let projected = store.inspect_item(&item.id).unwrap();
+        assert!(projected.inspection.issues.contains(&"transient".into()));
+        assert!(!projected.inspection.issues.contains(&code.into()));
+    }
+    store
+        .annotate(itm_core::inspector::AnnotationRequest {
+            operation_id: "ignore-failure".into(),
+            item_id: item.id.clone(),
+            expected_hash: item.source_hash.clone(),
+            action: itm_core::inspector::AnnotationAction::Ignore {
+                issue: "transient".into(),
+            },
+        })
+        .unwrap();
+    assert!(store
+        .inspect_item(&item.id)
+        .unwrap()
+        .inspection
+        .ignored_issues
+        .contains(&"transient".into()));
+    // Ignoring a hint never discards the queue or silently authorizes an HTTP request.
+    assert_eq!(store.ai_failure_items().unwrap().len(), 1);
+    let mut retry = request(&item, "successful-retry");
+    retry.retry_failed = true;
+    let (record, _) = store.begin_ai(retry).unwrap();
+    store
+        .reserve_ai_attempt("successful-retry", job::next(&record).unwrap().unwrap().0)
+        .unwrap();
+    store
+        .observe_ai_attempt(
+            "successful-retry",
+            Ok(response("stop", &good(), 10, 5)),
+            0.0,
+        )
+        .unwrap();
+    assert!(store.ai_failure_items().unwrap().is_empty());
+    assert!(!store
+        .inspect_item(&item.id)
+        .unwrap()
+        .inspection
+        .issues
+        .contains(&"transient".into()));
+    assert!(store
+        .inspect_item(&item.id)
+        .unwrap()
+        .inspection
+        .ignored_issues
+        .is_empty());
+    assert_eq!(fs::read(&item.path).unwrap(), before);
+    assert_eq!(fs::metadata(&item.path).unwrap().modified().unwrap(), mtime);
+}
+#[test]
+fn original_prompt_hash_compatibility_is_narrow_and_never_changes_customized_prompts() {
+    let mut config = itm_core::ai::Config::default();
+    assert_eq!(
+        itm_core::ai::accepted_prompt_hashes(&config),
+        std::collections::BTreeSet::from([
+            // Characterized directly from the frozen v4.1.0 engine constants.
+            "6549a78834aaed05".into(),
+            "898f41597d49671c".into(),
+            "429ca63683ecebf6".into(),
+        ])
+    );
+    config.prompt = "人工定制提示词\n保留，不翻译".into();
+    let before = config.prompt.clone();
+    let hashes = itm_core::ai::accepted_prompt_hashes(&config);
+    assert_eq!(hashes.len(), 2);
+    assert!(!hashes.contains("898f41597d49671c"));
+    assert_eq!(config.prompt, before);
+}
+#[test]
+fn disabled_ai_settings_can_be_saved_without_a_supplier_but_never_authorize_a_request() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().canonicalize().unwrap().join("state.sqlite");
+    let store = Store::open(&path).unwrap();
+    let default = Settings::default();
+    store
+        .save_ai_settings("save-default", default.clone())
+        .unwrap();
+    assert_eq!(
+        store
+            .save_ai_settings("save-default", default.clone())
+            .unwrap()
+            .config
+            .prompt,
+        itm_core::ai::DEFAULT_PROMPT
+    );
+    assert_eq!(
+        store.begin_ai_test("test-incomplete").unwrap_err().code,
+        "invalid-ai-endpoint"
+    );
+    assert!(store.ai_history(None).unwrap().is_empty());
+    let mut incomplete = default.clone();
+    incomplete.config.base_url = "An unfinished URL".into();
+    incomplete.config.prompt = "  人工提示词\n保持原文\r\n".into();
+    store
+        .save_ai_settings("save-draft", incomplete.clone())
+        .unwrap();
+    assert_eq!(
+        store.ai_settings().unwrap().config.prompt,
+        incomplete.config.prompt
+    );
+    incomplete.enabled = true;
+    assert_eq!(
+        store
+            .save_ai_settings("reject-enabled", incomplete)
+            .unwrap_err()
+            .code,
+        "invalid-ai-config"
+    );
+    assert!(!store.ai_settings().unwrap().enabled);
+    for key in [
+        "temperature",
+        "top-p",
+        "thinking-mode",
+        "prompt-cache-mode",
+        "max-tokens",
+        "output-token-cap",
+        "timeout-seconds",
+        "run-cost-limit",
+    ] {
+        let mut invalid = default.clone();
+        match key {
+            "temperature" => invalid.config.temperature = 2.0,
+            "top-p" => invalid.config.top_p = 0.0,
+            "thinking-mode" => invalid.config.thinking_mode = "invalid".into(),
+            "prompt-cache-mode" => invalid.config.prompt_cache_mode = "invalid".into(),
+            "max-tokens" => invalid.config.max_tokens = 127,
+            "output-token-cap" => invalid.output_token_cap = 32769,
+            "timeout-seconds" => invalid.timeout_seconds = 9,
+            _ => invalid.run_cost_limit = -1.0,
+        }
+        assert_eq!(
+            store
+                .save_ai_settings(&format!("invalid-{key}"), invalid)
+                .unwrap_err()
+                .code,
+            "invalid-ai-config"
+        );
+    }
+    assert!(store.ai_history(None).unwrap().is_empty());
+    drop(store);
+    let reopened = Store::open(&path).unwrap();
+    assert_eq!(
+        reopened.ai_settings().unwrap().config.prompt,
+        "  人工提示词\n保持原文\r\n"
+    );
+    assert!(reopened.configuration().unwrap().roots.is_empty());
+}
 fn response(reason: &str, content: &str, input: u64, output: u64) -> HttpResponse {
     HttpResponse{status:200,body:serde_json::to_vec(&json!({"choices":[{"finish_reason":reason,"message":{"content":content}}],"usage":{"prompt_tokens":input,"completion_tokens":output,"total_tokens":input+output}})).unwrap()}
 }
@@ -299,7 +514,7 @@ fn v7_rekey_preserves_original_cache_and_history_and_keeps_failure_protection() 
     assert_eq!(
         db.pragma_query_value(None, "user_version", |r| r.get::<_, u32>(0))
             .unwrap(),
-        8
+        9
     );
     assert_eq!(
         db.query_row("SELECT result FROM operations WHERE id='good'", [], |r| {
@@ -1196,6 +1411,72 @@ fn profile_changed_during_keychain_write_rejects_stale_commit_and_cleans_new_key
     assert!(store.ai_settings().unwrap().credential_account.is_empty());
     assert_eq!(
         store.operation_result("stale-keychain").unwrap_err().code,
+        "operation-not-found"
+    );
+}
+
+#[test]
+fn settings_receipt_keeps_the_committed_revision_when_keyring_read_fails_and_another_save_wins() {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    struct ChangedOnRead<'a> {
+        store: &'a Store,
+        change: AtomicBool,
+    }
+    impl services::CredentialStore for ChangedOnRead<'_> {
+        fn get(&self, _: &str) -> Result<Option<String>> {
+            if self.change.swap(false, Ordering::SeqCst) {
+                let mut later = self.store.ai_settings()?;
+                later.config.model = "later-profile".into();
+                self.store.save_ai_settings("later-profile", later)?;
+            }
+            Err(AppError::new("credential-read", "fixture unavailable"))
+        }
+        fn put(&self, _: &str, _: &str) -> Result<()> {
+            panic!("No credential write authorized")
+        }
+        fn delete(&self, _: &str) -> Result<()> {
+            panic!("No credential deletion authorized")
+        }
+    }
+    let (_temp, store, _, _) = setup();
+    let mut settings = store.ai_settings().unwrap();
+    settings.credential_account = "existing-fixture".into();
+    store
+        .save_ai_settings("existing-reference", settings)
+        .unwrap();
+    let vault = ChangedOnRead {
+        store: &store,
+        change: AtomicBool::new(false),
+    };
+    let original = store.ai_profile(&vault).unwrap();
+    let mut changed = original.settings.clone();
+    changed.config.model = "this-operation".into();
+    vault.change.store(true, Ordering::SeqCst);
+    let receipt = store
+        .save_ai_profile_receipt(
+            "saved-with-receipt",
+            changed,
+            None,
+            &vault,
+            &original.revision,
+        )
+        .unwrap();
+    assert_eq!(receipt.settings.config.model, "this-operation");
+    assert_eq!(receipt.credential_error.unwrap().code, "credential-read");
+    assert!(!receipt.credential_ready);
+    assert_eq!(store.ai_settings().unwrap().config.model, "later-profile");
+    let recovered = store
+        .ai_settings_receipt("saved-with-receipt", &vault)
+        .unwrap();
+    assert_eq!(recovered.revision, receipt.revision);
+    assert_eq!(recovered.settings.config.model, "this-operation");
+    assert_eq!(store.ai_settings().unwrap().config.model, "later-profile");
+    assert_ne!(store.ai_profile(&vault).unwrap().revision, receipt.revision);
+    assert_eq!(
+        store
+            .ai_settings_receipt("absent-receipt", &vault)
+            .unwrap_err()
+            .code,
         "operation-not-found"
     );
 }
