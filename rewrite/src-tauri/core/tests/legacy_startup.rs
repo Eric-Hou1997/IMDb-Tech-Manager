@@ -21,10 +21,13 @@ fn plist(label: &str, args: &[&str]) -> Vec<u8> {
 fn old_writers_block_startup_but_the_current_app_and_unrelated_processes_do_not() {
     let manager = std::path::Path::new("/Users/test/Library/Application Support/IMDb Tech Manager");
     for listing in [
-        format!("123 {}/bin/imdb-tech-manager --agent", manager.display()),
         format!(
-            "124 /usr/bin/python3 {}/engine/mac-engine.py --resident",
-            manager.display()
+            "123 {} --agent",
+            manager.join("bin/imdb-tech-manager").display()
+        ),
+        format!(
+            "124 /usr/bin/python3 {} --resident",
+            manager.join("engine/mac-engine.py").display()
         ),
         "125 /Applications/IMDb Tech Manager.app/Contents/MacOS/imdb-tech-manager --native-hosted"
             .into(),

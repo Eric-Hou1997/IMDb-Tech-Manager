@@ -106,7 +106,7 @@ fn original_root_access_test_is_confirmed_read_only_and_reports_offline_or_unsaf
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(path, fs::Permissions::from_mode(0)).unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o000)).unwrap();
         let denied = store.test_library_root(path.to_str().unwrap());
         fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
         let denied = denied.unwrap();
