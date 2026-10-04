@@ -61,7 +61,7 @@ def collect(target, target_dir, output):
         print(name)
     if 'apple' in target:
         app = directory / 'bundle/macos/IMDb Tech Manager.app'
-        assert app.is_dir()
+        assert app.is_dir(), 'Retain the app bundle with --bundles app,dmg for both OTA companion archives'
         assert not any(p.is_symlink() for p in app.rglob('*')), 'Updater bundle rejects ambiguous links'
         assert (app / 'Contents/MacOS/IMDbTechManagerLauncher').is_file(), 'Preserve v4 updater launcher check'
         base = f'ITM-v{version}-MacOS-AArch64-APP'

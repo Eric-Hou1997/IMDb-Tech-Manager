@@ -6,7 +6,7 @@ on:
         description: Native build targets
         type: choice
         default: all
-        options: [all, windows]
+        options: [all, windows, macos]
 permissions:
   contents: read
 env:
@@ -23,7 +23,9 @@ jobs:
           ${{ fromJSON(
             inputs.target_scope == 'windows'
             && '[{"runner":"windows-2022","target":"x86_64-pc-windows-msvc","bundles":"nsis"},{"runner":"windows-11-arm","target":"aarch64-pc-windows-msvc","bundles":"nsis"}]'
-            || '[{"runner":"macos-15","target":"aarch64-apple-darwin","bundles":"dmg"},{"runner":"windows-2022","target":"x86_64-pc-windows-msvc","bundles":"nsis"},{"runner":"windows-11-arm","target":"aarch64-pc-windows-msvc","bundles":"nsis"},{"runner":"ubuntu-22.04","target":"x86_64-unknown-linux-gnu","bundles":"appimage,deb,rpm"},{"runner":"ubuntu-22.04-arm","target":"aarch64-unknown-linux-gnu","bundles":"appimage,deb,rpm"}]'
+            || inputs.target_scope == 'macos'
+            && '[{"runner":"macos-15","target":"aarch64-apple-darwin","bundles":"app,dmg"}]'
+            || '[{"runner":"macos-15","target":"aarch64-apple-darwin","bundles":"app,dmg"},{"runner":"windows-2022","target":"x86_64-pc-windows-msvc","bundles":"nsis"},{"runner":"windows-11-arm","target":"aarch64-pc-windows-msvc","bundles":"nsis"},{"runner":"ubuntu-22.04","target":"x86_64-unknown-linux-gnu","bundles":"appimage,deb,rpm"},{"runner":"ubuntu-22.04-arm","target":"aarch64-unknown-linux-gnu","bundles":"appimage,deb,rpm"}]'
           ) }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
