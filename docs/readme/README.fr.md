@@ -215,7 +215,7 @@ Les responsabilités d’ITM et de TCM ne sont **pas définitivement liées à u
 
 Les implémentations actuellement disponibles ou développées activement sont :
 
-* **ITM** : application de gestion des Technical Specifications actuellement centrée sur **macOS** ;
+* **ITM** : application de gestion des Technical Specifications avec des fichiers de distribution pour **macOS, Windows et Linux** ;
 * **TCM** : outil de gestion de cartes et d’intégration aux médiathèques actuellement centré sur **Emby**.
 
 Il s’agit uniquement des implémentations actuelles, sans limiter définitivement les projets à ces plateformes.
@@ -229,6 +229,9 @@ Les extensions futures peuvent inclure :
 * d’autres sources compatibles de Technical Specifications.
 
 ITM et TCM restent relativement indépendants sur le plan architectural et communiquent par des Technical Specifications et métadonnées normalisées, ce qui laisse la voie ouverte à d’autres plateformes et médiathèques.
+
+
+v5.0.0 conserve les fonctions, l’interface et les opérations de v4.1.0 ; seuls la pile technique et l’adaptation aux plateformes changent.
 
 ## 🧠 Principes de conception
 
@@ -475,7 +478,7 @@ L’historique public du code source commence à **v4.0.0**.
 Le dépôt comprend actuellement :
 
 * le code source complet ;
-* l’implémentation macOS actuelle ;
+* Implémentations pour cinq cibles en Rust + Tauri 2 + TypeScript + Vue 3/Vite ;
 * `AGENTS.md` ;
 * les tests ;
 * les outils de build des Releases ;
@@ -487,42 +490,58 @@ Le dépôt comprend actuellement :
 * [`PRIVACY.md`](../legal/PRIVACY.fr.md) ;
 * [`TERMS.md`](../legal/TERMS.fr.md).
 
-### Plateforme actuellement prise en charge
+### Cibles de la version actuelle
 
-L’implémentation maintenue est :
+v5.0.0 conserve les fonctions, l’interface et les opérations de v4.1.0 ; seuls la pile technique et l’adaptation aux plateformes changent.
 
-**macOS · Apple Silicon (arm64)**
+Cette distribution comprend cinq cibles et neuf formats de paquets, sans version macOS Intel :
 
-L’application de bureau se compose principalement de :
+* macOS ARM64 : DMG ; glissez `IMDb Tech Manager.app` dans Applications.
+* Windows x64/ARM64 : NSIS `Setup.exe` ; choisissez l’installateur correspondant à l’architecture de l’application.
+* Linux x64/ARM64 : AppImage, DEB et RPM ; AppImage requiert les droits d’exécution et ses dépendances. Installez et mettez à niveau DEB/RPM avec le gestionnaire de paquets système.
 
 ```text
-Lanceur natif
+Tauri 2 / System WebView
       +
-Core Go
+Rust Core
       +
-Web UI locale
-      +
-Moteur Python
+TypeScript + Vue 3 / Vite
 ```
 
-Le dépôt est organisé autour du produit, pas définitivement autour d’un système d’exploitation.
-
-Si Windows ou d’autres plateformes sont pris en charge plus tard, ils resteront intégrés à IMDb Tech Manager tant qu’ils conservent les mêmes responsabilités et flux de données.
+v5 utilise un cœur Rust, la WebView système de Tauri et une interface TypeScript + Vue 3/Vite, sans moteurs métier Go/Python. Les sources, ressources et tests originaux de `macos/` restent la référence v4.1.0.
 
 ### Version officielle actuelle
 
-Version publique actuelle :
+**IMDb Tech Manager v5.0.0**
 
-**IMDb Tech Manager v4.1.0**
+Les fichiers de v5.0.0 portent exactement les noms suivants :
 
-La Release fournit l’application Apple Silicon `.app` dans une archive ZIP avec :
+```text
+ITM-v5.0.0-MacOS-AArch64.dmg
+ITM-v5.0.0-Windows-x64-Setup.exe
+ITM-v5.0.0-Windows-AArch64-Setup.exe
+ITM-v5.0.0-Linux-x64.AppImage
+ITM-v5.0.0-Linux-x64.deb
+ITM-v5.0.0-Linux-x64.rpm
+ITM-v5.0.0-Linux-AArch64.AppImage
+ITM-v5.0.0-Linux-AArch64.deb
+ITM-v5.0.0-Linux-AArch64.rpm
+```
+
+`ITM-v5.0.0-MacOS-AArch64-APP.zip` et sa signature Ed25519 originale sont également fournis pour l’OTA v4.1.0. Les mises à jour v5 utilisent la même base avec `.tar.gz` et sa signature. Les mises à jour AppImage/NSIS vérifient l’architecture de l’application ; téléchargez DEB/RPM depuis la même Release et utilisez le gestionnaire système. Aucun dépôt logiciel n’est ajouté. Les données, invites, références aux identifiants et historiques d’annulation sont conservés ; sauvegardez avant la mise à niveau.
 
 * le Changelog de la Release ;
 * les informations de vérification SHA-256 ;
 * la signature OTA Ed25519 ;
 * les instructions d’installation.
 
+Les paquets macOS sont signés ad hoc, sans notarisation Apple ; les installateurs Windows ne sont pas signés par un certificat de distribution. L’OTA conserve la clé ITM Ed25519 existante, dont la partie privée n’est jamais envoyée à GitHub. Les contrôles de contenu et de compilation ne certifient pas la prise en charge sur machines réelles.
+
+Le mainteneur a reporté la validation complète des opérations natives, des pixels et des parcours AI/IMDb réels. Les machines Windows/Linux et la version minimale de macOS ne sont pas non plus certifiées. Les captures existantes proviennent de v4.1.0 et servent de référence à l’interface conservée ; elles ne valident pas les pixels de v5.
+
 [**Voir les Releases →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+
+Les cinq langues externes utilisent les ZIP r2 de cette Release, avec tous les textes originaux et les messages requis pour les tâches et plateformes. Les paquets r1 vérifiés restent utilisables hors ligne ; les anciens journaux ne sont pas réécrits.
 
 Le chinois simplifié, le chinois traditionnel et l’anglais (États-Unis) sont intégrés. Le français, le russe, le japonais, l’espagnol et le thaï sont fournis comme packs de langue vérifiés avec la Release correspondante. Voir [`docs/language-packs.md`](../language-packs.md).
 
@@ -549,6 +568,7 @@ Le projet reste activement développé ; ses fonctionnalités, son architecture,
 * [x] Partager la langue entre Web UI, Core Go, moteur Python et menus macOS natifs
 * [x] Figer la langue des journaux et de la révision au démarrage d’une tâche tout en conservant l’historique, les caches et les invites
 * [x] Distinguer les échecs réseau/proxy, limitation GitHub, asset manquant, téléchargement et signature
+* [x] Fournir la migration v5.0.0 pour cinq cibles et neuf paquets, en conservant les fonctions et l’interface ; les points non validés sont indiqués ci-dessus
 
 ### En cours
 

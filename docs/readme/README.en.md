@@ -215,7 +215,7 @@ The responsibilities of ITM and TCM are **not permanently tied to any particular
 
 The implementations currently available or under active development are:
 
-* **ITM**: a Technical Specifications data-management application currently focused on **macOS**
+* **ITM**: a Technical Specifications data-management application with **macOS, Windows and Linux** release files
 * **TCM**: a Technical Specifications card-management and media-library integration tool currently focused on **Emby**
 
 These are simply the current implementations and do not mean that either project will remain limited to these platforms.
@@ -229,6 +229,9 @@ Future expansion may include:
 * Additional compatible Technical Specifications data sources
 
 ITM and TCM remain relatively independent at the architectural level and communicate through standardized Technical Specifications and media metadata, leaving room for future expansion across platforms and media-library environments.
+
+
+v5.0.0 preserves v4.1.0 features, interface and operations; it changes only the stack and platform adaptation.
 
 ## 🧠 Design Principles
 
@@ -477,7 +480,7 @@ The public source-code history starts with **v4.0.0**.
 The repository currently includes:
 
 * Complete project source code
-* Current macOS implementation
+* Five target implementations using Rust + Tauri 2 + TypeScript + Vue 3/Vite
 * `AGENTS.md`
 * Test code
 * Release build tools
@@ -489,42 +492,58 @@ The repository currently includes:
 * [`PRIVACY.md`](../legal/PRIVACY.en.md)
 * [`TERMS.md`](../legal/TERMS.en.md)
 
-### Currently Supported Platform
+### Current Release Targets
 
-The currently maintained implementation is:
+v5.0.0 preserves v4.1.0 features, interface and operations; it changes only the stack and platform adaptation.
 
-**macOS · Apple Silicon (arm64)**
+This release has five targets and nine package formats, with no macOS Intel build:
 
-The current desktop application is primarily composed of:
+* macOS ARM64: DMG; drag `IMDb Tech Manager.app` to Applications.
+* Windows x64/ARM64: NSIS `Setup.exe`; choose the installer matching the application architecture.
+* Linux x64/ARM64: AppImage, DEB and RPM; AppImage needs executable permission and its runtime dependencies. Install and upgrade DEB/RPM with the system package manager.
 
 ```text
-Native Launcher
+Tauri 2 / System WebView
       +
-Go Core
+Rust Core
       +
-Local Web UI
-      +
-Python Engine
+TypeScript + Vue 3 / Vite
 ```
 
-The repository is organized around the product rather than permanently around an operating system.
-
-If Windows or other platforms are supported in the future, they will remain part of IMDb Tech Manager as long as they preserve the same product responsibilities and data workflow.
+v5 runs a Rust core and Tauri system WebView with a TypeScript + Vue 3/Vite frontend, without the Go/Python business engines. Original source, assets and tests under `macos/` remain the v4.1.0 baseline.
 
 ### Current Official Release
 
-Current public release:
+**IMDb Tech Manager v5.0.0**
 
-**IMDb Tech Manager v4.1.0**
+v5.0.0 release files use these exact names:
 
-The Release provides the Apple Silicon `.app` as a ZIP package together with:
+```text
+ITM-v5.0.0-MacOS-AArch64.dmg
+ITM-v5.0.0-Windows-x64-Setup.exe
+ITM-v5.0.0-Windows-AArch64-Setup.exe
+ITM-v5.0.0-Linux-x64.AppImage
+ITM-v5.0.0-Linux-x64.deb
+ITM-v5.0.0-Linux-x64.rpm
+ITM-v5.0.0-Linux-AArch64.AppImage
+ITM-v5.0.0-Linux-AArch64.deb
+ITM-v5.0.0-Linux-AArch64.rpm
+```
+
+`ITM-v5.0.0-MacOS-AArch64-APP.zip` and its original Ed25519 signature are also provided for v4.1.0 OTA. v5 updates use the same base with `.tar.gz` and its signature. AppImage/NSIS updates match and verify the application architecture; download DEB/RPM from the same Release and upgrade with the system package manager. No software repository is added. Original data, prompts, credential references and undo records remain; back up before upgrading.
 
 * Release Changelog
 * SHA-256 verification information
 * OTA Ed25519 signature
 * Installation instructions
 
+macOS packages use ad hoc signing and are not Apple-notarized; Windows installers have no distribution-certificate signature. OTA uses the existing ITM Ed25519 key, whose private part is never uploaded to GitHub. Package-content and source-build checks do not certify real-system support.
+
+The maintainer deferred full native operation, pixel and real AI/IMDb workflow acceptance. Windows/Linux hardware and the minimum macOS runtime are also uncertified. Existing screenshots are from v4.1.0 and reference the preserved interface; they do not establish v5 pixel acceptance.
+
 [**View Releases →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+
+The five external languages use r2 ZIPs from this Release, including all original text and required task/platform messages. Verified r1 packs remain reusable offline; old logs are not rewritten.
 
 Simplified Chinese, Traditional Chinese, and English (United States) are built in. French, Russian, Japanese, Spanish, and Thai are provided as verified language packs on the matching app Release. See [`docs/language-packs.md`](../language-packs.md) for details.
 
@@ -551,6 +570,7 @@ The project remains under active development, and its features, architecture, te
 * [x] Share language state across the Web UI, Go Core, Python Engine, and native macOS menus
 * [x] Freeze task log and review language at task start while preserving historical logs, caches, and prompts
 * [x] Distinguish proxy/network, GitHub throttling, missing-asset, download, and signature-verification failures
+* [x] Provide the v5.0.0 stack migration for five targets and nine packages, preserving original features and UI; unverified items are stated above
 
 ### In Progress
 

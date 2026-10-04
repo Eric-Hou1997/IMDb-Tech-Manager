@@ -214,7 +214,7 @@ ITM 与 TCM 的职责划分**不与某一个操作系统或媒体服务器永久
 
 目前实际已经实现或正在重点开发的是：
 
-* **ITM**：当前主要运行于 **macOS** 的 Technical Specifications 数据管理工具
+* **ITM**：提供 **macOS、Windows、Linux** 发行文件的 Technical Specifications 数据管理工具
 * **TCM**：当前主要围绕 **Emby** 开发的 Technical Specifications 卡片管理与媒体库集成工具
 
 这些只是现阶段的实现形态，并不代表两个项目未来只能运行在这些平台上。
@@ -228,6 +228,9 @@ ITM 与 TCM 的职责划分**不与某一个操作系统或媒体服务器永久
 * 其他兼容的 Technical Specifications 数据源
 
 ITM 与 TCM 在架构上保持相对独立，通过标准化的 Technical Specifications 与媒体元数据进行衔接，从而为后续扩展不同平台和媒体库提供空间。
+
+
+v5.0.0 保留 v4.1.0 的功能、界面与操作，只更换技术栈并适配平台。
 
 ## 🧠 项目设计原则
 
@@ -478,7 +481,7 @@ IMDb Tech Manager 目前处于 **公开源码、持续开发阶段**。
 当前 Repository 已经包含：
 
 * 完整项目源码
-* macOS 当前实现
+* Rust + Tauri 2 + TypeScript + Vue 3/Vite 的五目标实现
 * `AGENTS.md`
 * 测试代码
 * Release 构建工具
@@ -490,42 +493,58 @@ IMDb Tech Manager 目前处于 **公开源码、持续开发阶段**。
 * [`PRIVACY.md`](./PRIVACY.md)
 * [`TERMS.md`](./TERMS.md)
 
-### 当前支持平台
+### 当前发行目标
 
-目前正式维护的实现为：
+v5.0.0 保留 v4.1.0 的功能、界面与操作，只更换技术栈并适配平台。
 
-**macOS · Apple Silicon（arm64）**
+本次发行目标共五个、九种安装包，没有 macOS Intel：
 
-当前桌面端主要由以下部分组成：
+* macOS ARM64：DMG；将 `IMDb Tech Manager.app` 拖入应用程序目录。
+* Windows x64/ARM64：NSIS `Setup.exe`；选择与应用架构匹配的安装程序。
+* Linux x64/ARM64：AppImage、DEB、RPM；AppImage 需可执行权限与对应运行依赖，DEB/RPM 使用系统包管理器安装和升级。
 
 ```text
-Native Launcher
+Tauri 2 / System WebView
       +
-Go Core
+Rust Core
       +
-Local Web UI
-      +
-Python Engine
+TypeScript + Vue 3 / Vite
 ```
 
-Repository 按产品组织，而不是永久按照操作系统划分。
-
-未来如果扩展 Windows 或其他平台，仍然属于 IMDb Tech Manager，只要保持相同的产品职责和数据工作流。
+v5 运行 Rust 核心与 Tauri 系统 WebView，使用 TypeScript + Vue 3/Vite 前端，不再运行 Go/Python 业务引擎。`macos/` 原源码、资源与测试保留为 v4.1.0 基线。
 
 ### 当前正式版本
 
-当前公开版本：
+**IMDb Tech Manager v5.0.0**
 
-**IMDb Tech Manager v4.1.0**
+v5.0.0 发行文件使用以下准确名称：
 
-Release 已提供 Apple Silicon `.app` 的 ZIP 发布包，并同时提供：
+```text
+ITM-v5.0.0-MacOS-AArch64.dmg
+ITM-v5.0.0-Windows-x64-Setup.exe
+ITM-v5.0.0-Windows-AArch64-Setup.exe
+ITM-v5.0.0-Linux-x64.AppImage
+ITM-v5.0.0-Linux-x64.deb
+ITM-v5.0.0-Linux-x64.rpm
+ITM-v5.0.0-Linux-AArch64.AppImage
+ITM-v5.0.0-Linux-AArch64.deb
+ITM-v5.0.0-Linux-AArch64.rpm
+```
+
+另附 `ITM-v5.0.0-MacOS-AArch64-APP.zip` 及原 Ed25519 签名供 v4.1.0 OTA 使用；v5 更新使用同基名 `.tar.gz` 与对应签名。AppImage/NSIS 更新按应用架构匹配并验签；DEB/RPM 从同一 Release 下载后由系统包管理器升级，没有新增软件源。原数据、提示词、凭据引用与撤销资料保留，升级前仍请备份。
 
 * Release Changelog
 * SHA-256 校验信息
 * OTA Ed25519 签名
 * 安装说明
 
+macOS 包使用临时签名，未做 Apple 公证；Windows 安装程序没有发行证书签名。OTA 使用现有 ITM Ed25519 密钥，私钥不上传 GitHub。包内容和源码构建检查不能代替实机支持认证。
+
+维护者暂缓完整原生操作、像素及真实 AI/IMDb 流程验收；Windows/Linux 实机与最低 macOS 运行也未认证。现有截图来自 v4.1.0，作为保留界面的参照，不是 v5 像素验收结果。
+
 [**查看 Releases →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+
+五种外部语言使用本次 Release 的 r2 ZIP，包含全部原文案及必要任务/平台提示；已验证旧 r1 离线可复用，旧日志不重写。
 
 应用内置简体中文、繁體中文和 English (United States)。法语、俄语、日语、西班牙语与泰语通过对应应用版本的 GitHub Release 语言包提供，下载并验证后加载。详情见 [`docs/language-packs.md`](./docs/language-packs.md)。
 
@@ -552,6 +571,7 @@ Release 已提供 Apple Silicon `.app` 的 ZIP 发布包，并同时提供：
 * [x] 让 Web、Go Core、Python Engine 与 macOS 原生菜单共享语言状态
 * [x] 固定任务启动时的日志与复核语言，并保留旧日志、缓存和提示词
 * [x] 区分代理/网络、GitHub 限流、资产缺失、下载与签名验证错误
+* [x] 提供 v5.0.0 五目标九包的纯换栈版本；保留原版功能与界面，未验收项目如上列明
 
 ### 持续推进
 

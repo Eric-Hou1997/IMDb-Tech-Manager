@@ -215,7 +215,7 @@ Las responsabilidades de ITM y TCM **no están vinculadas permanentemente a un s
 
 Las implementaciones disponibles o en desarrollo activo actualmente son:
 
-* **ITM**: una aplicación de gestión de datos de Especificaciones técnicas centrada actualmente en **macOS**
+* **ITM**: una aplicación de gestión de Especificaciones técnicas con archivos de distribución para **macOS, Windows y Linux**
 * **TCM**: una herramienta de gestión de tarjetas de Especificaciones técnicas e integración con bibliotecas multimedia centrada actualmente en **Emby**
 
 Estas son solo las implementaciones actuales y no implican que ninguno de los proyectos vaya a quedar limitado a estas plataformas.
@@ -229,6 +229,9 @@ La expansión futura puede incluir:
 * Fuentes de datos de Especificaciones técnicas compatibles adicionales
 
 ITM y TCM mantienen una independencia relativa en el nivel arquitectónico y se comunican mediante Especificaciones técnicas y metadatos multimedia estandarizados, lo que deja margen para ampliarlos en distintas plataformas y entornos de biblioteca.
+
+
+v5.0.0 conserva las funciones, la interfaz y las operaciones de v4.1.0; solo cambia la pila y la adaptación a las plataformas.
 
 ## 🧠 Principios de diseño
 
@@ -477,7 +480,7 @@ El historial público del código fuente comienza con **v4.0.0**.
 El repositorio incluye actualmente:
 
 * Código fuente completo del proyecto
-* Implementación actual para macOS
+* Implementaciones para cinco destinos con Rust + Tauri 2 + TypeScript + Vue 3/Vite
 * `AGENTS.md`
 * Código de pruebas
 * Herramientas de compilación de versiones
@@ -489,42 +492,58 @@ El repositorio incluye actualmente:
 * [`PRIVACY.md`](../legal/PRIVACY.es.md)
 * [`TERMS.md`](../legal/TERMS.es.md)
 
-### Plataforma compatible actualmente
+### Destinos de la versión actual
 
-La implementación que se mantiene actualmente es:
+v5.0.0 conserva las funciones, la interfaz y las operaciones de v4.1.0; solo cambia la pila y la adaptación a las plataformas.
 
-**macOS · Apple Silicon (arm64)**
+Esta versión tiene cinco destinos y nueve formatos de paquetes, sin compilación para macOS Intel:
 
-La aplicación de escritorio actual está compuesta principalmente por:
+* macOS ARM64: DMG; arrastre `IMDb Tech Manager.app` a Applications.
+* Windows x64/ARM64: NSIS `Setup.exe`; elija el instalador para la arquitectura de la aplicación.
+* Linux x64/ARM64: AppImage, DEB y RPM; AppImage necesita permiso de ejecución y sus dependencias. Instale y actualice DEB/RPM con el gestor de paquetes del sistema.
 
 ```text
-Lanzador nativo
+Tauri 2 / System WebView
       +
-Núcleo Go
+Rust Core
       +
-Interfaz web local
-      +
-Motor Python
+TypeScript + Vue 3 / Vite
 ```
 
-El repositorio se organiza en torno al producto, no de forma permanente en torno a un sistema operativo.
-
-Si en el futuro se admiten Windows u otras plataformas, seguirán formando parte de IMDb Tech Manager siempre que conserven las mismas responsabilidades de producto y el mismo flujo de datos.
+v5 utiliza un núcleo Rust, la WebView del sistema de Tauri y una interfaz TypeScript + Vue 3/Vite, sin motores de negocio Go/Python. El código, los recursos y las pruebas originales de `macos/` se conservan como referencia de v4.1.0.
 
 ### Versión oficial actual
 
-Versión pública actual:
+**IMDb Tech Manager v5.0.0**
 
-**IMDb Tech Manager v4.1.0**
+Los archivos de v5.0.0 tienen estos nombres exactos:
 
-La versión ofrece la aplicación `.app` para Apple Silicon dentro de un paquete ZIP junto con:
+```text
+ITM-v5.0.0-MacOS-AArch64.dmg
+ITM-v5.0.0-Windows-x64-Setup.exe
+ITM-v5.0.0-Windows-AArch64-Setup.exe
+ITM-v5.0.0-Linux-x64.AppImage
+ITM-v5.0.0-Linux-x64.deb
+ITM-v5.0.0-Linux-x64.rpm
+ITM-v5.0.0-Linux-AArch64.AppImage
+ITM-v5.0.0-Linux-AArch64.deb
+ITM-v5.0.0-Linux-AArch64.rpm
+```
+
+También se incluyen `ITM-v5.0.0-MacOS-AArch64-APP.zip` y su firma Ed25519 original para OTA v4.1.0. Las actualizaciones v5 usan la misma base con `.tar.gz` y su firma. Las actualizaciones AppImage/NSIS verifican la arquitectura de la aplicación; descargue DEB/RPM de la misma Release y actualice con el gestor del sistema. No se añade un repositorio de software. Se conservan datos, prompts, referencias a credenciales e historial de deshacer; haga una copia antes de actualizar.
 
 * Registro de cambios de la versión
 * Información de verificación SHA-256
 * Firma OTA Ed25519
 * Instrucciones de instalación
 
+Los paquetes macOS usan firma ad hoc sin notarización de Apple; los instaladores Windows no tienen firma de certificado de distribución. OTA conserva la clave ITM Ed25519 existente, cuya parte privada nunca se sube a GitHub. Las comprobaciones de paquetes y compilación no certifican compatibilidad en equipos reales.
+
+El mantenedor aplazó la aceptación completa de operaciones nativas, píxeles y flujos AI/IMDb reales. Los equipos Windows/Linux y la versión mínima de macOS tampoco están certificados. Las capturas existentes son de v4.1.0 y sirven de referencia para la interfaz conservada; no prueban la aceptación de píxeles de v5.
+
 [**Ver versiones →**](https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases)
+
+Los cinco idiomas externos usan ZIP r2 de esta Release, con todos los textos originales y los mensajes necesarios de tareas y plataformas. Los paquetes r1 verificados se pueden reutilizar sin conexión; no se reescriben registros antiguos.
 
 El chino simplificado, el chino tradicional y el inglés (Estados Unidos) están integrados. El francés, ruso, japonés, español y tailandés se ofrecen como paquetes de idioma verificados en la versión correspondiente de la aplicación. Consulta [`docs/language-packs.md`](../language-packs.md) para obtener más información.
 
@@ -551,6 +570,7 @@ El proyecto sigue en desarrollo activo; sus funciones, arquitectura, cobertura d
 * [x] Compartir el estado del idioma entre la interfaz web, el núcleo Go, el motor Python y los menús nativos de macOS
 * [x] Fijar al iniciar la tarea el idioma de los registros y la revisión, conservando registros históricos, cachés y prompts
 * [x] Distinguir fallos de proxy/red, limitación de GitHub, recurso ausente, descarga y verificación de firma
+* [x] Proporcionar la migración v5.0.0 para cinco destinos y nueve paquetes, conservando funciones e interfaz; los puntos sin verificar se indican arriba
 
 ### En curso
 

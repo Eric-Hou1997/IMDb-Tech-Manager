@@ -1,0 +1,19 @@
+IMDb Tech Manager v5.0.0
+
+- 仅更换 v4.1.0 技术栈为 Rust + Tauri 2 + TypeScript + Vue 3/Vite，保留原列表、Inspector、规格/标签归属、规则与 AI、范围/试写采纳、任务日志/恢复及设置入口，不增加产品功能。
+- 提供 macOS ARM64 DMG、Windows x64/ARM64 NSIS、Linux x64/ARM64 AppImage/DEB/RPM，共五目标九包，没有 macOS Intel。
+- 保留旧双目录、Sidecar、配置、缓存、提示词、凭据引用、历史及 r1 语言恢复；失败关闭和 NFO 事务安全继续有效。
+- 三内置语言、五个完整 r2 外部 ZIP；任务固定启动语言，旧日志不重写。About 链接保留八语言法律文档，打开设置恢复原自动检查更新行为。
+- 使用现有 ITM Ed25519 密钥签署更新资产，保留 v4.1.0 Mac OTA ZIP/签名并提供 v5 更新目录；DEB/RPM 仍由系统包管理器升级，不新增软件源。
+- macOS 临时签名、未 Apple 公证；Windows 无发行证书。完整原生操作、像素及真实 AI/IMDb 验收由维护者暂缓，Windows/Linux 实机及最低 macOS 运行未认证；源码和包检查不代替实机支持。
+
+--- English ---
+
+IMDb Tech Manager v5.0.0
+
+- Migrates only the v4.1.0 stack to Rust + Tauri 2 + TypeScript + Vue 3/Vite. Retains the catalog, Inspector, Specs/Tag ownership, rules and AI, scopes/preview adoption, task logs/recovery and settings without adding product features.
+- Provides macOS ARM64 DMG, Windows x64/ARM64 NSIS and Linux x64/ARM64 AppImage/DEB/RPM: five targets and nine packages, with no macOS Intel.
+- Preserves old dual-directory, Sidecar, settings, cache, prompt, credential-reference, history and r1 language recovery. Fail-closed startup and NFO transaction safeguards remain.
+- Keeps three built-in languages and five complete external r2 ZIPs. Tasks freeze their starting locale, and old logs are not rewritten. About links retain all eight legal-document locales; opening Settings restores the original automatic update check.
+- Signs update assets with the existing ITM Ed25519 key, retains the v4.1.0 macOS OTA ZIP/signature and provides the v5 update catalog. DEB/RPM upgrades use the system package manager; no software repository is added.
+- macOS is ad hoc signed and not Apple-notarized; Windows has no distribution certificate. Full native operation, pixel and real AI/IMDb acceptance were deferred by the maintainer. Windows/Linux hardware and minimum-macOS runtime are uncertified; source/package checks do not certify system support.
