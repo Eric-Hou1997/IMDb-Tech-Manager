@@ -1657,7 +1657,7 @@
   "current_delivery": {
     "product": "ITM",
     "original_flow": "original catalog, Inspector edits, task-center logs/recovery, owned preview adoption and original ZIP languages; dynamic AI Inspector/failure queue and original AI/root settings; original two-directory startup settings and server-saved layout compatibility; original first-run confirmation and read-only TMM candidates; original stripped-manifest Sidecar recovery through inspection, preview, approved transactions and undo; original App login preference and verified old login handoff; frozen task language, per-item status and actionable error presentation with compatible r1 and v5 r2 ZIP descriptors; confirmed roots-save read-only indexing after the startup timeout",
-    "status": "release-inputs-verified-human-acceptance-deferred",
+    "status": "released-v5.0.0-human-native-acceptance-deferred",
     "sources": [
       "rewrite/src/LibraryPanel.vue",
       "rewrite/src/CatalogList.vue",
@@ -1768,7 +1768,6 @@
       "rewrite/src-tauri/core/examples/verify_update.rs"
     ],
     "pending": [
-      "GitHub upload, exact asset API digest/signature readback and stable publication",
       "maintainer-deferred full native/pixel/real AI/IMDb and legacy installation operations",
       "Windows/Linux hardware and minimum macOS runtime acceptance remain unverified"
     ],
@@ -1785,7 +1784,12 @@
       "primary_packages": 9,
       "external_language_zips": 5,
       "assets_with_companions_and_evidence": 34,
-      "release_url": "https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases/tag/v5.0.0"
-    }
+      "release_url": "https://github.com/Eric-Hou1997/IMDb-Tech-Manager/releases/tag/v5.0.0",
+      "published_at": "2026-10-04T05:25:02Z",
+      "github_release_id": 402852011,
+      "github_api_readback": "34/34 exact names, uploaded state, sizes and SHA-256; latest stable v5.0.0; old tags unchanged",
+      "public_downloads": "Five r2 language ZIPs, ITM-update.json and legacy OTA signature downloaded without authentication and match exact source/local digests"
+    },
+    "cleanup": "16.29 GiB repository target cache removed with source hashes preserved; final Python bytecode cleanup preserved 410 sources; 2.32 GiB temporary CI/verifier copies removed after publication. Final 34 assets, old build evidence, baseline source/data/keys/tests retained."
   }
 }
