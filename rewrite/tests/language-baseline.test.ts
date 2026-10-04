@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 import test,{after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -7,7 +8,7 @@ import {createSSRApp,h} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createServer} from 'vite';
 import vue from '@vitejs/plugin-vue';
-const server=await createServer({configFile:false,root:new URL('..',import.meta.url).pathname,plugins:[vue()],server:{middlewareMode:true,watch:null,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,entries:[]},appType:'custom'});
+const server=await createServer({configFile:false,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[vue()],server:{middlewareMode:true,watch:null,hmr:false,ws:false},optimizeDeps:{noDiscovery:true,entries:[]},appType:'custom'});
 after(()=>server.close());
 const language=await server.ssrLoadModule('/src/baseline-language.ts');
 import type {Locale,LanguageSnapshot} from '../src/contracts';

@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 import test, {after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -33,7 +34,7 @@ vm.createContext(context);
 for (const prefix of ['const CHUNK=', 'const BUCKET_TEXT=', 'const MEDIA_TYPE_TEXT=', 'const LIST_COLUMNS=', 'function esc(', 'function lcOf(', 'function specStatusText(', 'function bucketOf(', 'function statusClass(', 'function statusText(', 'function formatUIDate(', 'function compareItems(', 'function sortItems(', 'function cellValue(', 'function matches(', 'function visibleItems(', 'function itemRow(', 'function treeLabelRow(', 'function renderLibrary(', 'function overviewHTML(', 'function specsHTML(', 'function tagsHTML(', 'function mediaTypeText(', 'function tagStatusText(', 'function issueKindText(', 'function showContextMenu(', 'function previewRecordHTML(', 'function automaticScope(', 'function localScopeSummary(']) {
  const line = source.split('\n').find(line => line.startsWith(prefix)); assert.ok(line, prefix); vm.runInContext(line, context);
 }
-const server = await createServer({configFile: false, root: new URL('..', import.meta.url).pathname, plugins: [vue()], server: {middlewareMode: true, watch: null, hmr: false, ws: false}, optimizeDeps: {noDiscovery: true, entries: []}, appType: 'custom'});
+const server = await createServer({configFile: false, root: fileURLToPath(new URL('..', import.meta.url)), plugins: [vue()], server: {middlewareMode: true, watch: null, hmr: false, ws: false}, optimizeDeps: {noDiscovery: true, entries: []}, appType: 'custom'});
 after(() => server.close());
 const List = (await server.ssrLoadModule('/src/CatalogList.vue')).default;
 const Overview = (await server.ssrLoadModule('/src/InspectorOverview.vue')).default;

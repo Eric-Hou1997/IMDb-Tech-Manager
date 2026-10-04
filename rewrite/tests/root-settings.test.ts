@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 import test,{after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -9,7 +10,7 @@ import {renderToString} from 'vue/server-renderer';
 import {baseParse} from '@vue/compiler-dom';
 import type {Configuration} from '../src/contracts';
 
-const server=await createServer({configFile:false,root:new URL('..',import.meta.url).pathname,plugins:[{
+const server=await createServer({configFile:false,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
  name:'root-native-fixture',enforce:'pre',
  resolveId(id){if(id==='@tauri-apps/api/core'||id==='virtual:root-native')return '\0root-native';},
  load(id){if(id==='\0root-native')return 'let handler; export const setHandler=value=>handler=value; export const invoke=(...args)=>handler(...args);';},

@@ -1,10 +1,11 @@
+import {fileURLToPath} from 'node:url';
 import test,{after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createServer} from 'vite';
 import vue from '@vitejs/plugin-vue';
 import {createRenderer,reactive,nextTick,ssrContextKey} from 'vue';
-const server=await createServer({configFile:false,root:new URL('..',import.meta.url).pathname,plugins:[{
+const server=await createServer({configFile:false,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
  name:'update-native-fixture',enforce:'pre',
  resolveId(id){if(id==='virtual:update-native')return '\0update-native';},
  load(id){if(id==='\0update-native')return 'let handler;export const setHandler=value=>handler=value;export const invoke=(...args)=>handler(...args);export const listen=async()=>()=>{};';},

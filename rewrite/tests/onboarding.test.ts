@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 import test,{after} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -8,7 +9,7 @@ import {createRenderer,createSSRApp,h,reactive,ssrContextKey} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {baseParse} from '@vue/compiler-dom';
 import type {Configuration,OnboardingInfo} from '../src/contracts';
-const server=await createServer({configFile:false,root:new URL('..',import.meta.url).pathname,plugins:[{
+const server=await createServer({configFile:false,root:fileURLToPath(new URL('..',import.meta.url)),plugins:[{
  name:'onboarding-native-fixture',enforce:'pre',
  resolveId(id){if(id==='virtual:onboarding-native')return '\0onboarding-native';},
  load(id){if(id==='\0onboarding-native')return 'let handler;export const setHandler=value=>handler=value;export const invoke=(...args)=>handler(...args);';},
